@@ -103,6 +103,7 @@ auto Dmn_DMesgDbus::setOutputHandler(
 
 auto Dmn_DMesgDbus::status() const -> Dmn_DMesgDbusStatus {
   std::lock_guard lock{m_impl->endpoint_mutex};
+
   return Dmn_DMesgDbusStatus{m_impl->input->status(),
                              m_impl->output ? m_impl->output->status()
                                             : Dmn_DbusIoStatus{}};

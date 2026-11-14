@@ -7,6 +7,7 @@
 
 #include "dmn-dbus-client.hpp"
 #include "dmn-dbus-io.hpp"
+#include "dmn-debug.hpp"
 #include "dmn-test-dbus-support.hpp"
 
 #include <dbus/dbus.h>
@@ -18,12 +19,14 @@
 #include <cstdint>
 #include <functional>
 #include <future>
+#include <iostream>
 #include <limits>
 #include <memory>
 #include <mutex>
 #include <stdexcept>
 #include <string>
 #include <string_view>
+#include <syncstream>
 #include <thread>
 #include <tuple>
 #include <type_traits>
@@ -275,6 +278,10 @@ private:
                                            "unexpected nested array signature");
     } else if (dbus_message_is_method_call(message, kInterface,
                                            "AcceptStructVariant")) {
+      DMN_DEBUG_PRINT(std::osyncstream{std::cerr}
+                      << "[D-Bus test service] received AcceptStructVariant"
+                      << " signature=" << dbus_message_get_signature(message)
+                      << '\n');
       reply = self->acceptStructVariant(message);
     } else if (dbus_message_is_method_call(message, kPropertyInterface,
                                            "Get")) {

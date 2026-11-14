@@ -8,6 +8,7 @@
 #include "dmn-dbus-client.hpp"
 
 #include "dmn-dbus-runtime.hpp"
+#include "dmn-debug.hpp"
 
 #include <dbus/dbus.h>
 
@@ -15,11 +16,13 @@
 #include <atomic>
 #include <condition_variable>
 #include <deque>
+#include <iostream>
 #include <limits>
 #include <mutex>
 #include <optional>
 #include <stdexcept>
 #include <string_view>
+#include <syncstream>
 #include <system_error>
 #include <thread>
 #include <type_traits>
@@ -669,7 +672,10 @@ public:
     std::shared_ptr<Impl> keep_alive;
     DBusPendingCall *pending{};
     CodecLimits limits{};
+    std::string method;
+    std::chrono::steady_clock::time_point submitted_at;
     std::chrono::steady_clock::time_point deadline;
+    std::chrono::milliseconds timeout{};
     std::atomic_bool completed{};
   };
 
@@ -813,7 +819,10 @@ public:
     }
 
     request->limits = limits;
-    request->deadline = std::chrono::steady_clock::now() + timeout;
+    request->method = destination + " " + path + " " + interface + "." + member;
+    request->submitted_at = std::chrono::steady_clock::now();
+    request->deadline = request->submitted_at + timeout;
+    request->timeout = timeout;
     request->keep_alive = shared_from_this();
     DBusPendingCall *pending{};
     bool rejectedByShutdown{};
@@ -854,6 +863,10 @@ public:
 
       return Dmn_DbusCall{std::move(future), {}};
     }
+
+    DMN_DEBUG_PRINT(std::osyncstream{std::cerr}
+                    << "[D-Bus] queued " << request->method
+                    << " timeout_ms=" << request->timeout.count() << '\n');
 
     auto *context = new std::shared_ptr<CallRequest>{request};
     if (!dbus_pending_call_set_notify(pending, pendingComplete, context,
@@ -1193,6 +1206,18 @@ private:
 
     try {
       MessagePtr reply{dbus_pending_call_steal_reply(pending)};
+
+      const auto elapsed{
+          std::chrono::duration_cast<std::chrono::milliseconds>(
+              std::chrono::steady_clock::now() - request->submitted_at)
+              .count()};
+      DMN_DEBUG_PRINT(std::osyncstream{std::cerr}
+                      << "[D-Bus] reply " << request->method
+                      << " elapsed_ms=" << elapsed << " signature="
+                      << (reply == nullptr
+                              ? "<missing>"
+                              : dbus_message_get_signature(reply.get()))
+                      << '\n');
 
       if (reply != nullptr &&
           dbus_message_get_type(reply.get()) == DBUS_MESSAGE_TYPE_ERROR) {
@@ -1603,6 +1628,14 @@ private:
     for (const auto &request : expired) {
       if (!request->completed.exchange(true)) {
         m_in_flight.fetch_sub(1);
+        const auto elapsed{
+            std::chrono::duration_cast<std::chrono::milliseconds>(
+                now - request->submitted_at)
+                .count()};
+        DMN_DEBUG_PRINT(std::osyncstream{std::cerr}
+                        << "[D-Bus] timeout " << request->method
+                        << " elapsed_ms=" << elapsed
+                        << " timeout_ms=" << request->timeout.count() << '\n');
 
         try {
           request->promise.set_value(std::unexpected(makeError(
