@@ -9,6 +9,7 @@
 #define DMN_TEST_DBUS_SUPPORT_HPP_
 
 #include "dmn-dbus-config.hpp"
+#include "dmn-dbus-runtime.hpp"
 
 #include <dbus/dbus.h>
 #include <gtest/gtest.h>
@@ -175,6 +176,8 @@ public:
    * @param daemonConfig Optional complete dbus-daemon XML configuration.
    */
   explicit PrivateBus(std::string_view daemonConfig = {}) {
+    dmn::detail::initializeDbusRuntime();
+
     std::unique_ptr<TempConfigFile> configFile;
     if (!daemonConfig.empty()) {
       configFile = std::make_unique<TempConfigFile>();

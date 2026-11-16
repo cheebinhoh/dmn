@@ -838,71 +838,72 @@ public:
                      m_connection.get(), message.get(), &pending,
                      static_cast<int>(timeout.count())) &&
                  pending != nullptr;
-
         if (queued) {
-          request->pending = pending;
-          m_pending.emplace(request.get(), Pending{request, pending});
+          if (queued) {
+            request->pending = pending;
+            m_pending.emplace(request.get(), Pending{request, pending});
+          }
         }
       }
-    }
 
-    if (rejectedByShutdown) {
-      m_in_flight.fetch_sub(1);
-      this->finish(request,
-                   std::unexpected(makeError(Dmn_DbusErrorKind::Shutdown,
-                                             "D-Bus client is shutting down")));
+      if (rejectedByShutdown) {
+        m_in_flight.fetch_sub(1);
+        this->finish(request, std::unexpected(
+                                  makeError(Dmn_DbusErrorKind::Shutdown,
+                                            "D-Bus client is shutting down")));
 
-      return Dmn_DbusCall{std::move(future), {}};
-    }
-
-    if (!queued) {
-      m_in_flight.fetch_sub(1);
-      this->finish(request, std::unexpected(makeError(
-                                Dmn_DbusErrorKind::Transport,
-                                "unable to queue D-Bus method call")));
-
-      return Dmn_DbusCall{std::move(future), {}};
-    }
-
-    DMN_DEBUG_PRINT(std::osyncstream{std::cerr}
-                    << "[D-Bus] queued " << request->method
-                    << " timeout_ms=" << request->timeout.count() << '\n');
-
-    auto *context = new std::shared_ptr<CallRequest>{request};
-    if (!dbus_pending_call_set_notify(pending, pendingComplete, context,
-                                      deletePendingContext)) {
-      delete context;
-      DBusPendingCall *ownedPending{};
-
-      {
-        std::lock_guard lock{m_mutex};
-
-        m_pending.erase(request.get());
-        ownedPending = request->pending;
-        request->pending = nullptr;
+        return Dmn_DbusCall{std::move(future), {}};
       }
 
-      dbus_pending_call_cancel(ownedPending);
-      dbus_pending_call_unref(ownedPending);
-      m_in_flight.fetch_sub(1);
-      request->promise.set_value(std::unexpected(
-          makeError(Dmn_DbusErrorKind::Transport,
-                    "unable to register D-Bus pending-call completion")));
-      request->keep_alive.reset();
+      if (!queued) {
+        m_in_flight.fetch_sub(1);
+        this->finish(request, std::unexpected(makeError(
+                                  Dmn_DbusErrorKind::Transport,
+                                  "unable to queue D-Bus method call")));
 
-      return Dmn_DbusCall{std::move(future), {}};
+        return Dmn_DbusCall{std::move(future), {}};
+      }
+
+      DMN_DEBUG_PRINT(std::osyncstream{std::cerr}
+                      << "[D-Bus] queued " << request->method
+                      << " timeout_ms=" << request->timeout.count() << '\n');
+
+      auto *context = new std::shared_ptr<CallRequest>{request};
+      if (!dbus_pending_call_set_notify(pending, pendingComplete, context,
+                                        deletePendingContext)) {
+        delete context;
+        DBusPendingCall *ownedPending{};
+
+        {
+          std::lock_guard lock{m_mutex};
+
+          m_pending.erase(request.get());
+          ownedPending = request->pending;
+          request->pending = nullptr;
+        }
+
+        dbus_pending_call_cancel(ownedPending);
+        dbus_pending_call_unref(ownedPending);
+        m_in_flight.fetch_sub(1);
+        request->promise.set_value(std::unexpected(
+            makeError(Dmn_DbusErrorKind::Transport,
+                      "unable to register D-Bus pending-call completion")));
+        request->keep_alive.reset();
+
+        return Dmn_DbusCall{std::move(future), {}};
+      }
+
+      std::weak_ptr<Impl> weakImpl{shared_from_this()};
+      std::weak_ptr<CallRequest> weakRequest{request};
+
+      return Dmn_DbusCall{std::move(future), [weakImpl, weakRequest] {
+                            const auto impl{weakImpl.lock()};
+                            const auto pending{weakRequest.lock()};
+                            if (impl != nullptr && pending != nullptr) {
+                              impl->cancelCall(pending);
+                            }
+                          }};
     }
-
-    std::weak_ptr<Impl> weakImpl{shared_from_this()};
-    std::weak_ptr<CallRequest> weakRequest{request};
-
-    return Dmn_DbusCall{std::move(future), [weakImpl, weakRequest] {
-                          const auto impl{weakImpl.lock()};
-                          const auto pending{weakRequest.lock()};
-                          if (impl != nullptr && pending != nullptr) {
-                            impl->cancelCall(pending);
-                          }
-                        }};
   }
 
   void cancelCall(const std::shared_ptr<CallRequest> &request) noexcept {

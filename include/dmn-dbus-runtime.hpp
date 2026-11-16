@@ -11,13 +11,15 @@
  *
  *   Dmn_DMesgNet (dmn-dmesgnet-dbus.cpp)    Dmn_BluezClient, GATT client,
  *            |                              ANCS monitor
- *   Dmn_DbusInput / Dmn_DbusOutput                  |
- *   (dmn-dbus-io.hpp, dmn-dbus-config.hpp)   Dmn_DbusClient
- *            |                              (dmn-dbus-client.hpp)
- *            +---------------+---------------+
- *                    dmn-dbus-runtime.hpp
- *                            |
- *                         libdbus
+ *            |                                      |
+ *   Dmn_DbusInput / Dmn_DbusOutput           Dmn_DbusClient
+ *   (dmn-dbus-io.hpp, dmn-dbus-config.hpp)  (dmn-dbus-client.hpp)
+ *            |                                      |
+ *            +------------------+-------------------+
+ *                               |
+ *                      dmn-dbus-runtime.hpp
+ *                               |
+ *                            libdbus
  *
  * - Dmn_DbusInput/Dmn_DbusOutput are Dmn's own message transport: opaque byte
  *   payloads broadcast as one signal tuple (default path /org/dmn/DMesg1,
