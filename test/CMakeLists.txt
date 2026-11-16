@@ -108,7 +108,10 @@ function(add_dmn_cli_version_test target)
   )
 endfunction()
 
-add_dmn_cli_version_test(dmn-dmesg-daemon)
+if (ENABLE_APP_DMESG_DAEMON)
+  add_dmn_cli_version_test(dmn-dmesg-daemon)
+endif()
+
 if (ENABLE_DMN_DMESGNET)
   add_dmn_cli_version_test(dmn-kafka-receiver)
   add_dmn_cli_version_test(dmn-kafka-sender)
