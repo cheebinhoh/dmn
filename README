@@ -22,11 +22,16 @@ Generated documentation: <https://cheebinhoh.github.io/Dmn/>
 ## Build, test, and install
 
 The default Linux CI workflow uses the Dockerfile to build and test the
-complete configuration: DMesg messaging, Kafka, all three Bluetooth
-applications, and their registered tests. A plain CMake configure remains
-lean: each app option defaults to `OFF`, while enabling an app automatically
-enables its required ANCS, BlueZ, and D-Bus libraries. CMake fetches missing
-third-party dependencies when `DMN_ALLOW_DEPENDENCY_FETCH=ON`.
+complete CMake configuration: DMesg messaging, Kafka, the DMesg daemon, both
+Bluetooth CLIs, the GTK app, the COSMIC C ABI, and their registered tests. The
+Rust COSMIC frontend is built and tested separately with Cargo. Optional
+Bluetooth apps and the DMesg daemon default to `OFF`; enabling a Bluetooth app
+automatically enables its required ANCS, BlueZ, and D-Bus libraries. The
+DMesg/DMesgNet stack and unit tests default to `ON`; the messaging stack also
+adds its Kafka sender/receiver example executables. For a minimal core build,
+disable tests and the messaging stack and build the `dmn` target explicitly.
+CMake fetches missing third-party dependencies when
+`DMN_ALLOW_DEPENDENCY_FETCH=ON`.
 
 ### 1. Complete Linux build and test
 
@@ -41,16 +46,18 @@ sudo apt-get install build-essential cmake git pkg-config libicu-dev \
 ```
 
 Configure and build all supported software features. This enables the two
-Bluetooth CLIs, GTK desktop app, the COSMIC C library, Kafka integration tests, Valgrind test
-variants, and fault-injection tests; physical-device tests remain opt-in.
-The optional application flags are the only flags needed to select the apps:
-their ANCS, BlueZ, and D-Bus dependencies are enabled automatically.
+Bluetooth CLIs, GTK desktop app, COSMIC C ABI, DMesg daemon, Kafka integration
+tests, Valgrind variants, and fault-injection tests; physical-device tests
+remain opt-in. Bluetooth application flags automatically enable their ANCS,
+BlueZ, and D-Bus dependencies. The Rust COSMIC frontend is built and tested
+separately with Cargo (see [COSMIC Bluetooth application](#cosmic-bluetooth-application)).
 
 ```bash
 cmake -S . -B build-all -DCMAKE_BUILD_TYPE=Debug \
   -DDMN_BUILD_TESTS=ON \
   -DDMN_ALLOW_DEPENDENCY_FETCH=ON \
   -DBUILD_KAFKA_TEST=ON \
+  -DENABLE_APP_DMESG_DAEMON=ON \
   -DENABLE_APP_BLUEZ_DISCOVERY_CLI=ON \
   -DENABLE_APP_BLUETOOTH_CLI=ON \
   -DENABLE_APP_BLUETOOTH_GTK=ON \
@@ -107,6 +114,20 @@ cmake --install build-gtk-app --component Runtime
 the reusable headers, static libraries, and developer tools; an unqualified
 `cmake --install build-gtk-app` installs both components.
 
+### Core library only
+
+To configure and build just the core library without applications, tests, or
+the Protobuf/librdkafka messaging stack:
+
+```bash
+cmake -S . -B build-core -DCMAKE_BUILD_TYPE=Release \
+  -DDMN_BUILD_TESTS=OFF \
+  -DDMN_ALLOW_DEPENDENCY_FETCH=OFF \
+  -DENABLE_DMN_DMESGNET=OFF \
+  -DENABLE_APP_DMESG_DAEMON=OFF
+cmake --build build-core --target dmn --parallel 2
+```
+
 ### 3. Developer build and install
 
 For the core library and regular unit tests without optional Bluetooth apps:
@@ -118,6 +139,11 @@ cmake --build build-dev --parallel 2
 ctest --test-dir build-dev -L dmn --output-on-failure
 cmake --install build-dev --component Development
 ```
+
+The DMesg/DMesgNet stack remains enabled in this developer configuration, so
+it also builds the Kafka sender/receiver examples. Use the
+[core-library-only configuration](#core-library-only) to omit those executables
+and build only the `dmn` library.
 
 To run every test registered in this developer configuration, use
 `ctest --test-dir build-dev --output-on-failure`. Optional applications and
@@ -458,9 +484,9 @@ docker run -it --rm dmn
 ```
 
 The image installs GTK 4/libadwaita development packages and the Rust
-toolchain, enables all three
-applications plus Kafka, Valgrind, and fault-injection tests, and builds all
-configured targets. On startup, the entrypoint bootstraps Kafka and runs the
+toolchain, enables the DMesg daemon and all four Bluetooth frontends plus
+Kafka, Valgrind, and fault-injection tests, and builds all configured targets.
+On startup, the entrypoint bootstraps Kafka and runs the
 regular, CLI, GTK, COSMIC (`cargo test`), Kafka, Valgrind, and
 fault-injection tests. These tests do
 not launch a graphical window; showing the app itself requires forwarding a
@@ -494,7 +520,10 @@ docker rmi dmn
 | --- | --- | --- |
 | `BUILD_NDEBUG` | `OFF` | Define `NDEBUG` for the build. |
 | `BUILD_KAFKA_TEST` | `OFF` | Build the additional Kafka integration tests when `ENABLE_DMN_DMESGNET` is also `ON`; otherwise they are skipped with a CMake status message. |
-| `ENABLE_DMN_DMESGNET` | `ON` | Build the Protobuf-based DMesg/DMesgNet messaging stack and its Kafka transport; requires Protobuf and librdkafka. Set `OFF` for applications that do not use DMesg messaging, such as the GTK Bluetooth app. DMesg, DMesgNet, and Kafka tests are registered only when this option is `ON`; other tests remain available. |
+| `DMN_BUILD_TESTS` | `ON` | Build and register Dmn unit tests. |
+| `DMN_ALLOW_DEPENDENCY_FETCH` | `ON` | Fetch missing third-party dependencies with CMake FetchContent. |
+| `ENABLE_DMN_DMESGNET` | `ON` | Build the Protobuf-based DMesg/DMesgNet messaging stack, Kafka transport, and Kafka sender/receiver examples; requires Protobuf and librdkafka. Set `OFF` for applications that do not use DMesg messaging, such as the GTK Bluetooth app. DMesg, DMesgNet, and Kafka tests are registered only when this option is `ON`; other tests remain available. |
+| `ENABLE_APP_DMESG_DAEMON` | `OFF` | Build the `dmn-dmesg-daemon` executable. |
 | `ENABLE_DBUS` | `OFF` | Build the optional D-Bus signal I/O extension and generic D-Bus client. Requires libdbus development files and pkg-config; private-bus tests require `dbus-daemon`. |
 | `ENABLE_BLUEZ` | `OFF` | Build the Linux BlueZ library; automatically enables its `ENABLE_DBUS` dependency. |
 | `ENABLE_ANCS` | `OFF` | Build the backend-neutral ANCS protocol library. |
@@ -503,6 +532,7 @@ docker rmi dmn
 | `ENABLE_APP_BLUETOOTH_GTK` | `OFF` | Build and install the Linux GTK 4/libadwaita `dmn-bluetooth-gtk` desktop app; automatically enables `ENABLE_ANCS`, `ENABLE_BLUEZ`, and `ENABLE_DBUS`. Requires GTK 4 4.14+, libadwaita 1.5+, and GLib schema tools. |
 | `ENABLE_APP_BLUETOOTH_COSMIC` | `OFF` | Build the `dmn-bluetooth-cabi` C library and tests used by the Rust COSMIC app; automatically enables `ENABLE_ANCS`, `ENABLE_BLUEZ`, and `ENABLE_DBUS`. Normally driven by Cargo, not set by hand. |
 | `ENABLE_ANCS_HARDWARE_TESTS` | `OFF` | Register the opt-in physical-iPhone test; requires `ENABLE_APP_BLUETOOTH_CLI=ON`. |
+| `DMN_ANCS_HARDWARE_DEVICE` | `iPhone Old` | Exact BlueZ display name or address used by the opt-in ANCS hardware test. |
 | `ENABLE_VALGRIND` | `OFF` | Register Valgrind test variants; requires Valgrind. |
 | `ENABLE_FAULT_INJECTION` | `OFF` | Build libfiu support and register tests run through `fiu-run`. |
 

@@ -108,7 +108,10 @@ function(add_dmn_cli_version_test target)
   )
 endfunction()
 
-add_dmn_cli_version_test(dmn-dmesg-daemon)
+if (ENABLE_APP_DMESG_DAEMON)
+  add_dmn_cli_version_test(dmn-dmesg-daemon)
+endif()
+
 if (ENABLE_DMN_DMESGNET)
   add_dmn_cli_version_test(dmn-kafka-receiver)
   add_dmn_cli_version_test(dmn-kafka-sender)
@@ -364,6 +367,7 @@ if (ENABLE_APP_BLUETOOTH_GTK)
   if (APPSTREAMCLI_EXECUTABLE)
     add_test(NAME dmn-bluetooth-gtk-appstream
                COMMAND "${APPSTREAMCLI_EXECUTABLE}" validate
+                       --no-net
                        "${CMAKE_BINARY_DIR}/src/app/gui/gtk/${DMN_BLUETOOTH_GTK_APP_ID}.metainfo.xml"
     )
 

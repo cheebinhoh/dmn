@@ -4,21 +4,23 @@
 # defined by the parent src/CMakeLists.txt before this directory is added.
 message(STATUS "build dmn applications...")
 
-add_executable(dmn-dmesg-daemon
-                 dmn-dmesg-daemon.cpp
-)
+if (ENABLE_APP_DMESG_DAEMON)
+  add_executable(dmn-dmesg-daemon
+                   dmn-dmesg-daemon.cpp
+  )
 
-target_compile_definitions(dmn-dmesg-daemon
-                             PRIVATE DMN_VERSION="${PROJECT_VERSION}"
-)
+  target_compile_definitions(dmn-dmesg-daemon
+                               PRIVATE DMN_VERSION="${PROJECT_VERSION}"
+  )
 
-target_include_directories(dmn-dmesg-daemon
-                             PRIVATE ${PROJECT_SOURCE_DIR}/include
-)
+  target_include_directories(dmn-dmesg-daemon
+                               PRIVATE ${PROJECT_SOURCE_DIR}/include
+  )
 
-target_link_libraries(dmn-dmesg-daemon
-                        PRIVATE dmn
-)
+  target_link_libraries(dmn-dmesg-daemon
+                          PRIVATE dmn
+  )
+endif()
 
 if (ENABLE_DMN_DMESGNET)
   add_executable(dmn-kafka-receiver

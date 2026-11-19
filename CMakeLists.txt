@@ -37,6 +37,8 @@ option(ENABLE_DMN_DMESGNET
 option(ENABLE_ANCS "Build the optional ANCS protocol library" OFF)
 option(ENABLE_ANCS_HARDWARE_TESTS
        "Enable opt-in ANCS tests that use a physical iPhone over BlueZ" OFF)
+option(ENABLE_APP_DMESG_DAEMON
+       "Build the Dmn DMesg daemon executable" OFF)
 option(ENABLE_APP_BLUEZ_DISCOVERY_CLI
        "Build the BlueZ discovery CLI application" OFF)
 option(ENABLE_APP_BLUETOOTH_CLI

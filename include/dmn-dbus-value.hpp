@@ -189,6 +189,38 @@ public:
   Dmn_DbusValue(const char *value);
 
   /**
+   * @brief Construct an array with an explicit element signature.
+   *
+   * @param elementSignature D-Bus signature of every element.
+   * @param values Array contents; may be empty.
+   * @return The typed array value.
+   */
+  [[nodiscard]] static auto
+  array(std::string elementSignature,
+        std::vector<Dmn_DbusValue> values) -> Dmn_DbusValue;
+
+  /**
+   * @brief Construct a D-Bus byte array (`ay`).
+   *
+   * @param value Owned bytes.
+   * @return The byte-array value.
+   */
+  [[nodiscard]] static auto byteArray(ByteArray value) -> Dmn_DbusValue;
+
+  /**
+   * @brief Construct a dictionary with explicit key and value signatures.
+   *
+   * @param keySignature D-Bus basic type of each key.
+   * @param valueSignature D-Bus signature of each value.
+   * @param entries Ordered dictionary entries; may be empty.
+   * @return The typed dictionary value.
+   */
+  [[nodiscard]] static auto
+  dictionary(std::string keySignature, std::string valueSignature,
+             std::vector<std::pair<Dmn_DbusValue, Dmn_DbusValue>> entries)
+      -> Dmn_DbusValue;
+
+  /**
    * @brief Construct a value with the D-Bus object-path type (`o`).
    *
    * @param value Object path text.
@@ -203,38 +235,6 @@ public:
    * @return The typed signature value.
    */
   [[nodiscard]] static auto signatureValue(std::string value) -> Dmn_DbusValue;
-
-  /**
-   * @brief Construct a D-Bus byte array (`ay`).
-   *
-   * @param value Owned bytes.
-   * @return The byte-array value.
-   */
-  [[nodiscard]] static auto byteArray(ByteArray value) -> Dmn_DbusValue;
-
-  /**
-   * @brief Construct an array with an explicit element signature.
-   *
-   * @param elementSignature D-Bus signature of every element.
-   * @param values Array contents; may be empty.
-   * @return The typed array value.
-   */
-  [[nodiscard]] static auto
-  array(std::string elementSignature,
-        std::vector<Dmn_DbusValue> values) -> Dmn_DbusValue;
-
-  /**
-   * @brief Construct a dictionary with explicit key and value signatures.
-   *
-   * @param keySignature D-Bus basic type of each key.
-   * @param valueSignature D-Bus signature of each value.
-   * @param entries Ordered dictionary entries; may be empty.
-   * @return The typed dictionary value.
-   */
-  [[nodiscard]] static auto
-  dictionary(std::string keySignature, std::string valueSignature,
-             std::vector<std::pair<Dmn_DbusValue, Dmn_DbusValue>> entries)
-      -> Dmn_DbusValue;
 
   /**
    * @brief Construct a D-Bus structure with ordered fields.
@@ -254,9 +254,9 @@ public:
   [[nodiscard]] static auto variant(Dmn_DbusValue value) -> Dmn_DbusValue;
 
   /**
-   * @brief Return this value's complete D-Bus wire signature.
+   * @brief Read array contents by reference; throws on a type mismatch.
    */
-  [[nodiscard]] auto signature() const -> std::string;
+  [[nodiscard]] auto asArray() const -> const ArrayData &;
 
   /**
    * @brief Read the value as a boolean.
@@ -265,34 +265,19 @@ public:
   [[nodiscard]] auto asBool() const -> bool;
 
   /**
-   * @brief Read a signed 16-bit value; throws on a type mismatch.
+   * @brief Read a byte value; throws on a type mismatch.
    */
-  [[nodiscard]] auto asInt16() const -> std::int16_t;
+  [[nodiscard]] auto asByte() const -> std::uint8_t;
 
   /**
-   * @brief Read an unsigned 16-bit value; throws on a type mismatch.
+   * @brief Read bytes by reference; throws on a type mismatch.
    */
-  [[nodiscard]] auto asUint16() const -> std::uint16_t;
+  [[nodiscard]] auto asByteArray() const -> const ByteArray &;
 
   /**
-   * @brief Read a signed 32-bit value; throws on a type mismatch.
+   * @brief Read dictionary contents by reference; throws on a type mismatch.
    */
-  [[nodiscard]] auto asInt32() const -> std::int32_t;
-
-  /**
-   * @brief Read an unsigned 32-bit value; throws on a type mismatch.
-   */
-  [[nodiscard]] auto asUint32() const -> std::uint32_t;
-
-  /**
-   * @brief Read a signed 64-bit value; throws on a type mismatch.
-   */
-  [[nodiscard]] auto asInt64() const -> std::int64_t;
-
-  /**
-   * @brief Read an unsigned 64-bit value; throws on a type mismatch.
-   */
-  [[nodiscard]] auto asUint64() const -> std::uint64_t;
+  [[nodiscard]] auto asDictionary() const -> const DictionaryData &;
 
   /**
    * @brief Read a double value; throws on a type mismatch.
@@ -300,14 +285,19 @@ public:
   [[nodiscard]] auto asDouble() const -> double;
 
   /**
-   * @brief Read a byte value; throws on a type mismatch.
+   * @brief Read a signed 16-bit value; throws on a type mismatch.
    */
-  [[nodiscard]] auto asByte() const -> std::uint8_t;
+  [[nodiscard]] auto asInt16() const -> std::int16_t;
 
   /**
-   * @brief Read a string by reference; throws on a type mismatch.
+   * @brief Read a signed 32-bit value; throws on a type mismatch.
    */
-  [[nodiscard]] auto asString() const -> const std::string &;
+  [[nodiscard]] auto asInt32() const -> std::int32_t;
+
+  /**
+   * @brief Read a signed 64-bit value; throws on a type mismatch.
+   */
+  [[nodiscard]] auto asInt64() const -> std::int64_t;
 
   /**
    * @brief Read object-path text by reference; throws on a type mismatch.
@@ -320,24 +310,29 @@ public:
   [[nodiscard]] auto asSignatureValue() const -> const std::string &;
 
   /**
-   * @brief Read bytes by reference; throws on a type mismatch.
+   * @brief Read a string by reference; throws on a type mismatch.
    */
-  [[nodiscard]] auto asByteArray() const -> const ByteArray &;
-
-  /**
-   * @brief Read array contents by reference; throws on a type mismatch.
-   */
-  [[nodiscard]] auto asArray() const -> const ArrayData &;
-
-  /**
-   * @brief Read dictionary contents by reference; throws on a type mismatch.
-   */
-  [[nodiscard]] auto asDictionary() const -> const DictionaryData &;
+  [[nodiscard]] auto asString() const -> const std::string &;
 
   /**
    * @brief Read structure fields by reference; throws on a type mismatch.
    */
   [[nodiscard]] auto asStruct() const -> const StructData &;
+
+  /**
+   * @brief Read an unsigned 16-bit value; throws on a type mismatch.
+   */
+  [[nodiscard]] auto asUint16() const -> std::uint16_t;
+
+  /**
+   * @brief Read an unsigned 32-bit value; throws on a type mismatch.
+   */
+  [[nodiscard]] auto asUint32() const -> std::uint32_t;
+
+  /**
+   * @brief Read an unsigned 64-bit value; throws on a type mismatch.
+   */
+  [[nodiscard]] auto asUint64() const -> std::uint64_t;
 
   /**
    * @brief Read the value contained by a variant.
@@ -346,6 +341,11 @@ public:
    * @throws std::bad_variant_access If this value is not a variant.
    */
   [[nodiscard]] auto asVariant() const -> const Dmn_DbusValue &;
+
+  /**
+   * @brief Return this value's complete D-Bus wire signature.
+   */
+  [[nodiscard]] auto signature() const -> std::string;
 
 private:
   explicit Dmn_DbusValue(Storage storage);

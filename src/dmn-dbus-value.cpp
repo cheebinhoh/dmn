@@ -42,22 +42,14 @@ Dmn_DbusValue::Dmn_DbusValue(const char *value) {
   m_storage = std::string{value};
 }
 
-auto Dmn_DbusValue::objectPath(std::string value) -> Dmn_DbusValue {
-  return Dmn_DbusValue{ObjectPath{std::move(value)}};
-}
-
-auto Dmn_DbusValue::signatureValue(std::string value) -> Dmn_DbusValue {
-  return Dmn_DbusValue{SignatureValue{std::move(value)}};
-}
-
-auto Dmn_DbusValue::byteArray(ByteArray value) -> Dmn_DbusValue {
-  return Dmn_DbusValue{std::move(value)};
-}
-
 auto Dmn_DbusValue::array(std::string elementSignature,
                           std::vector<Dmn_DbusValue> values) -> Dmn_DbusValue {
   return Dmn_DbusValue{std::make_shared<const ArrayData>(
       ArrayData{std::move(elementSignature), std::move(values)})};
+}
+
+auto Dmn_DbusValue::byteArray(ByteArray value) -> Dmn_DbusValue {
+  return Dmn_DbusValue{std::move(value)};
 }
 
 auto Dmn_DbusValue::dictionary(
@@ -66,6 +58,14 @@ auto Dmn_DbusValue::dictionary(
     -> Dmn_DbusValue {
   return Dmn_DbusValue{std::make_shared<const DictionaryData>(DictionaryData{
       std::move(keySignature), std::move(valueSignature), std::move(entries)})};
+}
+
+auto Dmn_DbusValue::objectPath(std::string value) -> Dmn_DbusValue {
+  return Dmn_DbusValue{ObjectPath{std::move(value)}};
+}
+
+auto Dmn_DbusValue::signatureValue(std::string value) -> Dmn_DbusValue {
+  return Dmn_DbusValue{SignatureValue{std::move(value)}};
 }
 
 auto Dmn_DbusValue::structure(std::vector<Dmn_DbusValue> fields)
@@ -77,6 +77,72 @@ auto Dmn_DbusValue::structure(std::vector<Dmn_DbusValue> fields)
 auto Dmn_DbusValue::variant(Dmn_DbusValue value) -> Dmn_DbusValue {
   return Dmn_DbusValue{std::make_shared<const VariantData>(
       VariantData{std::make_shared<const Dmn_DbusValue>(std::move(value))})};
+}
+
+auto Dmn_DbusValue::asArray() const -> const ArrayData & {
+  return *std::get<std::shared_ptr<const ArrayData>>(m_storage);
+}
+
+auto Dmn_DbusValue::asBool() const -> bool { return std::get<bool>(m_storage); }
+
+auto Dmn_DbusValue::asByte() const -> std::uint8_t {
+  return std::get<std::uint8_t>(m_storage);
+}
+
+auto Dmn_DbusValue::asByteArray() const -> const ByteArray & {
+  return std::get<ByteArray>(m_storage);
+}
+
+auto Dmn_DbusValue::asDictionary() const -> const DictionaryData & {
+  return *std::get<std::shared_ptr<const DictionaryData>>(m_storage);
+}
+
+auto Dmn_DbusValue::asDouble() const -> double {
+  return std::get<double>(m_storage);
+}
+
+auto Dmn_DbusValue::asInt16() const -> std::int16_t {
+  return std::get<std::int16_t>(m_storage);
+}
+
+auto Dmn_DbusValue::asInt32() const -> std::int32_t {
+  return std::get<std::int32_t>(m_storage);
+}
+
+auto Dmn_DbusValue::asInt64() const -> std::int64_t {
+  return std::get<std::int64_t>(m_storage);
+}
+
+auto Dmn_DbusValue::asObjectPath() const -> const std::string & {
+  return std::get<ObjectPath>(m_storage).value;
+}
+
+auto Dmn_DbusValue::asSignatureValue() const -> const std::string & {
+  return std::get<SignatureValue>(m_storage).value;
+}
+
+auto Dmn_DbusValue::asString() const -> const std::string & {
+  return std::get<std::string>(m_storage);
+}
+
+auto Dmn_DbusValue::asStruct() const -> const StructData & {
+  return *std::get<std::shared_ptr<const StructData>>(m_storage);
+}
+
+auto Dmn_DbusValue::asUint16() const -> std::uint16_t {
+  return std::get<std::uint16_t>(m_storage);
+}
+
+auto Dmn_DbusValue::asUint32() const -> std::uint32_t {
+  return std::get<std::uint32_t>(m_storage);
+}
+
+auto Dmn_DbusValue::asUint64() const -> std::uint64_t {
+  return std::get<std::uint64_t>(m_storage);
+}
+
+auto Dmn_DbusValue::asVariant() const -> const Dmn_DbusValue & {
+  return *std::get<std::shared_ptr<const VariantData>>(m_storage)->value;
 }
 
 auto Dmn_DbusValue::signature() const -> std::string {
@@ -140,72 +206,6 @@ auto Dmn_DbusValue::signature() const -> std::string {
         }
       },
       m_storage);
-}
-
-auto Dmn_DbusValue::asBool() const -> bool { return std::get<bool>(m_storage); }
-
-auto Dmn_DbusValue::asInt16() const -> std::int16_t {
-  return std::get<std::int16_t>(m_storage);
-}
-
-auto Dmn_DbusValue::asUint16() const -> std::uint16_t {
-  return std::get<std::uint16_t>(m_storage);
-}
-
-auto Dmn_DbusValue::asInt32() const -> std::int32_t {
-  return std::get<std::int32_t>(m_storage);
-}
-
-auto Dmn_DbusValue::asUint32() const -> std::uint32_t {
-  return std::get<std::uint32_t>(m_storage);
-}
-
-auto Dmn_DbusValue::asInt64() const -> std::int64_t {
-  return std::get<std::int64_t>(m_storage);
-}
-
-auto Dmn_DbusValue::asUint64() const -> std::uint64_t {
-  return std::get<std::uint64_t>(m_storage);
-}
-
-auto Dmn_DbusValue::asDouble() const -> double {
-  return std::get<double>(m_storage);
-}
-
-auto Dmn_DbusValue::asByte() const -> std::uint8_t {
-  return std::get<std::uint8_t>(m_storage);
-}
-
-auto Dmn_DbusValue::asString() const -> const std::string & {
-  return std::get<std::string>(m_storage);
-}
-
-auto Dmn_DbusValue::asObjectPath() const -> const std::string & {
-  return std::get<ObjectPath>(m_storage).value;
-}
-
-auto Dmn_DbusValue::asSignatureValue() const -> const std::string & {
-  return std::get<SignatureValue>(m_storage).value;
-}
-
-auto Dmn_DbusValue::asByteArray() const -> const ByteArray & {
-  return std::get<ByteArray>(m_storage);
-}
-
-auto Dmn_DbusValue::asArray() const -> const ArrayData & {
-  return *std::get<std::shared_ptr<const ArrayData>>(m_storage);
-}
-
-auto Dmn_DbusValue::asDictionary() const -> const DictionaryData & {
-  return *std::get<std::shared_ptr<const DictionaryData>>(m_storage);
-}
-
-auto Dmn_DbusValue::asStruct() const -> const StructData & {
-  return *std::get<std::shared_ptr<const StructData>>(m_storage);
-}
-
-auto Dmn_DbusValue::asVariant() const -> const Dmn_DbusValue & {
-  return *std::get<std::shared_ptr<const VariantData>>(m_storage)->value;
 }
 
 } // namespace dmn
