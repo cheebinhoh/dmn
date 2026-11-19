@@ -1,9 +1,9 @@
 var classdmn_1_1Dmn__DbusValue =
 [
-    [ "ArrayData", "structdmn_1_1Dmn__DbusValue_1_1ArrayData.html", "structdmn_1_1Dmn__DbusValue_1_1ArrayData" ],
-    [ "DictionaryData", "structdmn_1_1Dmn__DbusValue_1_1DictionaryData.html", "structdmn_1_1Dmn__DbusValue_1_1DictionaryData" ],
     [ "ObjectPath", "structdmn_1_1Dmn__DbusValue_1_1ObjectPath.html", "structdmn_1_1Dmn__DbusValue_1_1ObjectPath" ],
     [ "SignatureValue", "structdmn_1_1Dmn__DbusValue_1_1SignatureValue.html", "structdmn_1_1Dmn__DbusValue_1_1SignatureValue" ],
+    [ "ArrayData", "structdmn_1_1Dmn__DbusValue_1_1ArrayData.html", "structdmn_1_1Dmn__DbusValue_1_1ArrayData" ],
+    [ "DictionaryData", "structdmn_1_1Dmn__DbusValue_1_1DictionaryData.html", "structdmn_1_1Dmn__DbusValue_1_1DictionaryData" ],
     [ "StructData", "structdmn_1_1Dmn__DbusValue_1_1StructData.html", "structdmn_1_1Dmn__DbusValue_1_1StructData" ],
     [ "VariantData", "structdmn_1_1Dmn__DbusValue_1_1VariantData.html", "structdmn_1_1Dmn__DbusValue_1_1VariantData" ],
     [ "ByteArray", "classdmn_1_1Dmn__DbusValue.html#aae071b3ceea9f2faca745ada5553f645", null ],

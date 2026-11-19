@@ -2,45 +2,49 @@ var hierarchy =
 [
     [ "dmn::Dmn_DbusValue::ArrayData", "structdmn_1_1Dmn__DbusValue_1_1ArrayData.html", null ],
     [ "dmn::Dmn_Runtime_Task::Awaiter", "structdmn_1_1Dmn__Runtime__Task_1_1Awaiter.html", null ],
-    [ "dmn::Dmn_Pub< T, QueueType >::CallbackFailure", "structdmn_1_1Dmn__Pub_1_1CallbackFailure.html", null ],
+    [ "dmn::Dmn_Pub&lt; T, QueueType &gt;::CallbackFailure", "structdmn_1_1Dmn__Pub_1_1CallbackFailure.html", null ],
     [ "dmn::Dmn_DbusClient::Impl::CallRequest", "structdmn_1_1Dmn__DbusClient_1_1Impl_1_1CallRequest.html", null ],
     [ "dmn::Dmn_DbusValue::DictionaryData", "structdmn_1_1Dmn__DbusValue_1_1DictionaryData.html", null ],
+    [ "dmn::detail::Dmn_AncsAttributeSet", "structdmn_1_1detail_1_1Dmn__AncsAttributeSet.html", null ],
     [ "dmn::Dmn_AncsBluezMonitor", "classdmn_1_1Dmn__AncsBluezMonitor.html", null ],
     [ "dmn::Dmn_AncsClient", "classdmn_1_1Dmn__AncsClient.html", null ],
     [ "dmn::Dmn_AncsConfig", "structdmn_1_1Dmn__AncsConfig.html", null ],
+    [ "dmn::detail::Dmn_AncsDataSourceReassembler", "classdmn_1_1detail_1_1Dmn__AncsDataSourceReassembler.html", null ],
     [ "dmn::Dmn_AncsError", "structdmn_1_1Dmn__AncsError.html", null ],
     [ "dmn::Dmn_AncsEvent", "structdmn_1_1Dmn__AncsEvent.html", null ],
     [ "dmn::Dmn_AncsMonitorConfig", "structdmn_1_1Dmn__AncsMonitorConfig.html", null ],
     [ "dmn::Dmn_AncsMonitorError", "structdmn_1_1Dmn__AncsMonitorError.html", null ],
     [ "dmn::Dmn_AncsMonitorSession", "structdmn_1_1Dmn__AncsMonitorSession.html", null ],
     [ "dmn::Dmn_AncsNotification", "structdmn_1_1Dmn__AncsNotification.html", null ],
-    [ "dmn::Dmn_Async< QueueType >", "classdmn_1_1Dmn__Async.html", [
+    [ "dmn::Dmn_Async&lt; QueueType &gt;", "classdmn_1_1Dmn__Async.html", null ],
+    [ "dmn::Dmn_Async&lt; Dmn_BlockingQueue_Mt &gt;", "classdmn_1_1Dmn__Async.html", [
       [ "dmn::Dmn_Pub< dmn::DMesgPb >", "classdmn_1_1Dmn__Pub.html", [
         [ "dmn::Dmn_DMesg", "classdmn_1_1Dmn__DMesg.html", [
           [ "dmn::Dmn_DLock< DMesgBase >", "classdmn_1_1Dmn__DLock.html", null ],
           [ "dmn::Dmn_DMesgNet", "classdmn_1_1Dmn__DMesgNet.html", null ]
         ] ]
       ] ],
+      [ "dmn::Dmn_DMesg::Dmn_DMesgHandler", "classdmn_1_1Dmn__DMesg_1_1Dmn__DMesgHandler.html", [
+        [ "dmn::Dmn_DLock_Handler", "classdmn_1_1Dmn__DLock__Handler.html", null ]
+      ] ],
       [ "dmn::Dmn_Pub< T, QueueType >", "classdmn_1_1Dmn__Pub.html", null ],
       [ "dmn::Dmn_Runtime_Manager< QueueType >", "classdmn_1_1Dmn__Runtime__Manager.html", null ]
     ] ],
-    [ "dmn::Dmn_Async< Dmn_BlockingQueue_Mt >", "classdmn_1_1Dmn__Async.html", [
-      [ "dmn::Dmn_DMesg::Dmn_DMesgHandler", "classdmn_1_1Dmn__DMesg_1_1Dmn__DMesgHandler.html", [
-        [ "dmn::Dmn_DLock_Handler", "classdmn_1_1Dmn__DLock__Handler.html", null ]
-      ] ]
+    [ "dmn::Dmn_Async&lt; QueueType &gt;::Dmn_Async_Handle", "classdmn_1_1Dmn__Async_1_1Dmn__Async__Handle.html", null ],
+    [ "dmn::Dmn_BlockingQueue&lt; Derived, T &gt;", "classdmn_1_1Dmn__BlockingQueue.html", null ],
+    [ "dmn::Dmn_BlockingQueue&lt; Dmn_BlockingQueue_Lf&lt; std::string &gt;, std::string &gt;", "classdmn_1_1Dmn__BlockingQueue.html", [
+      [ "dmn::Dmn_BlockingQueue_Lf< T >", "classdmn_1_1Dmn__BlockingQueue__Lf.html", null ]
     ] ],
-    [ "dmn::Dmn_Async< QueueType >::Dmn_Async_Handle", "classdmn_1_1Dmn__Async_1_1Dmn__Async__Handle.html", null ],
-    [ "dmn::Dmn_BlockingQueue< Derived, T >", "classdmn_1_1Dmn__BlockingQueue.html", [
-      [ "dmn::Dmn_BlockingQueue_Mt< dmn::Dmn_Runtime_Job >", "classdmn_1_1Dmn__BlockingQueue__Mt.html", null ],
-      [ "dmn::Dmn_BlockingQueue_Lf< T >", "classdmn_1_1Dmn__BlockingQueue__Lf.html", null ],
+    [ "dmn::Dmn_BlockingQueue&lt; Dmn_BlockingQueue_Mt&lt; dmn::Dmn_Runtime_Job &gt;, dmn::Dmn_Runtime_Job &gt;", "classdmn_1_1Dmn__BlockingQueue.html", [
+      [ "dmn::Dmn_BlockingQueue_Mt< dmn::Dmn_Runtime_Job >", "classdmn_1_1Dmn__BlockingQueue__Mt.html", null ]
+    ] ],
+    [ "dmn::Dmn_BlockingQueue&lt; Dmn_BlockingQueue_Mt&lt; std::string &gt;, std::string &gt;", "classdmn_1_1Dmn__BlockingQueue.html", [
       [ "dmn::Dmn_BlockingQueue_Mt< T >", "classdmn_1_1Dmn__BlockingQueue__Mt.html", [
+        [ "dmn::Dmn_Pipe< Tick >", "classdmn_1_1Dmn__Pipe.html", null ],
         [ "dmn::Dmn_Pipe< T, QueueType >", "classdmn_1_1Dmn__Pipe.html", null ]
       ] ]
     ] ],
-    [ "dmn::Dmn_BlockingQueue< Dmn_BlockingQueue_Lf< std::string >, std::string >", "classdmn_1_1Dmn__BlockingQueue.html", null ],
-    [ "dmn::Dmn_BlockingQueue< Dmn_BlockingQueue_Mt< dmn::Dmn_Runtime_Job >, dmn::Dmn_Runtime_Job >", "classdmn_1_1Dmn__BlockingQueue.html", null ],
-    [ "dmn::Dmn_BlockingQueue< Dmn_BlockingQueue_Mt< std::string >, std::string >", "classdmn_1_1Dmn__BlockingQueue.html", null ],
-    [ "dmn::Dmn_BlockingQueue< Dmn_BlockingQueue_Mt< T >, T >", "classdmn_1_1Dmn__BlockingQueue.html", [
+    [ "dmn::Dmn_BlockingQueue&lt; Dmn_BlockingQueue_Mt&lt; T &gt;, T &gt;", "classdmn_1_1Dmn__BlockingQueue.html", [
       [ "dmn::Dmn_BlockingQueue_Mt< T >", "classdmn_1_1Dmn__BlockingQueue__Mt.html", null ]
     ] ],
     [ "dmn::Dmn_BluezAdapter", "structdmn_1_1Dmn__BluezAdapter.html", null ],
@@ -83,25 +87,27 @@ var hierarchy =
     [ "dmn::Dmn_GattEvent", "structdmn_1_1Dmn__GattEvent.html", null ],
     [ "dmn::Dmn_GattNotification", "classdmn_1_1Dmn__GattNotification.html", null ],
     [ "dmn::Dmn_GattService", "structdmn_1_1Dmn__GattService.html", null ],
-    [ "dmn::Dmn_Inflight_Guard< T >", "classdmn_1_1Dmn__Inflight__Guard.html", [
+    [ "dmn::Dmn_Inflight_Guard&lt; T &gt;", "classdmn_1_1Dmn__Inflight__Guard.html", [
       [ "dmn::Dmn_BlockingQueue_Mt< T >", "classdmn_1_1Dmn__BlockingQueue__Mt.html", null ],
       [ "dmn::Dmn_BlockingQueue_Mt< dmn::Dmn_Runtime_Job >", "classdmn_1_1Dmn__BlockingQueue__Mt.html", null ],
       [ "dmn::Dmn_BlockingQueue_Mt< T >", "classdmn_1_1Dmn__BlockingQueue__Mt.html", null ],
       [ "dmn::Dmn_Kafka", "classdmn_1_1Dmn__Kafka.html", null ]
     ] ],
-    [ "dmn::Dmn_Inflight_Guard< uint64_t >", "classdmn_1_1Dmn__Inflight__Guard.html", [
+    [ "dmn::Dmn_Inflight_Guard&lt; uint64_t &gt;", "classdmn_1_1Dmn__Inflight__Guard.html", [
       [ "dmn::Dmn_BlockingQueue_Lf< T >", "classdmn_1_1Dmn__BlockingQueue__Lf.html", null ]
     ] ],
-    [ "dmn::Dmn_IntervalBTree< T >", "classdmn_1_1Dmn__IntervalBTree.html", null ],
-    [ "dmn::detail::Dmn_IntervalBTreeTestAccess< T >", "structdmn_1_1detail_1_1Dmn__IntervalBTreeTestAccess.html", null ],
+    [ "dmn::Dmn_IntervalBTree&lt; T &gt;", "classdmn_1_1Dmn__IntervalBTree.html", null ],
+    [ "dmn::detail::Dmn_IntervalBTreeTestAccess&lt; T &gt;", "structdmn_1_1detail_1_1Dmn__IntervalBTreeTestAccess.html", null ],
     [ "dmn::Dmn_IntervalRange", "structdmn_1_1Dmn__IntervalRange.html", null ],
-    [ "dmn::Dmn_Io< T >", "classdmn_1_1Dmn__Io.html", [
+    [ "dmn::Dmn_Io&lt; T &gt;", "classdmn_1_1Dmn__Io.html", [
+      [ "dmn::Dmn_Pipe< std::shared_ptr< Dmn_Async_Handle >, QueueType< std::shared_ptr< Dmn_Async_Handle > > >", "classdmn_1_1Dmn__Pipe.html", null ],
+      [ "dmn::Dmn_Pipe< Tick >", "classdmn_1_1Dmn__Pipe.html", null ],
       [ "dmn::Dmn_Pipe< T, QueueType >", "classdmn_1_1Dmn__Pipe.html", null ]
     ] ],
-    [ "dmn::Dmn_Io< dmn::DMesgPb >", "classdmn_1_1Dmn__Io.html", [
+    [ "dmn::Dmn_Io&lt; dmn::DMesgPb &gt;", "classdmn_1_1Dmn__Io.html", [
       [ "dmn::Dmn_DMesg::Dmn_DMesgHandler", "classdmn_1_1Dmn__DMesg_1_1Dmn__DMesgHandler.html", null ]
     ] ],
-    [ "dmn::Dmn_Io< std::string >", "classdmn_1_1Dmn__Io.html", [
+    [ "dmn::Dmn_Io&lt; std::string &gt;", "classdmn_1_1Dmn__Io.html", [
       [ "dmn::Dmn_DbusInput", "classdmn_1_1Dmn__DbusInput.html", null ],
       [ "dmn::Dmn_DbusOutput", "classdmn_1_1Dmn__DbusOutput.html", null ],
       [ "dmn::Dmn_Kafka", "classdmn_1_1Dmn__Kafka.html", null ],
@@ -109,26 +115,28 @@ var hierarchy =
     ] ],
     [ "dmn::Dmn_OverlayState", "structdmn_1_1Dmn__OverlayState.html", null ],
     [ "dmn::Dmn_Proc", "classdmn_1_1Dmn__Proc.html", [
+      [ "dmn::Dmn_Pipe< std::shared_ptr< Dmn_Async_Handle >, QueueType< std::shared_ptr< Dmn_Async_Handle > > >", "classdmn_1_1Dmn__Pipe.html", null ],
+      [ "dmn::Dmn_Pipe< Tick >", "classdmn_1_1Dmn__Pipe.html", null ],
       [ "dmn::Dmn_Pipe< T, QueueType >", "classdmn_1_1Dmn__Pipe.html", null ]
     ] ],
     [ "dmn::Dmn_Runtime_Job", "structdmn_1_1Dmn__Runtime__Job.html", null ],
     [ "dmn::detail::Dmn_Runtime_Manager_Impl", "structdmn_1_1detail_1_1Dmn__Runtime__Manager__Impl.html", null ],
     [ "dmn::Dmn_Runtime_Task", "structdmn_1_1Dmn__Runtime__Task.html", null ],
-    [ "dmn::Dmn_Singleton< T >", "classdmn_1_1Dmn__Singleton.html", [
+    [ "dmn::Dmn_Singleton&lt; T &gt;", "classdmn_1_1Dmn__Singleton.html", null ],
+    [ "dmn::Dmn_Singleton&lt; Dmn_Runtime_Manager&lt; Dmn_BlockingQueue_Mt &gt; &gt;", "classdmn_1_1Dmn__Singleton.html", [
       [ "dmn::Dmn_Runtime_Manager< QueueType >", "classdmn_1_1Dmn__Runtime__Manager.html", null ]
     ] ],
-    [ "dmn::Dmn_Singleton< Dmn_Runtime_Manager< Dmn_BlockingQueue_Mt > >", "classdmn_1_1Dmn__Singleton.html", null ],
-    [ "dmn::Dmn_Singleton< Dmn_Runtime_State_Manager >", "classdmn_1_1Dmn__Singleton.html", [
+    [ "dmn::Dmn_Singleton&lt; Dmn_Runtime_State_Manager &gt;", "classdmn_1_1Dmn__Singleton.html", [
       [ "dmn::Dmn_Runtime_State_Manager", "classdmn_1_1Dmn__Runtime__State__Manager.html", null ]
     ] ],
     [ "dmn::Dmn_State", "classdmn_1_1Dmn__State.html", [
       [ "dmn::Dmn_Runtime_State", "classdmn_1_1Dmn__Runtime__State.html", null ]
     ] ],
-    [ "dmn::Dmn_Pub< T, QueueType >::Dmn_Sub", "classdmn_1_1Dmn__Pub_1_1Dmn__Sub.html", [
+    [ "dmn::Dmn_Pub&lt; T, QueueType &gt;::Dmn_Sub", "classdmn_1_1Dmn__Pub_1_1Dmn__Sub.html", [
       [ "dmn::Dmn_DMesg::Dmn_DMesgHandler", "classdmn_1_1Dmn__DMesg_1_1Dmn__DMesgHandler.html", null ]
     ] ],
-    [ "dmn::Dmn_Timer< T >", "classdmn_1_1Dmn__Timer.html", null ],
-    [ "dmn::Dmn_TopologyResult< T >", "structdmn_1_1Dmn__TopologyResult.html", null ],
+    [ "dmn::Dmn_Timer&lt; T &gt;", "classdmn_1_1Dmn__Timer.html", null ],
+    [ "dmn::Dmn_TopologyResult&lt; T &gt;", "structdmn_1_1Dmn__TopologyResult.html", null ],
     [ "std::enable_shared_from_this", null, [
       [ "dmn::Dmn_BluezGattClient::Impl", "classdmn_1_1Dmn__BluezGattClient_1_1Impl.html", null ],
       [ "dmn::Dmn_DbusClient::Impl", "classdmn_1_1Dmn__DbusClient_1_1Impl.html", null ],
@@ -146,10 +154,13 @@ var hierarchy =
     [ "dmn::Dmn_BluezGattClient::Impl::NotificationState", "structdmn_1_1Dmn__BluezGattClient_1_1Impl_1_1NotificationState.html", null ],
     [ "dmn::Dmn_DbusValue::ObjectPath", "structdmn_1_1Dmn__DbusValue_1_1ObjectPath.html", null ],
     [ "dmn::Dmn_Runtime_Task::promise_type", "structdmn_1_1Dmn__Runtime__Task_1_1promise__type.html", null ],
-    [ "dmn::ScopeGuard< F >", "classdmn_1_1ScopeGuard.html", null ],
+    [ "QueueType", null, [
+      [ "dmn::Dmn_Pipe< std::shared_ptr< Dmn_Async_Handle >, QueueType< std::shared_ptr< Dmn_Async_Handle > > >", "classdmn_1_1Dmn__Pipe.html", null ]
+    ] ],
+    [ "dmn::ScopeGuard&lt; F &gt;", "classdmn_1_1ScopeGuard.html", null ],
     [ "dmn::Dmn_DbusValue::SignatureValue", "structdmn_1_1Dmn__DbusValue_1_1SignatureValue.html", null ],
     [ "dmn::Dmn_DbusValue::StructData", "structdmn_1_1Dmn__DbusValue_1_1StructData.html", null ],
-    [ "dmn::Dmn_Inflight_Guard< T >::Ticket", "classdmn_1_1Dmn__Inflight__Guard_1_1Ticket.html", null ],
+    [ "dmn::Dmn_Inflight_Guard&lt; T &gt;::Ticket", "classdmn_1_1Dmn__Inflight__Guard_1_1Ticket.html", null ],
     [ "dmn::TimedJobComparator", "structdmn_1_1TimedJobComparator.html", null ],
     [ "dmn::Dmn_DbusValue::VariantData", "structdmn_1_1Dmn__DbusValue_1_1VariantData.html", null ]
 ];

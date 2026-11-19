@@ -15,5 +15,6 @@ var searchData=
   ['bus_20stacks_20on_20one_20runtime_12',['Architecture: two independent D-Bus stacks on one runtime',['../dmn-dbus-runtime_8hpp.html#autotoc_md21',1,'']]],
   ['bus_5faddress_13',['bus_address',['../structdmn_1_1Dmn__DbusClientConfig.html#a5babaeae7823ca03a6a1f0978ceb3904',1,'dmn::Dmn_DbusClientConfig::bus_address'],['../structdmn_1_1Dmn__DbusConfig.html#aca6e334e44e6d7605df65dd5d817a96a',1,'dmn::Dmn_DbusConfig::bus_address']]],
   ['bus_5fkind_14',['bus_kind',['../structdmn_1_1Dmn__DbusClientConfig.html#a063dbf0092f186ce7550ee912d1ec8ad',1,'dmn::Dmn_DbusClientConfig']]],
-  ['bytearray_15',['bytearray',['../classdmn_1_1Dmn__DbusValue.html#aae071b3ceea9f2faca745ada5553f645',1,'dmn::Dmn_DbusValue::ByteArray'],['../classdmn_1_1Dmn__DbusValue.html#a627532e32fd35b1b19e87c3b8b5829a0',1,'dmn::Dmn_DbusValue::byteArray(ByteArray value) -&gt; Dmn_DbusValue']]]
+  ['bytearray_15',['ByteArray',['../classdmn_1_1Dmn__DbusValue.html#aae071b3ceea9f2faca745ada5553f645',1,'dmn::Dmn_DbusValue']]],
+  ['bytearray_16',['byteArray',['../classdmn_1_1Dmn__DbusValue.html#a627532e32fd35b1b19e87c3b8b5829a0',1,'dmn::Dmn_DbusValue']]]
 ];

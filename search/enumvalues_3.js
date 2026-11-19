@@ -5,5 +5,5 @@ var searchData=
   ['devicechanged_2',['DeviceChanged',['../dmn-bluez-client_8hpp.html#af0dc38322e5c977f3b7ad8fb269cd0b7ab87fe40cb2469d99583440a7d4686ff7',1,'dmn']]],
   ['devicenotfound_3',['DeviceNotFound',['../dmn-ancs-bluez-monitor_8hpp.html#a5196b933c9b2ce0f6266bd2c768f6ebeaca4cc682495b7b98382718ed77afac35',1,'dmn']]],
   ['deviceremoved_4',['DeviceRemoved',['../dmn-bluez-client_8hpp.html#af0dc38322e5c977f3b7ad8fb269cd0b7a0f98d176e3c1724c9a23539cb7bec73e',1,'dmn']]],
-  ['discovery_5',['discovery',['../dmn-ancs-bluez-monitor_8hpp.html#a5196b933c9b2ce0f6266bd2c768f6ebeaa1c4eb450799cb3f30c400d0201414e7',1,'Discoverydmn'],['../dmn-ancs-bluez-monitor_8hpp.html#a23cff2663877d2f0f949c733b4b779f3aa1c4eb450799cb3f30c400d0201414e7',1,'Discoverydmn']]]
+  ['discovery_5',['Discovery',['../dmn-ancs-bluez-monitor_8hpp.html#a5196b933c9b2ce0f6266bd2c768f6ebeaa1c4eb450799cb3f30c400d0201414e7',1,'Discoverydmn'],['../dmn-ancs-bluez-monitor_8hpp.html#a23cff2663877d2f0f949c733b4b779f3aa1c4eb450799cb3f30c400d0201414e7',1,'Discoverydmn']]]
 ];

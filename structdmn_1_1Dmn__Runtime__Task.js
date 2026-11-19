@@ -1,7 +1,7 @@
 var structdmn_1_1Dmn__Runtime__Task =
 [
-    [ "Awaiter", "structdmn_1_1Dmn__Runtime__Task_1_1Awaiter.html", "structdmn_1_1Dmn__Runtime__Task_1_1Awaiter" ],
     [ "promise_type", "structdmn_1_1Dmn__Runtime__Task_1_1promise__type.html", "structdmn_1_1Dmn__Runtime__Task_1_1promise__type" ],
+    [ "Awaiter", "structdmn_1_1Dmn__Runtime__Task_1_1Awaiter.html", "structdmn_1_1Dmn__Runtime__Task_1_1Awaiter" ],
     [ "~Dmn_Runtime_Task", "structdmn_1_1Dmn__Runtime__Task.html#a4f3a23010f67ac69b4b2a30882a12b5f", null ],
     [ "Dmn_Runtime_Task", "structdmn_1_1Dmn__Runtime__Task.html#a4fc97b9128cbf791b963fafee228aa1e", null ],
     [ "Dmn_Runtime_Task", "structdmn_1_1Dmn__Runtime__Task.html#a8a54bb69603dba06023da1cbb5998f12", null ],

@@ -7,9 +7,10 @@ var searchData=
   ['cleanupfunctounlockpthreadmutex_4',['cleanupFuncToUnlockPthreadMutex',['../dmn-proc_8hpp.html#aa4a7dc7c0b2ae2bd03ed185009561a7f',1,'dmn']]],
   ['clear_5',['clear',['../classdmn_1_1Dmn__IntervalBTree.html#a3807f06c1e5369916d85ae7325a65bfe',1,'dmn::Dmn_IntervalBTree']]],
   ['clearsignalhandlerhook_6',['clearSignalHandlerHook',['../classdmn_1_1Dmn__Runtime__Manager.html#a3a314ec4b1088a6612eaf424113c778a',1,'dmn::Dmn_Runtime_Manager']]],
-  ['closehandler_7',['closehandler',['../classdmn_1_1Dmn__DMesg.html#a8855fe9eba1a0576c8e4ba0a16095bc7',1,'dmn::Dmn_DMesg::closeHandler()'],['../classdmn_1_1Dmn__DMesgDbus.html#a2d0f5800a359ab59e28aa2109540b089',1,'dmn::Dmn_DMesgDbus::closeHandler()'],['../classdmn_1_1Dmn__DMesgNet__Kafka.html#a73159e8bab3b1d351dcb6aa5e5b0ef0e',1,'dmn::Dmn_DMesgNet_Kafka::closeHandler()']]],
+  ['closehandler_7',['closeHandler',['../classdmn_1_1Dmn__DMesg.html#a8855fe9eba1a0576c8e4ba0a16095bc7',1,'dmn::Dmn_DMesg::closeHandler()'],['../classdmn_1_1Dmn__DMesgDbus.html#a2d0f5800a359ab59e28aa2109540b089',1,'dmn::Dmn_DMesgDbus::closeHandler()'],['../classdmn_1_1Dmn__DMesgNet__Kafka.html#a73159e8bab3b1d351dcb6aa5e5b0ef0e',1,'dmn::Dmn_DMesgNet_Kafka::closeHandler()']]],
   ['connectavailableprofiles_8',['connectAvailableProfiles',['../classdmn_1_1Dmn__BluezClient.html#a60e8f4371328deeea6927ff3a4d963ca',1,'dmn::Dmn_BluezClient']]],
   ['connectdevice_9',['connectDevice',['../classdmn_1_1Dmn__BluezClient.html#af69ebbf941d942638cde9bb23901b3c3',1,'dmn::Dmn_BluezClient']]],
-  ['createinstance_10',['createInstance',['../classdmn_1_1Dmn__Singleton.html#a265bcf7489109bbf0d5a636e9b30dcd6',1,'dmn::Dmn_Singleton']]],
-  ['createstate_11',['createState',['../classdmn_1_1Dmn__Runtime__State__Manager.html#a6bb0d1a68c95309ae3cb81595529f64d',1,'dmn::Dmn_Runtime_State_Manager']]]
+  ['consume_10',['consume',['../classdmn_1_1detail_1_1Dmn__AncsDataSourceReassembler.html#a57dbcb4677b2e414e63c3ef0b6cb5df4',1,'dmn::detail::Dmn_AncsDataSourceReassembler']]],
+  ['createinstance_11',['createInstance',['../classdmn_1_1Dmn__Singleton.html#a265bcf7489109bbf0d5a636e9b30dcd6',1,'dmn::Dmn_Singleton']]],
+  ['createstate_12',['createState',['../classdmn_1_1Dmn__Runtime__State__Manager.html#a6bb0d1a68c95309ae3cb81595529f64d',1,'dmn::Dmn_Runtime_State_Manager']]]
 ];

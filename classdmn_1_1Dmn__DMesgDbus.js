@@ -10,5 +10,6 @@ var classdmn_1_1Dmn__DMesgDbus =
     [ "openHandler", "classdmn_1_1Dmn__DMesgDbus.html#a6be4101bd01cf86c2609ab737a65b753", null ],
     [ "openHandlerWithFactory", "classdmn_1_1Dmn__DMesgDbus.html#a51afe8fc96e8edc9bec0d452836dff0a", null ],
     [ "resetConflictStateWithLastTopicMessage", "classdmn_1_1Dmn__DMesgDbus.html#aed01fed9dbf44cc3dea4623f6da2fa16", null ],
+    [ "setOutputHandler", "classdmn_1_1Dmn__DMesgDbus.html#a7c8e94a39b9d58c45ede033faae093b4", null ],
     [ "status", "classdmn_1_1Dmn__DMesgDbus.html#a2b62fe1666e822026fa2891747325c28", null ]
 ];

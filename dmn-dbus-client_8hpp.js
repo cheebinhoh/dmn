@@ -8,13 +8,13 @@ var dmn_dbus_client_8hpp =
     [ "dmn::Dmn_DbusSubscription", "classdmn_1_1Dmn__DbusSubscription.html", "classdmn_1_1Dmn__DbusSubscription" ],
     [ "dmn::Dmn_DbusCall", "classdmn_1_1Dmn__DbusCall.html", "classdmn_1_1Dmn__DbusCall" ],
     [ "dmn::Dmn_DbusClient", "classdmn_1_1Dmn__DbusClient.html", "classdmn_1_1Dmn__DbusClient" ],
-    [ "Dmn_DbusResult", "dmn-dbus-client_8hpp.html#ac7a756f0106c10f87304cc63142ef4ae", null ],
-    [ "Dmn_DbusBusKind", "dmn-dbus-client_8hpp.html#a6d7af7167f66da4bd4b6993dbd361a72", [
+    [ "dmn::Dmn_DbusResult", "dmn-dbus-client_8hpp.html#ae782c578da2f43ef5a3f505b3c5ae00e", null ],
+    [ "dmn::Dmn_DbusBusKind", "dmn-dbus-client_8hpp.html#a6d7af7167f66da4bd4b6993dbd361a72", [
       [ "Address", "dmn-dbus-client_8hpp.html#a6d7af7167f66da4bd4b6993dbd361a72add7bf230fde8d4836917806aff6a6b27", null ],
       [ "Session", "dmn-dbus-client_8hpp.html#a6d7af7167f66da4bd4b6993dbd361a72a71c7ae294b7abd866b3fb295b3b9e4a4", null ],
       [ "System", "dmn-dbus-client_8hpp.html#a6d7af7167f66da4bd4b6993dbd361a72aa45da96d0bf6575970f2d27af22be28a", null ]
     ] ],
-    [ "Dmn_DbusErrorKind", "dmn-dbus-client_8hpp.html#ae2b24c85f0dade1cef1bdf4225d14268", [
+    [ "dmn::Dmn_DbusErrorKind", "dmn-dbus-client_8hpp.html#ae2b24c85f0dade1cef1bdf4225d14268", [
       [ "Cancelled", "dmn-dbus-client_8hpp.html#ae2b24c85f0dade1cef1bdf4225d14268aa149e85a44aeec9140e92733d9ed694e", null ],
       [ "Codec", "dmn-dbus-client_8hpp.html#ae2b24c85f0dade1cef1bdf4225d14268a8ca99040313597f5ef1c9bd531f973b7", null ],
       [ "InvalidArgument", "dmn-dbus-client_8hpp.html#ae2b24c85f0dade1cef1bdf4225d14268a253ca7dd096ee0956cccee4d376cab8b", null ],
