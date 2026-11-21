@@ -24,6 +24,8 @@ include(GNUInstallDirs)
 # Install components are shared by all applications: Runtime contains
 # executables and runtime assets/shared libraries; Development contains
 # reusable static libraries, public headers, and developer tools.
+# The Development component also installs the relocatable Dmn CMake package
+# for downstream projects; see docs/specs/cmake-package-spec.md.
 
 # set build options
 option(BUILD_KAFKA_TEST

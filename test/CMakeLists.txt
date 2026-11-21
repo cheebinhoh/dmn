@@ -549,6 +549,48 @@ add_test(NAME dmn-standalone-header-check
 
 set_tests_properties(dmn-standalone-header-check PROPERTIES LABELS "dmn")
 
+# Install into a temporary prefix, relocate it, and build an independent
+# consumer to verify the generated package rather than the build-tree targets.
+add_test(NAME dmn-cmake-package
+           COMMAND "${CMAKE_COMMAND}"
+                   "-DDMN_SOURCE_DIR=${PROJECT_SOURCE_DIR}"
+                   "-DDMN_BINARY_DIR=${CMAKE_BINARY_DIR}"
+                   "-DDMN_GENERATOR=${CMAKE_GENERATOR}"
+                   "-DDMN_BUILD_TYPE=${CMAKE_BUILD_TYPE}"
+                   "-DDMN_BUILD_CONFIG=$<CONFIG>"
+                   "-DDMN_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}"
+                   "-DDMN_INSTALL_INCLUDEDIR=${CMAKE_INSTALL_INCLUDEDIR}"
+                   "-DDMN_CTEST_COMMAND=${CMAKE_CTEST_COMMAND}"
+                   "-DDMN_EXPECT_DMESGNET=${ENABLE_DMN_DMESGNET}"
+                   "-DDMN_EXPECT_ANCS=${ENABLE_ANCS}"
+                   "-DDMN_EXPECT_DBUS=${ENABLE_DBUS}"
+                   "-DDMN_EXPECT_BLUEZ=${ENABLE_BLUEZ}"
+                   "-DDMN_EXPECT_ANCS_BLUEZ_MONITOR=$<AND:$<BOOL:${ENABLE_ANCS}>,$<BOOL:${ENABLE_BLUEZ}>>"
+                   -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake-package/run-package-smoke.cmake"
+)
+
+set(_dmn_cmake_package_environment)
+if (ENABLE_FAULT_INJECTION AND TARGET dmn-libfiu)
+  list(APPEND _dmn_cmake_package_environment
+       "DMN_LIBFIU_SOURCE_DIR=${libfiu_SOURCE_DIR}"
+       "DMN_LIBFIU_MAKE_EXECUTABLE=${LIBFIU_MAKE_EXECUTABLE}"
+  )
+endif()
+
+if (ENABLE_DMN_DMESGNET AND DMN_RDKAFKA_TARGET STREQUAL "rdkafka")
+  list(APPEND _dmn_cmake_package_environment
+       "DMN_RDKAFKA_BINARY_DIR=${rdkafka_BINARY_DIR}"
+  )
+endif()
+
+if (_dmn_cmake_package_environment)
+  set_tests_properties(dmn-cmake-package PROPERTIES
+                       ENVIRONMENT "${_dmn_cmake_package_environment}"
+  )
+endif()
+
+set_tests_properties(dmn-cmake-package PROPERTIES LABELS "dmn;cmake-package")
+
 if (ENABLE_VALGRIND)
   # [TEST TYPE: VALGRIND]
   # Run the selected regular GTest executables under Valgrind.

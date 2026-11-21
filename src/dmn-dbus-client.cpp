@@ -1208,7 +1208,7 @@ private:
     try {
       MessagePtr reply{dbus_pending_call_steal_reply(pending)};
 
-      const auto elapsed{
+      [[maybe_unused]] const auto elapsed{
           std::chrono::duration_cast<std::chrono::milliseconds>(
               std::chrono::steady_clock::now() - request->submitted_at)
               .count()};
@@ -1629,7 +1629,7 @@ private:
     for (const auto &request : expired) {
       if (!request->completed.exchange(true)) {
         m_in_flight.fetch_sub(1);
-        const auto elapsed{
+        [[maybe_unused]] const auto elapsed{
             std::chrono::duration_cast<std::chrono::milliseconds>(
                 now - request->submitted_at)
                 .count()};
