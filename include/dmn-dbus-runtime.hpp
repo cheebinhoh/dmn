@@ -9,11 +9,17 @@
  * Every libdbus user in Dmn calls initializeDbusRuntime() first. Above this
  * shared layer sit two stacks that do not depend on each other:
  *
- *   Dmn_DMesgNet (dmn-dmesgnet-dbus.cpp)    Dmn_BluezClient, GATT client,
- *            |                              ANCS monitor
+ * Dmn_DMesgNet (dmn-dmesgnet-dbus.cpp)   Dmn_AncsBluezMonitor
+ *            |                             (dmn-ancs-bluez-monitor.cpp),
+ *            |                           Dmn_BluezGattClient
+ *            |                             (dmn-bluez-gatt-client.cpp),
+ *            |                           Dmn_BluezClient
+ *            |                             (dmn-bluez-client.cpp)
  *            |                                      |
- *   Dmn_DbusInput / Dmn_DbusOutput           Dmn_DbusClient
- *   (dmn-dbus-io.hpp, dmn-dbus-config.hpp)  (dmn-dbus-client.hpp)
+ *            |                                      |
+ * Dmn_DbusInput / Dmn_DbusOutput         Dmn_DbusClient
+ *   (dmn-dbus-io.hpp,                      (dmn-dbus-client.hpp)
+ *    dmn-dbus-config.hpp)                           |
  *            |                                      |
  *            +------------------+-------------------+
  *                               |
