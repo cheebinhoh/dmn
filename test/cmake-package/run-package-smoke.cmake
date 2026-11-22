@@ -137,12 +137,20 @@ set(_configure_command "${CMAKE_COMMAND}"
                        -DDMN_EXPECT_DBUS=${DMN_EXPECT_DBUS}
                        -DDMN_EXPECT_BLUEZ=${DMN_EXPECT_BLUEZ}
                        -DDMN_EXPECT_ANCS_BLUEZ_MONITOR=${DMN_EXPECT_ANCS_BLUEZ_MONITOR})
+
 if (DEFINED DMN_GENERATOR AND NOT DMN_GENERATOR STREQUAL "")
   list(APPEND _configure_command -G "${DMN_GENERATOR}")
 endif()
 if (DEFINED DMN_BUILD_TYPE AND NOT DMN_BUILD_TYPE STREQUAL "")
   list(APPEND _configure_command "-DCMAKE_BUILD_TYPE=${DMN_BUILD_TYPE}")
 endif()
+
+if (DEFINED ICU_ROOT AND NOT ICU_ROOT STREQUAL "")
+  list(APPEND _configure_command "-DICU_ROOT=${ICU_ROOT}")
+elseif (DEFINED ENV{ICU_ROOT} AND NOT "$ENV{ICU_ROOT}" STREQUAL "")
+  list(APPEND _configure_command "-DICU_ROOT=$ENV{ICU_ROOT}")
+endif()
+
 run_checked(${_configure_command})
 
 set(_missing_dependency_build "${_test_root}/missing-dependency-build")
