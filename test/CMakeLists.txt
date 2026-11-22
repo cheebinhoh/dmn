@@ -552,15 +552,16 @@ set_tests_properties(dmn-standalone-header-check PROPERTIES LABELS "dmn")
 # Install into a temporary prefix, relocate it, and build an independent
 # consumer to verify the generated package rather than the build-tree targets.
 set(_dmn_protobuf_root "")
+set(_dmn_protobuf_fetch_build_dir "")
 if (DEFINED Protobuf_ROOT AND NOT Protobuf_ROOT STREQUAL "")
   set(_dmn_protobuf_root "${Protobuf_ROOT}")
 elseif (DEFINED ENV{Protobuf_ROOT} AND NOT "$ENV{Protobuf_ROOT}" STREQUAL "")
   set(_dmn_protobuf_root "$ENV{Protobuf_ROOT}")
 elseif (ENABLE_DMN_DMESGNET AND TARGET protobuf::libprotobuf)
   if (DEFINED protobuf_BINARY_DIR AND EXISTS "${protobuf_BINARY_DIR}")
-    set(_dmn_protobuf_root "${protobuf_BINARY_DIR}")
+    set(_dmn_protobuf_fetch_build_dir "${protobuf_BINARY_DIR}")
   elseif (EXISTS "${CMAKE_BINARY_DIR}/_deps/protobuf-build")
-    set(_dmn_protobuf_root "${CMAKE_BINARY_DIR}/_deps/protobuf-build")
+    set(_dmn_protobuf_fetch_build_dir "${CMAKE_BINARY_DIR}/_deps/protobuf-build")
   endif()
 endif()
 
@@ -580,6 +581,7 @@ add_test(NAME dmn-cmake-package
                    "-DDMN_EXPECT_BLUEZ=${ENABLE_BLUEZ}"
                    "-DDMN_ICU_ROOT=${ICU_ROOT}"
                    "-DDMN_PROTOBUF_ROOT=${_dmn_protobuf_root}"
+                   "-DDMN_PROTOBUF_FETCH_BUILD_DIR=${_dmn_protobuf_fetch_build_dir}"
                    "-DDMN_EXPECT_ANCS_BLUEZ_MONITOR=$<AND:$<BOOL:${ENABLE_ANCS}>,$<BOOL:${ENABLE_BLUEZ}>>"
                    -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake-package/run-package-smoke.cmake"
 )
