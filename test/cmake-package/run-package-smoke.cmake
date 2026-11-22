@@ -128,29 +128,24 @@ endif()
 if ((NOT DEFINED DMN_PROTOBUF_ROOT OR DMN_PROTOBUF_ROOT STREQUAL "") AND
     DEFINED DMN_PROTOBUF_FETCH_BUILD_DIR AND
     NOT DMN_PROTOBUF_FETCH_BUILD_DIR STREQUAL "")
-  set(_protobuf_prefix "${_test_root}/protobuf")
-  set(_protobuf_install_command "${CMAKE_COMMAND}" --install
-                                "${DMN_PROTOBUF_FETCH_BUILD_DIR}" --prefix
-                                "${_protobuf_prefix}")
-  if (DEFINED DMN_BUILD_CONFIG AND NOT DMN_BUILD_CONFIG STREQUAL "")
-    list(APPEND _protobuf_install_command --config "${DMN_BUILD_CONFIG}")
-  endif()
-  run_checked(${_protobuf_install_command})
-  set(DMN_PROTOBUF_ROOT "${_protobuf_prefix}")
+  set(DMN_PROTOBUF_ROOT "${DMN_PROTOBUF_FETCH_BUILD_DIR}")
 endif()
 
 set(_consumer_prefix_paths "${_relocated}")
 if (DEFINED CMAKE_PREFIX_PATH AND NOT CMAKE_PREFIX_PATH STREQUAL "")
   list(APPEND _consumer_prefix_paths ${CMAKE_PREFIX_PATH})
 endif()
+
 if (DEFINED ENV{CMAKE_PREFIX_PATH} AND NOT "$ENV{CMAKE_PREFIX_PATH}" STREQUAL "")
   file(TO_CMAKE_PATH "$ENV{CMAKE_PREFIX_PATH}" _env_prefix_path)
   string(REPLACE ":" ";" _env_prefix_list "${_env_prefix_path}")
   list(APPEND _consumer_prefix_paths ${_env_prefix_list})
 endif()
+
 if (DEFINED DMN_PROTOBUF_ROOT AND NOT DMN_PROTOBUF_ROOT STREQUAL "")
   list(APPEND _consumer_prefix_paths "${DMN_PROTOBUF_ROOT}")
 endif()
+
 list(REMOVE_DUPLICATES _consumer_prefix_paths)
 list(JOIN _consumer_prefix_paths ";" _consumer_prefix_path_arg)
 
