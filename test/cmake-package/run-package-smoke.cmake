@@ -145,13 +145,20 @@ if (DEFINED DMN_BUILD_TYPE AND NOT DMN_BUILD_TYPE STREQUAL "")
   list(APPEND _configure_command "-DCMAKE_BUILD_TYPE=${DMN_BUILD_TYPE}")
 endif()
 
-
 if (DEFINED DMN_ICU_ROOT AND NOT DMN_ICU_ROOT STREQUAL "")
   list(APPEND _configure_command "-DICU_ROOT=${DMN_ICU_ROOT}")
 elseif (DEFINED ICU_ROOT AND NOT ICU_ROOT STREQUAL "")
   list(APPEND _configure_command "-DICU_ROOT=${ICU_ROOT}")
 elseif (DEFINED ENV{ICU_ROOT} AND NOT "$ENV{ICU_ROOT}" STREQUAL "")
   list(APPEND _configure_command "-DICU_ROOT=$ENV{ICU_ROOT}")
+endif()
+
+if (DEFINED DMN_PROTOBUF_ROOT AND NOT DMN_PROTOBUF_ROOT STREQUAL "")
+  list(APPEND _configure_command "-DProtobuf_ROOT=${DMN_PROTOBUF_ROOT}")
+elseif (DEFINED Protobuf_ROOT AND NOT Protobuf_ROOT STREQUAL "")
+  list(APPEND _configure_command "-DProtobuf_ROOT=${Protobuf_ROOT}")
+elseif (DEFINED ENV{Protobuf_ROOT} AND NOT "$ENV{Protobuf_ROOT}" STREQUAL "")
+  list(APPEND _configure_command "-DProtobuf_ROOT=$ENV{Protobuf_ROOT}")
 endif()
 
 run_checked(${_configure_command})
@@ -169,6 +176,7 @@ execute_process(
   OUTPUT_VARIABLE _missing_dependency_stdout
   ERROR_VARIABLE _missing_dependency_stderr
 )
+
 if (_missing_dependency_result EQUAL 0)
   package_test_error("Consumer configuration succeeded without required ICU")
 endif()
