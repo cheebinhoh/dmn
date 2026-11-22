@@ -565,6 +565,7 @@ add_test(NAME dmn-cmake-package
                    "-DDMN_EXPECT_ANCS=${ENABLE_ANCS}"
                    "-DDMN_EXPECT_DBUS=${ENABLE_DBUS}"
                    "-DDMN_EXPECT_BLUEZ=${ENABLE_BLUEZ}"
+                   "-DDMN_ICU_ROOT=${ICU_ROOT}"
                    "-DDMN_EXPECT_ANCS_BLUEZ_MONITOR=$<AND:$<BOOL:${ENABLE_ANCS}>,$<BOOL:${ENABLE_BLUEZ}>>"
                    -P "${CMAKE_CURRENT_SOURCE_DIR}/cmake-package/run-package-smoke.cmake"
 )
