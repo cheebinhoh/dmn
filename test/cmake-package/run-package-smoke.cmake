@@ -125,42 +125,66 @@ else()
   endforeach()
 endif()
 
-if ((NOT DEFINED DMN_PROTOBUF_ROOT OR DMN_PROTOBUF_ROOT STREQUAL "") AND
-    DEFINED DMN_PROTOBUF_FETCH_BUILD_DIR AND
+if (DEFINED DMN_PROTOBUF_FETCH_BUILD_DIR AND
     NOT DMN_PROTOBUF_FETCH_BUILD_DIR STREQUAL "")
-  set(DMN_PROTOBUF_ROOT "${DMN_PROTOBUF_FETCH_BUILD_DIR}")
+  set(_protobuf_prefix "${_test_root}/protobuf")
+  set(_protobuf_build_command "${CMAKE_COMMAND}" --build
+                              "${DMN_PROTOBUF_FETCH_BUILD_DIR}")
+  set(_protobuf_install_command "${CMAKE_COMMAND}" --install
+                                "${DMN_PROTOBUF_FETCH_BUILD_DIR}"
+                                --prefix "${_protobuf_prefix}")
+  if (DEFINED DMN_BUILD_CONFIG AND NOT DMN_BUILD_CONFIG STREQUAL "")
+    list(APPEND _protobuf_build_command --config "${DMN_BUILD_CONFIG}")
+    list(APPEND _protobuf_install_command --config "${DMN_BUILD_CONFIG}")
+  endif()
+  run_checked(${_protobuf_build_command})
+  run_checked(${_protobuf_install_command})
+
+  file(GLOB_RECURSE _protobuf_configs
+       "${_protobuf_prefix}/*/cmake/protobuf/protobuf-config.cmake")
+  list(LENGTH _protobuf_configs _protobuf_config_count)
+  if (NOT _protobuf_config_count EQUAL 1)
+    package_test_error("Fetched Protobuf install did not provide one CMake config")
+  endif()
+  list(GET _protobuf_configs 0 _protobuf_config)
+  get_filename_component(_protobuf_config_dir "${_protobuf_config}" DIRECTORY)
+  set(DMN_PROTOBUF_ROOT "${_protobuf_prefix}")
 endif()
 
 set(_consumer_prefix_paths "${_relocated}")
+if (DEFINED DMN_PROTOBUF_ROOT AND NOT DMN_PROTOBUF_ROOT STREQUAL "")
+  list(APPEND _consumer_prefix_paths "${DMN_PROTOBUF_ROOT}")
+endif()
+if (DEFINED DMN_CMAKE_PREFIX_PATH AND NOT DMN_CMAKE_PREFIX_PATH STREQUAL "")
+  list(APPEND _consumer_prefix_paths ${DMN_CMAKE_PREFIX_PATH})
+endif()
 if (DEFINED CMAKE_PREFIX_PATH AND NOT CMAKE_PREFIX_PATH STREQUAL "")
   list(APPEND _consumer_prefix_paths ${CMAKE_PREFIX_PATH})
 endif()
 
-if (DEFINED ENV{CMAKE_PREFIX_PATH} AND NOT "$ENV{CMAKE_PREFIX_PATH}" STREQUAL "")
-  file(TO_CMAKE_PATH "$ENV{CMAKE_PREFIX_PATH}" _env_prefix_path)
-  string(REPLACE ":" ";" _env_prefix_list "${_env_prefix_path}")
-  list(APPEND _consumer_prefix_paths ${_env_prefix_list})
-endif()
-
-if (DEFINED DMN_PROTOBUF_ROOT AND NOT DMN_PROTOBUF_ROOT STREQUAL "")
-  list(APPEND _consumer_prefix_paths "${DMN_PROTOBUF_ROOT}")
-endif()
-
 list(REMOVE_DUPLICATES _consumer_prefix_paths)
-list(JOIN _consumer_prefix_paths ";" _consumer_prefix_path_arg)
+list(JOIN _consumer_prefix_paths ":" _consumer_prefix_path)
+if (DEFINED ENV{CMAKE_PREFIX_PATH} AND NOT "$ENV{CMAKE_PREFIX_PATH}" STREQUAL "")
+  string(APPEND _consumer_prefix_path ":$ENV{CMAKE_PREFIX_PATH}")
+endif()
+set(ENV{CMAKE_PREFIX_PATH} "${_consumer_prefix_path}")
 
 set(_configure_command "${CMAKE_COMMAND}"
                        -S "${DMN_SOURCE_DIR}/test/cmake-package"
                        -B "${_consumer_build}"
-                       "-DCMAKE_PREFIX_PATH=${_consumer_prefix_path_arg}"
                        "-DDmn_DIR=${_relocated}/${DMN_INSTALL_LIBDIR}/cmake/Dmn"
                        -DCMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY=ON
                        -DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF
+                       -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=ON
                        -DDMN_EXPECT_DMESGNET=${DMN_EXPECT_DMESGNET}
                        -DDMN_EXPECT_ANCS=${DMN_EXPECT_ANCS}
                        -DDMN_EXPECT_DBUS=${DMN_EXPECT_DBUS}
                        -DDMN_EXPECT_BLUEZ=${DMN_EXPECT_BLUEZ}
                        -DDMN_EXPECT_ANCS_BLUEZ_MONITOR=${DMN_EXPECT_ANCS_BLUEZ_MONITOR})
+
+if (DEFINED _protobuf_config_dir)
+  list(APPEND _configure_command "-DProtobuf_DIR=${_protobuf_config_dir}")
+endif()
 
 if (DEFINED DMN_GENERATOR AND NOT DMN_GENERATOR STREQUAL "")
   list(APPEND _configure_command -G "${DMN_GENERATOR}")
