@@ -7,11 +7,12 @@ var searchData=
   ['getname_4',['GetName',['../classdmn_1_1Dmn__Pub_1_1Dmn__Sub.html#a8d084675538867e22b26037f46d97241',1,'dmn::Dmn_Pub::Dmn_Sub']]],
   ['getproperty_5',['getProperty',['../classdmn_1_1Dmn__DbusClient.html#aec86a170bf89c12550a87fd827d85b50',1,'dmn::Dmn_DbusClient']]],
   ['getstate_6',['getState',['../classdmn_1_1Dmn__Proc.html#a33feebb676ecff239fd5ddba024f5e32',1,'dmn::Dmn_Proc']]],
-  ['getthreadid_7',['getThreadId',['../classdmn_1_1Dmn__Proc.html#ab15571667457353d4250e3642670ddb2',1,'dmn::Dmn_Proc']]],
-  ['gettopiclastmessage_8',['getTopicLastMessage',['../classdmn_1_1Dmn__DMesg.html#a996d15b108694b2642d950835e75c6a8',1,'dmn::Dmn_DMesg::getTopicLastMessage()'],['../classdmn_1_1Dmn__DMesgDbus.html#ab641722275f25a1dacec7f316fc0d357',1,'dmn::Dmn_DMesgDbus::getTopicLastMessage()']]],
-  ['gettopicrunningcounter_9',['getTopicRunningCounter',['../classdmn_1_1Dmn__DMesg_1_1Dmn__DMesgHandler.html#a47931a8d7bd1318e4c646abb59909e72',1,'dmn::Dmn_DMesg::Dmn_DMesgHandler']]],
-  ['gettopicrunningcounterinternal_10',['getTopicRunningCounterInternal',['../classdmn_1_1Dmn__DMesg_1_1Dmn__DMesgHandler.html#afb123e1174563ee0fee9f5f091bddad1',1,'dmn::Dmn_DMesg::Dmn_DMesgHandler']]],
-  ['getvalue_11',['getValue',['../classdmn_1_1Dmn__Inflight__Guard_1_1Ticket.html#aaed878ca236fe1211f59cdddad1de18a',1,'dmn::Dmn_Inflight_Guard::Ticket']]],
-  ['goals_12',['Key design goals',['../dmn-pub-sub_8hpp.html#autotoc_md47',1,'']]],
-  ['guidelines_13',['Usage guidelines',['../dmn-inflight-guard_8hpp.html#autotoc_md32',1,'']]]
+  ['getstatus_7',['getStatus',['../classdmn_1_1Dmn__DMesgNet.html#ab3b963d74f4cd3ad2d948d34defdc49a',1,'dmn::Dmn_DMesgNet']]],
+  ['getthreadid_8',['getThreadId',['../classdmn_1_1Dmn__Proc.html#ab15571667457353d4250e3642670ddb2',1,'dmn::Dmn_Proc']]],
+  ['gettopiclastmessage_9',['getTopicLastMessage',['../classdmn_1_1Dmn__DMesg.html#a996d15b108694b2642d950835e75c6a8',1,'dmn::Dmn_DMesg::getTopicLastMessage()'],['../classdmn_1_1Dmn__DMesgDbus.html#ab641722275f25a1dacec7f316fc0d357',1,'dmn::Dmn_DMesgDbus::getTopicLastMessage()']]],
+  ['gettopicrunningcounter_10',['getTopicRunningCounter',['../classdmn_1_1Dmn__DMesg_1_1Dmn__DMesgHandler.html#a47931a8d7bd1318e4c646abb59909e72',1,'dmn::Dmn_DMesg::Dmn_DMesgHandler']]],
+  ['gettopicrunningcounterinternal_11',['getTopicRunningCounterInternal',['../classdmn_1_1Dmn__DMesg_1_1Dmn__DMesgHandler.html#afb123e1174563ee0fee9f5f091bddad1',1,'dmn::Dmn_DMesg::Dmn_DMesgHandler']]],
+  ['getvalue_12',['getValue',['../classdmn_1_1Dmn__Inflight__Guard_1_1Ticket.html#aaed878ca236fe1211f59cdddad1de18a',1,'dmn::Dmn_Inflight_Guard::Ticket']]],
+  ['goals_13',['Key design goals',['../dmn-pub-sub_8hpp.html#autotoc_md47',1,'']]],
+  ['guidelines_14',['Usage guidelines',['../dmn-inflight-guard_8hpp.html#autotoc_md32',1,'']]]
 ];

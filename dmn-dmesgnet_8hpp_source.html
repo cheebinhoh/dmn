@@ -93,125 +93,214 @@ $(function(){initNavTree('dmn-dmesgnet_8hpp_source.html','',''); });
 </div><!--header-->
 <div class="contents">
 <a href="dmn-dmesgnet_8hpp.html">Go to the documentation of this file.</a><div class="fragment"><div class="line"><a id="l00001" name="l00001"></a><span class="lineno">    1</span></div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span> </div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span><span class="preprocessor">#ifndef DMN_DMESGNET_HPP_</span></div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span><span class="preprocessor">#define DMN_DMESGNET_HPP_</span></div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span> </div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-debug_8hpp.html">dmn-debug.hpp</a>&quot;</span></div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-dmesg-pb-util_8hpp.html">dmn-dmesg-pb-util.hpp</a>&quot;</span></div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-dmesg_8hpp.html">dmn-dmesg.hpp</a>&quot;</span></div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-io_8hpp.html">dmn-io.hpp</a>&quot;</span></div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-timer_8hpp.html">dmn-timer.hpp</a>&quot;</span></div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span> </div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span><span class="preprocessor">#include &lt;atomic&gt;</span></div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span><span class="preprocessor">#include &lt;memory&gt;</span></div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span><span class="preprocessor">#include &lt;mutex&gt;</span></div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span><span class="preprocessor">#include &lt;string&gt;</span></div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span><span class="preprocessor">#include &lt;string_view&gt;</span></div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span><span class="preprocessor">#include &lt;sys/time.h&gt;</span></div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span><span class="preprocessor">#include &lt;unordered_map&gt;</span></div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span> </div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span><span class="keyword">namespace </span>dmn {</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span></div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno"><a class="line" href="dmn-dmesgnet_8hpp.html#aeefdb9e43099fa4a9e41e88f9e7cd76f">   84</a></span><span class="preprocessor">#define DMN_DMESGNET_HEARTBEAT_IN_NS (1000000000)</span></div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span></div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno"><a class="line" href="dmn-dmesgnet_8hpp.html#a8569e9be9b82e635f2b3c75732a0c6d1">   90</a></span><span class="preprocessor">#define DMN_DMESGNET_MASTERPENDING_MAX_COUNTER (3)</span></div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span></div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno"><a class="line" href="dmn-dmesgnet_8hpp.html#acdc60b41968e13cda1a11e48b1c103ef">   96</a></span><span class="preprocessor">#define DMN_DMESGNET_MASTERSYNC_MAX_COUNTER (5)</span></div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span> </div>
-<div class="foldopen" id="foldopen00098" data-start="{" data-end="};">
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno"><a class="line" href="classdmn_1_1Dmn__DMesgNet.html">   98</a></span><span class="keyword">class </span><a class="code hl_function" href="classdmn_1_1Dmn__DMesgNet.html#afafa37a545a0060ec87b9ad1415a8652">Dmn_DMesgNet</a> : <span class="keyword">public</span> <a class="code hl_function" href="classdmn_1_1Dmn__DMesg.html#a70ad3a65cf698516f1fff892eeddbdf7">Dmn_DMesg</a> {</div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span><span class="keyword">public</span>:</div>
-<div class="line"><a id="l00114" name="l00114"></a><span class="lineno">  114</span>  <span class="keyword">explicit</span> <a class="code hl_function" href="classdmn_1_1Dmn__DMesgNet.html#afafa37a545a0060ec87b9ad1415a8652">Dmn_DMesgNet</a>(</div>
-<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>      std::string_view name,</div>
-<div class="line"><a id="l00116" name="l00116"></a><span class="lineno">  116</span>      std::shared_ptr&lt;<a class="code hl_class" href="classdmn_1_1Dmn__Io.html">Dmn_Io&lt;std::string&gt;</a>&gt; input_handler = <span class="keyword">nullptr</span>,</div>
-<div class="line"><a id="l00117" name="l00117"></a><span class="lineno">  117</span>      std::shared_ptr&lt;<a class="code hl_class" href="classdmn_1_1Dmn__Io.html">Dmn_Io&lt;std::string&gt;</a>&gt; output_handler = <span class="keyword">nullptr</span>);</div>
-<div class="line"><a id="l00118" name="l00118"></a><span class="lineno">  118</span> </div>
-<div class="line"><a id="l00119" name="l00119"></a><span class="lineno">  119</span>  <span class="keyword">virtual</span> <a class="code hl_function" href="classdmn_1_1Dmn__DMesgNet.html#a2eb843cb538f769b3fd18748144c255b">~Dmn_DMesgNet</a>() <span class="keyword">noexcept</span>;</div>
-<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span> </div>
-<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span>  <a class="code hl_function" href="classdmn_1_1Dmn__DMesgNet.html#afafa37a545a0060ec87b9ad1415a8652">Dmn_DMesgNet</a>(<span class="keyword">const</span> <a class="code hl_function" href="classdmn_1_1Dmn__DMesgNet.html#afafa37a545a0060ec87b9ad1415a8652">Dmn_DMesgNet</a> &amp;obj) = <span class="keyword">delete</span>;</div>
-<div class="line"><a id="l00122" name="l00122"></a><span class="lineno">  122</span>  <a class="code hl_function" href="classdmn_1_1Dmn__DMesgNet.html#afafa37a545a0060ec87b9ad1415a8652">Dmn_DMesgNet</a> &amp;operator=(<span class="keyword">const</span> <a class="code hl_function" href="classdmn_1_1Dmn__DMesgNet.html#afafa37a545a0060ec87b9ad1415a8652">Dmn_DMesgNet</a> &amp;obj) = <span class="keyword">delete</span>;</div>
-<div class="line"><a id="l00123" name="l00123"></a><span class="lineno">  123</span>  <a class="code hl_function" href="classdmn_1_1Dmn__DMesgNet.html#afafa37a545a0060ec87b9ad1415a8652">Dmn_DMesgNet</a>(<a class="code hl_function" href="classdmn_1_1Dmn__DMesgNet.html#afafa37a545a0060ec87b9ad1415a8652">Dmn_DMesgNet</a> &amp;&amp;obj) = <span class="keyword">delete</span>;</div>
-<div class="line"><a id="l00124" name="l00124"></a><span class="lineno">  124</span>  <a class="code hl_function" href="classdmn_1_1Dmn__DMesgNet.html#afafa37a545a0060ec87b9ad1415a8652">Dmn_DMesgNet</a> &amp;operator=(<a class="code hl_function" href="classdmn_1_1Dmn__DMesgNet.html#afafa37a545a0060ec87b9ad1415a8652">Dmn_DMesgNet</a> &amp;&amp;obj) = <span class="keyword">delete</span>;</div>
-<div class="line"><a id="l00125" name="l00125"></a><span class="lineno">  125</span></div>
-<div class="line"><a id="l00135" name="l00135"></a><span class="lineno">  135</span>  <span class="keyword">auto</span></div>
-<div class="line"><a id="l00136" name="l00136"></a><span class="lineno">  136</span>  <a class="code hl_function" href="classdmn_1_1Dmn__DMesgNet.html#acb3503dd41b83ae499b71749e4484877">setOutputHandler</a>(std::shared_ptr&lt;<a class="code hl_class" href="classdmn_1_1Dmn__Io.html">Dmn_Io&lt;std::string&gt;</a>&gt; outputHandler) -&gt; bool;</div>
-<div class="line"><a id="l00137" name="l00137"></a><span class="lineno">  137</span> </div>
-<div class="line"><a id="l00138" name="l00138"></a><span class="lineno">  138</span><span class="keyword">protected</span>:</div>
-<div class="line"><a id="l00150" name="l00150"></a><span class="lineno">  150</span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classdmn_1_1Dmn__DMesgNet.html#aedfa359a021f1895089e958398566c66">reconciliateDMesgPbSys</a>(<span class="keyword">const</span> dmn::DMesgPb &amp;dmesgpb_other);</div>
-<div class="line"><a id="l00151" name="l00151"></a><span class="lineno">  151</span></div>
-<div class="line"><a id="l00162" name="l00162"></a><span class="lineno">  162</span>  <span class="keyword">auto</span> <a class="code hl_function" href="classdmn_1_1Dmn__DMesgNet.html#a4506ace95796353ae1e2a4b1262d822d">getLastTopicCacheInternal</a>()</div>
-<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>      -&gt; std::unordered_map&lt;std::string, dmn::DMesgPb&gt; &amp; <span class="keyword">override</span>;</div>
-<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span> </div>
-<div class="line"><a id="l00165" name="l00165"></a><span class="lineno">  165</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00170" name="l00170"></a><span class="lineno">  170</span>  <span class="keywordtype">void</span> createInputHandlerProc();</div>
-<div class="line"><a id="l00171" name="l00171"></a><span class="lineno">  171</span></div>
-<div class="line"><a id="l00176" name="l00176"></a><span class="lineno">  176</span>  <span class="keywordtype">void</span> createSubscriptHandler();</div>
-<div class="line"><a id="l00177" name="l00177"></a><span class="lineno">  177</span></div>
-<div class="line"><a id="l00181" name="l00181"></a><span class="lineno">  181</span>  <span class="keywordtype">void</span> createTimerProc();</div>
-<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span></div>
-<div class="line"><a id="l00187" name="l00187"></a><span class="lineno">  187</span>  <span class="keywordtype">void</span> sendPendingOutboundQueueMessage();</div>
-<div class="line"><a id="l00188" name="l00188"></a><span class="lineno">  188</span></div>
-<div class="line"><a id="l00193" name="l00193"></a><span class="lineno">  193</span>  <span class="keyword">auto</span> writeOutput(<span class="keyword">const</span> std::string &amp;payload,</div>
-<div class="line"><a id="l00194" name="l00194"></a><span class="lineno">  194</span>                   <span class="keywordtype">bool</span> duringShutdown = <span class="keyword">false</span>) <span class="keyword">noexcept</span> -&gt; bool;</div>
-<div class="line"><a id="l00195" name="l00195"></a><span class="lineno">  195</span> </div>
-<div class="line"><a id="l00196" name="l00196"></a><span class="lineno">  196</span>  [[nodiscard]] <span class="keyword">auto</span> hasOutputHandler() <span class="keyword">const</span> -&gt; bool;</div>
-<div class="line"><a id="l00197" name="l00197"></a><span class="lineno">  197</span></div>
-<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>  std::string m_name{}; </div>
-<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span>  std::shared_ptr&lt;Dmn_Io&lt;std::string&gt;&gt;</div>
-<div class="line"><a id="l00203" name="l00203"></a><span class="lineno">  203</span>      m_input_handler{}; </div>
-<div class="line"><a id="l00204" name="l00204"></a><span class="lineno">  204</span>  std::shared_ptr&lt;Dmn_Io&lt;std::string&gt;&gt;</div>
-<div class="line"><a id="l00205" name="l00205"></a><span class="lineno">  205</span>      m_output_handler{}; </div>
-<div class="line"><a id="l00206" name="l00206"></a><span class="lineno">  206</span>  <span class="keyword">mutable</span> std::mutex m_output_mutex{};</div>
-<div class="line"><a id="l00207" name="l00207"></a><span class="lineno">  207</span>  std::uint64_t m_output_generation{};</div>
-<div class="line"><a id="l00208" name="l00208"></a><span class="lineno">  208</span>  <span class="keywordtype">bool</span> m_output_failed{};</div>
-<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span></div>
-<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>  std::unique_ptr&lt;dmn::Dmn_Proc&gt;</div>
-<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>      m_input_proc{}; </div>
-<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span>  Dmn_DMesg::HandlerType</div>
-<div class="line"><a id="l00216" name="l00216"></a><span class="lineno">  216</span>      m_subscript_handler{}; </div>
-<div class="line"><a id="l00217" name="l00217"></a><span class="lineno">  217</span>  Dmn_DMesg::HandlerType m_write_handler{}; </div>
-<div class="line"><a id="l00218" name="l00218"></a><span class="lineno">  218</span>  Dmn_DMesg::HandlerType</div>
-<div class="line"><a id="l00219" name="l00219"></a><span class="lineno">  219</span>      m_sys_handler{}; </div>
-<div class="line"><a id="l00220" name="l00220"></a><span class="lineno">  220</span>  std::unique_ptr&lt;dmn::Dmn_Timer&lt;std::chrono::nanoseconds&gt;&gt;</div>
-<div class="line"><a id="l00221" name="l00221"></a><span class="lineno">  221</span>      m_timer_proc{}; </div>
-<div class="line"><a id="l00222" name="l00222"></a><span class="lineno">  222</span> </div>
-<div class="line"><a id="l00223" name="l00223"></a><span class="lineno">  223</span>  dmn::DMesgPb</div>
-<div class="line"><a id="l00224" name="l00224"></a><span class="lineno">  224</span>      m_sys{}; </div>
-<div class="line"><a id="l00225" name="l00225"></a><span class="lineno">  225</span>  <span class="keywordtype">long</span> <span class="keywordtype">long</span> m_master_pending_counter{}; </div>
-<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>  <span class="keywordtype">long</span> <span class="keywordtype">long</span> m_master_sync_pending_counter{}; </div>
-<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span>  <span class="keyword">struct </span>timeval m_last_remote_master_timestamp {</div>
-<div class="line"><a id="l00230" name="l00230"></a><span class="lineno">  230</span>  }; </div>
-<div class="line"><a id="l00232" name="l00232"></a><span class="lineno">  232</span>  std::unordered_map&lt;std::string, dmn::DMesgPb&gt;</div>
-<div class="line"><a id="l00233" name="l00233"></a><span class="lineno">  233</span>      m_topic_last_dmesgpb{}; </div>
-<div class="line"><a id="l00234" name="l00234"></a><span class="lineno">  234</span>  std::unordered_map&lt;std::string, std::vector&lt;dmn::DMesgPb&gt;&gt;</div>
-<div class="line"><a id="l00235" name="l00235"></a><span class="lineno">  235</span>      m_topic_outbound_pending_dmesgpb{}; </div>
-<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span> </div>
-<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span>  std::atomic_flag m_ready{}; </div>
-<div class="line"><a id="l00240" name="l00240"></a><span class="lineno">  240</span> </div>
-<div class="line"><a id="l00241" name="l00241"></a><span class="lineno">  241</span>  <span class="keywordtype">bool</span> m_is_master{}; </div>
-<div class="line"><a id="l00242" name="l00242"></a><span class="lineno">  242</span>  <span class="keywordtype">long</span> <span class="keywordtype">long</span> m_number_of_neighbor{}; </div>
-<div class="line"><a id="l00244" name="l00244"></a><span class="lineno">  244</span> </div>
-<div class="line"><a id="l00245" name="l00245"></a><span class="lineno">  245</span>  std::atomic&lt;bool&gt; m_shutdown{}; </div>
-<div class="line"><a id="l00246" name="l00246"></a><span class="lineno">  246</span>}; <span class="comment">// class Dmn_DMesgNet</span></div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span> </div>
+<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span><span class="preprocessor">#ifndef DMN_DMESGNET_HPP_</span></div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span><span class="preprocessor">#define DMN_DMESGNET_HPP_</span></div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-debug_8hpp.html">dmn-debug.hpp</a>&quot;</span></div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-dmesg-pb-util_8hpp.html">dmn-dmesg-pb-util.hpp</a>&quot;</span></div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-dmesg_8hpp.html">dmn-dmesg.hpp</a>&quot;</span></div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-io_8hpp.html">dmn-io.hpp</a>&quot;</span></div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span> </div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span><span class="preprocessor">#include &lt;atomic&gt;</span></div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span><span class="preprocessor">#include &lt;condition_variable&gt;</span></div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span><span class="preprocessor">#include &lt;cstddef&gt;</span></div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span><span class="preprocessor">#include &lt;cstdint&gt;</span></div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span><span class="preprocessor">#include &lt;deque&gt;</span></div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span><span class="preprocessor">#include &lt;functional&gt;</span></div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span><span class="preprocessor">#include &lt;memory&gt;</span></div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span><span class="preprocessor">#include &lt;mutex&gt;</span></div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span><span class="preprocessor">#include &lt;string&gt;</span></div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span><span class="preprocessor">#include &lt;string_view&gt;</span></div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span><span class="preprocessor">#include &lt;sys/time.h&gt;</span></div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span><span class="preprocessor">#include &lt;unordered_map&gt;</span></div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span> </div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span><span class="keyword">namespace </span>dmn {</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span></div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno"><a class="line" href="dmn-dmesgnet_8hpp.html#aeefdb9e43099fa4a9e41e88f9e7cd76f">   85</a></span><span class="preprocessor">#define DMN_DMESGNET_HEARTBEAT_IN_NS (1000000000)</span></div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span></div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno"><a class="line" href="dmn-dmesgnet_8hpp.html#a8569e9be9b82e635f2b3c75732a0c6d1">   91</a></span><span class="preprocessor">#define DMN_DMESGNET_MASTERPENDING_MAX_COUNTER (3)</span></div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span></div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno"><a class="line" href="dmn-dmesgnet_8hpp.html#acdc60b41968e13cda1a11e48b1c103ef">   97</a></span><span class="preprocessor">#define DMN_DMESGNET_MASTERSYNC_MAX_COUNTER (5)</span></div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span></div>
+<div class="foldopen" id="foldopen00105" data-start="{" data-end="};">
+<div class="line"><a id="l00105" name="l00105"></a><span class="lineno"><a class="line" href="classdmn_1_1Dmn__DMesgNet.html">  105</a></span><span class="keyword">class </span><a class="code hl_function" href="classdmn_1_1Dmn__DMesgNet.html#afafa37a545a0060ec87b9ad1415a8652">Dmn_DMesgNet</a> : <span class="keyword">public</span> <a class="code hl_function" href="classdmn_1_1Dmn__DMesg.html#a70ad3a65cf698516f1fff892eeddbdf7">Dmn_DMesg</a> {</div>
+<div class="line"><a id="l00106" name="l00106"></a><span class="lineno">  106</span><span class="keyword">public</span>:</div>
+<div class="foldopen" id="foldopen00114" data-start="{" data-end="};">
+<div class="line"><a id="l00114" name="l00114"></a><span class="lineno"><a class="line" href="classdmn_1_1Dmn__DMesgNet_1_1Heartbeat.html">  114</a></span>  <span class="keyword">class </span><a class="code hl_class" href="classdmn_1_1Dmn__DMesgNet_1_1Heartbeat.html">Heartbeat</a> {</div>
+<div class="line"><a id="l00115" name="l00115"></a><span class="lineno">  115</span>  <span class="keyword">public</span>:</div>
+<div class="line"><a id="l00119" name="l00119"></a><span class="lineno"><a class="line" href="classdmn_1_1Dmn__DMesgNet_1_1Heartbeat.html#a22785ca4487e57064789f6e43796f0bd">  119</a></span>    <span class="keyword">virtual</span> <a class="code hl_function" href="classdmn_1_1Dmn__DMesgNet_1_1Heartbeat.html#a22785ca4487e57064789f6e43796f0bd">~Heartbeat</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00120" name="l00120"></a><span class="lineno">  120</span>  };</div>
 </div>
-<div class="line"><a id="l00247" name="l00247"></a><span class="lineno">  247</span> </div>
-<div class="line"><a id="l00248" name="l00248"></a><span class="lineno">  248</span>} <span class="comment">// namespace dmn</span></div>
-<div class="line"><a id="l00249" name="l00249"></a><span class="lineno">  249</span> </div>
-<div class="line"><a id="l00250" name="l00250"></a><span class="lineno">  250</span><span class="preprocessor">#endif </span><span class="comment">// DMN_DMESGNET_HPP_</span></div>
-<div class="ttc" id="aclassdmn_1_1Dmn__DMesgNet_html_a2eb843cb538f769b3fd18748144c255b"><div class="ttname"><a href="classdmn_1_1Dmn__DMesgNet.html#a2eb843cb538f769b3fd18748144c255b">dmn::Dmn_DMesgNet::~Dmn_DMesgNet</a></div><div class="ttdeci">virtual ~Dmn_DMesgNet() noexcept</div><div class="ttdoc">Destructor: stops background procs, closes handlers, and sends a final Destroyed heartbeat to the net...</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.cpp:107</div></div>
-<div class="ttc" id="aclassdmn_1_1Dmn__DMesgNet_html_a4506ace95796353ae1e2a4b1262d822d"><div class="ttname"><a href="classdmn_1_1Dmn__DMesgNet.html#a4506ace95796353ae1e2a4b1262d822d">dmn::Dmn_DMesgNet::getLastTopicCacheInternal</a></div><div class="ttdeci">auto getLastTopicCacheInternal() -&gt; std::unordered_map&lt; std::string, dmn::DMesgPb &gt; &amp;override</div><div class="ttdoc">Return the internal per-topic last-published message cache.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.cpp:541</div></div>
-<div class="ttc" id="aclassdmn_1_1Dmn__DMesgNet_html_acb3503dd41b83ae499b71749e4484877"><div class="ttname"><a href="classdmn_1_1Dmn__DMesgNet.html#acb3503dd41b83ae499b71749e4484877">dmn::Dmn_DMesgNet::setOutputHandler</a></div><div class="ttdeci">auto setOutputHandler(std::shared_ptr&lt; Dmn_Io&lt; std::string &gt; &gt; outputHandler) -&gt; bool</div><div class="ttdoc">Replace the outbound transport and re-enable network writes.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.cpp:623</div></div>
-<div class="ttc" id="aclassdmn_1_1Dmn__DMesgNet_html_aedfa359a021f1895089e958398566c66"><div class="ttname"><a href="classdmn_1_1Dmn__DMesgNet.html#aedfa359a021f1895089e958398566c66">dmn::Dmn_DMesgNet::reconciliateDMesgPbSys</a></div><div class="ttdeci">void reconciliateDMesgPbSys(const dmn::DMesgPb &amp;dmesgpb_other)</div><div class="ttdoc">Reconcile system-level information from a remote DMesgPb message.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.cpp:660</div></div>
-<div class="ttc" id="aclassdmn_1_1Dmn__DMesgNet_html_afafa37a545a0060ec87b9ad1415a8652"><div class="ttname"><a href="classdmn_1_1Dmn__DMesgNet.html#afafa37a545a0060ec87b9ad1415a8652">dmn::Dmn_DMesgNet::Dmn_DMesgNet</a></div><div class="ttdeci">Dmn_DMesgNet(std::string_view name, std::shared_ptr&lt; Dmn_Io&lt; std::string &gt; &gt; input_handler=nullptr, std::shared_ptr&lt; Dmn_Io&lt; std::string &gt; &gt; output_handler=nullptr)</div><div class="ttdoc">Dmn_DMesgNet constructor.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.cpp:72</div></div>
+<div class="line"><a id="l00121" name="l00121"></a><span class="lineno">  121</span></div>
+<div class="foldopen" id="foldopen00132" data-start="{" data-end="};">
+<div class="line"><a id="l00132" name="l00132"></a><span class="lineno"><a class="line" href="structdmn_1_1Dmn__DMesgNet_1_1Options.html">  132</a></span>  <span class="keyword">struct </span><a class="code hl_struct" href="structdmn_1_1Dmn__DMesgNet_1_1Options.html">Options</a> {</div>
+<div class="line"><a id="l00133" name="l00133"></a><span class="lineno"><a class="line" href="structdmn_1_1Dmn__DMesgNet_1_1Options.html#af2b95ad3fc7f38811fb28fa20ba235e8">  133</a></span>    std::size_t <a class="code hl_variable" href="structdmn_1_1Dmn__DMesgNet_1_1Options.html#af2b95ad3fc7f38811fb28fa20ba235e8">m_max_frame_bytes</a>{1024 * 1024}; </div>
+<div class="line"><a id="l00134" name="l00134"></a><span class="lineno"><a class="line" href="structdmn_1_1Dmn__DMesgNet_1_1Options.html#a986271d443d69a4ac11354cac7884be7">  134</a></span>    std::size_t <a class="code hl_variable" href="structdmn_1_1Dmn__DMesgNet_1_1Options.html#a986271d443d69a4ac11354cac7884be7">m_max_pending_messages</a>{1024}; </div>
+<div class="line"><a id="l00135" name="l00135"></a><span class="lineno"><a class="line" href="structdmn_1_1Dmn__DMesgNet_1_1Options.html#afadb69b40cb955552a8a437d18f9e2a8">  135</a></span>    std::size_t <a class="code hl_variable" href="structdmn_1_1Dmn__DMesgNet_1_1Options.html#afadb69b40cb955552a8a437d18f9e2a8">m_max_pending_bytes</a>{4 * 1024 * 1024}; </div>
+<div class="line"><a id="l00139" name="l00139"></a><span class="lineno">  139</span>    std::function&lt;std::unique_ptr&lt;Heartbeat&gt;(std::function&lt;<span class="keywordtype">void</span>()&gt;)&gt;</div>
+<div class="line"><a id="l00140" name="l00140"></a><span class="lineno"><a class="line" href="structdmn_1_1Dmn__DMesgNet_1_1Options.html#a490a658a989689280694c5fd92a0ead8">  140</a></span>        <a class="code hl_variable" href="structdmn_1_1Dmn__DMesgNet_1_1Options.html#a490a658a989689280694c5fd92a0ead8">m_heartbeat_factory</a>{};</div>
+<div class="line"><a id="l00141" name="l00141"></a><span class="lineno">  141</span>  };</div>
+</div>
+<div class="line"><a id="l00142" name="l00142"></a><span class="lineno">  142</span></div>
+<div class="foldopen" id="foldopen00148" data-start="{" data-end="};">
+<div class="line"><a id="l00148" name="l00148"></a><span class="lineno"><a class="line" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html">  148</a></span>  <span class="keyword">struct </span><a class="code hl_struct" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html">Status</a> {</div>
+<div class="line"><a id="l00149" name="l00149"></a><span class="lineno"><a class="line" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#ac0da815924a44dccc74e6da4375f7354">  149</a></span>    std::uint64_t <a class="code hl_variable" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#ac0da815924a44dccc74e6da4375f7354">m_malformed_input</a>{}; </div>
+<div class="line"><a id="l00150" name="l00150"></a><span class="lineno"><a class="line" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#acce92903d40da2bbb44dbe73a072db3e">  150</a></span>    std::uint64_t <a class="code hl_variable" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#acce92903d40da2bbb44dbe73a072db3e">m_invalid_input</a>{};   </div>
+<div class="line"><a id="l00151" name="l00151"></a><span class="lineno"><a class="line" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#a8e2d63066621cbaf5827af30cad70e86">  151</a></span>    std::uint64_t <a class="code hl_variable" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#a8e2d63066621cbaf5827af30cad70e86">m_oversized_input</a>{}; </div>
+<div class="line"><a id="l00152" name="l00152"></a><span class="lineno"><a class="line" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#aa68e099aa3c201b351ebc57ea20b9c93">  152</a></span>    std::uint64_t <a class="code hl_variable" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#aa68e099aa3c201b351ebc57ea20b9c93">m_input_failures</a>{}; </div>
+<div class="line"><a id="l00153" name="l00153"></a><span class="lineno"><a class="line" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#a20b2be6f05bf57a6a8d0f1edbbc1cb26">  153</a></span>    std::uint64_t <a class="code hl_variable" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#a20b2be6f05bf57a6a8d0f1edbbc1cb26">m_pending_overflow</a>{}; </div>
+<div class="line"><a id="l00154" name="l00154"></a><span class="lineno"><a class="line" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#a336e6f21619441ca112a64d2e0c9eb62">  154</a></span>    std::uint64_t <a class="code hl_variable" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#a336e6f21619441ca112a64d2e0c9eb62">m_repair_unavailable</a>{}; </div>
+<div class="line"><a id="l00155" name="l00155"></a><span class="lineno"><a class="line" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#a64eaa453e4d7d939acc9686f89e372a5">  155</a></span>    std::uint64_t <a class="code hl_variable" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#a64eaa453e4d7d939acc9686f89e372a5">m_output_failures</a>{}; </div>
+<div class="line"><a id="l00156" name="l00156"></a><span class="lineno"><a class="line" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#a6c85a38894eaf69d18a916844b2f9963">  156</a></span>    std::uint64_t <a class="code hl_variable" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#a6c85a38894eaf69d18a916844b2f9963">m_output_dropped</a>{};  </div>
+<div class="line"><a id="l00158" name="l00158"></a><span class="lineno"><a class="line" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#aa30aec1b0ffc492a2524db4db6ab27b3">  158</a></span>    std::uint64_t <a class="code hl_variable" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#aa30aec1b0ffc492a2524db4db6ab27b3">m_pending_discarded</a>{}; </div>
+<div class="line"><a id="l00159" name="l00159"></a><span class="lineno"><a class="line" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#a2ec7e121d5358e181de9123fbd322ffe">  159</a></span>    std::uint64_t <a class="code hl_variable" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#a2ec7e121d5358e181de9123fbd322ffe">m_shutdown_failures</a>{}; </div>
+<div class="line"><a id="l00160" name="l00160"></a><span class="lineno"><a class="line" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#a6e320c1997c15cd6bb431c15a05eb1e8">  160</a></span>    <span class="keywordtype">bool</span> <a class="code hl_variable" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#a6e320c1997c15cd6bb431c15a05eb1e8">m_ready</a>{}; </div>
+<div class="line"><a id="l00161" name="l00161"></a><span class="lineno"><a class="line" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#a35958a693b18d7baeaae6f086f8e943d">  161</a></span>    <span class="keywordtype">bool</span> <a class="code hl_variable" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#a35958a693b18d7baeaae6f086f8e943d">m_shutdown_started</a>{};  </div>
+<div class="line"><a id="l00162" name="l00162"></a><span class="lineno"><a class="line" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#ab340ab19d9fd56a3c70a3ed7b7c5339f">  162</a></span>    <span class="keywordtype">bool</span> <a class="code hl_variable" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#ab340ab19d9fd56a3c70a3ed7b7c5339f">m_shutdown_complete</a>{}; </div>
+<div class="line"><a id="l00163" name="l00163"></a><span class="lineno">  163</span>  };</div>
+</div>
+<div class="line"><a id="l00164" name="l00164"></a><span class="lineno">  164</span></div>
+<div class="line"><a id="l00182" name="l00182"></a><span class="lineno">  182</span>  <span class="keyword">explicit</span> <a class="code hl_function" href="classdmn_1_1Dmn__DMesgNet.html#afafa37a545a0060ec87b9ad1415a8652">Dmn_DMesgNet</a>(</div>
+<div class="line"><a id="l00183" name="l00183"></a><span class="lineno">  183</span>      std::string_view name,</div>
+<div class="line"><a id="l00184" name="l00184"></a><span class="lineno">  184</span>      std::shared_ptr&lt;<a class="code hl_class" href="classdmn_1_1Dmn__Io.html">Dmn_Io&lt;std::string&gt;</a>&gt; input_handler = <span class="keyword">nullptr</span>,</div>
+<div class="line"><a id="l00185" name="l00185"></a><span class="lineno">  185</span>      std::shared_ptr&lt;<a class="code hl_class" href="classdmn_1_1Dmn__Io.html">Dmn_Io&lt;std::string&gt;</a>&gt; output_handler = <span class="keyword">nullptr</span>);</div>
+<div class="line"><a id="l00186" name="l00186"></a><span class="lineno">  186</span></div>
+<div class="line"><a id="l00198" name="l00198"></a><span class="lineno">  198</span>  <a class="code hl_function" href="classdmn_1_1Dmn__DMesgNet.html#afafa37a545a0060ec87b9ad1415a8652">Dmn_DMesgNet</a>(std::string_view name,</div>
+<div class="line"><a id="l00199" name="l00199"></a><span class="lineno">  199</span>               std::shared_ptr&lt;<a class="code hl_class" href="classdmn_1_1Dmn__Io.html">Dmn_Io&lt;std::string&gt;</a>&gt; input_handler,</div>
+<div class="line"><a id="l00200" name="l00200"></a><span class="lineno">  200</span>               std::shared_ptr&lt;<a class="code hl_class" href="classdmn_1_1Dmn__Io.html">Dmn_Io&lt;std::string&gt;</a>&gt; output_handler,</div>
+<div class="line"><a id="l00201" name="l00201"></a><span class="lineno">  201</span>               Options options);</div>
+<div class="line"><a id="l00202" name="l00202"></a><span class="lineno">  202</span></div>
+<div class="line"><a id="l00209" name="l00209"></a><span class="lineno">  209</span>  <span class="keyword">virtual</span> <a class="code hl_function" href="classdmn_1_1Dmn__DMesgNet.html#a2eb843cb538f769b3fd18748144c255b">~Dmn_DMesgNet</a>() noexcept;</div>
+<div class="line"><a id="l00210" name="l00210"></a><span class="lineno">  210</span> </div>
+<div class="line"><a id="l00211" name="l00211"></a><span class="lineno">  211</span>  <a class="code hl_class" href="classdmn_1_1Dmn__DMesgNet.html">Dmn_DMesgNet</a>(const <a class="code hl_class" href="classdmn_1_1Dmn__DMesgNet.html">Dmn_DMesgNet</a> &amp;obj) = delete;</div>
+<div class="line"><a id="l00212" name="l00212"></a><span class="lineno">  212</span>  <a class="code hl_class" href="classdmn_1_1Dmn__DMesgNet.html">Dmn_DMesgNet</a> &amp;operator=(const <a class="code hl_class" href="classdmn_1_1Dmn__DMesgNet.html">Dmn_DMesgNet</a> &amp;obj) = delete;</div>
+<div class="line"><a id="l00213" name="l00213"></a><span class="lineno">  213</span>  <a class="code hl_class" href="classdmn_1_1Dmn__DMesgNet.html">Dmn_DMesgNet</a>(<a class="code hl_class" href="classdmn_1_1Dmn__DMesgNet.html">Dmn_DMesgNet</a> &amp;&amp;obj) = delete;</div>
+<div class="line"><a id="l00214" name="l00214"></a><span class="lineno">  214</span>  <a class="code hl_class" href="classdmn_1_1Dmn__DMesgNet.html">Dmn_DMesgNet</a> &amp;operator=(<a class="code hl_class" href="classdmn_1_1Dmn__DMesgNet.html">Dmn_DMesgNet</a> &amp;&amp;obj) = delete;</div>
+<div class="line"><a id="l00215" name="l00215"></a><span class="lineno">  215</span></div>
+<div class="line"><a id="l00227" name="l00227"></a><span class="lineno">  227</span>  auto</div>
+<div class="line"><a id="l00228" name="l00228"></a><span class="lineno">  228</span>  <a class="code hl_function" href="classdmn_1_1Dmn__DMesgNet.html#acb3503dd41b83ae499b71749e4484877">setOutputHandler</a>(std::shared_ptr&lt;<a class="code hl_class" href="classdmn_1_1Dmn__Io.html">Dmn_Io</a>&lt;std::<span class="keywordtype">string</span>&gt;&gt; outputHandler) -&gt; <span class="keywordtype">bool</span>;</div>
+<div class="line"><a id="l00229" name="l00229"></a><span class="lineno">  229</span></div>
+<div class="line"><a id="l00237" name="l00237"></a><span class="lineno">  237</span>  [[nodiscard]] auto <a class="code hl_function" href="classdmn_1_1Dmn__DMesgNet.html#ab3b963d74f4cd3ad2d948d34defdc49a">getStatus</a>() const noexcept -&gt; Status;</div>
+<div class="line"><a id="l00238" name="l00238"></a><span class="lineno">  238</span></div>
+<div class="line"><a id="l00251" name="l00251"></a><span class="lineno">  251</span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classdmn_1_1Dmn__DMesgNet.html#af51ce8455a640800645886fa56d59242">shutdown</a>();</div>
+<div class="line"><a id="l00252" name="l00252"></a><span class="lineno">  252</span> </div>
+<div class="line"><a id="l00253" name="l00253"></a><span class="lineno">  253</span>protected:</div>
+<div class="line"><a id="l00265" name="l00265"></a><span class="lineno">  265</span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classdmn_1_1Dmn__DMesgNet.html#aedfa359a021f1895089e958398566c66">reconciliateDMesgPbSys</a>(const dmn::DMesgPb &amp;dmesgpb_other);</div>
+<div class="line"><a id="l00266" name="l00266"></a><span class="lineno">  266</span></div>
+<div class="line"><a id="l00277" name="l00277"></a><span class="lineno">  277</span>  auto <a class="code hl_function" href="classdmn_1_1Dmn__DMesgNet.html#a4506ace95796353ae1e2a4b1262d822d">getLastTopicCacheInternal</a>()</div>
+<div class="line"><a id="l00278" name="l00278"></a><span class="lineno">  278</span>      -&gt; std::unordered_map&lt;std::<span class="keywordtype">string</span>, dmn::DMesgPb&gt; &amp; override;</div>
+<div class="line"><a id="l00279" name="l00279"></a><span class="lineno">  279</span> </div>
+<div class="line"><a id="l00280" name="l00280"></a><span class="lineno">  280</span>private:</div>
+<div class="line"><a id="l00285" name="l00285"></a><span class="lineno">  285</span>  <span class="keywordtype">void</span> createInputHandlerProc();</div>
+<div class="line"><a id="l00286" name="l00286"></a><span class="lineno">  286</span></div>
+<div class="line"><a id="l00291" name="l00291"></a><span class="lineno">  291</span>  <span class="keywordtype">void</span> createSubscriptHandler();</div>
+<div class="line"><a id="l00292" name="l00292"></a><span class="lineno">  292</span></div>
+<div class="line"><a id="l00300" name="l00300"></a><span class="lineno">  300</span>  <span class="keywordtype">void</span> createTimerProc();</div>
+<div class="line"><a id="l00301" name="l00301"></a><span class="lineno">  301</span></div>
+<div class="line"><a id="l00308" name="l00308"></a><span class="lineno">  308</span>  <span class="keywordtype">void</span> sendPendingOutboundQueueMessage();</div>
+<div class="line"><a id="l00309" name="l00309"></a><span class="lineno">  309</span></div>
+<div class="line"><a id="l00317" name="l00317"></a><span class="lineno">  317</span>  <span class="keywordtype">void</span> enqueuePendingOutboundMessage(const dmn::DMesgPb &amp;message);</div>
+<div class="line"><a id="l00318" name="l00318"></a><span class="lineno">  318</span></div>
+<div class="line"><a id="l00329" name="l00329"></a><span class="lineno">  329</span>  auto writeOutput(const std::<span class="keywordtype">string</span> &amp;payload,</div>
+<div class="line"><a id="l00330" name="l00330"></a><span class="lineno">  330</span>                   <span class="keywordtype">bool</span> duringShutdown = false) noexcept -&gt; <span class="keywordtype">bool</span>;</div>
+<div class="line"><a id="l00331" name="l00331"></a><span class="lineno">  331</span></div>
+<div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span>  [[nodiscard]] auto hasOutputHandler() const -&gt; <span class="keywordtype">bool</span>;</div>
+<div class="line"><a id="l00339" name="l00339"></a><span class="lineno">  339</span></div>
+<div class="line"><a id="l00343" name="l00343"></a><span class="lineno">  343</span>  std::<span class="keywordtype">string</span> m_name{}; </div>
+<div class="line"><a id="l00344" name="l00344"></a><span class="lineno">  344</span>  Options m_options{};  </div>
+<div class="line"><a id="l00345" name="l00345"></a><span class="lineno">  345</span>  std::shared_ptr&lt;Dmn_Io&lt;std::string&gt;&gt;</div>
+<div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span>      m_input_handler{}; </div>
+<div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span>  std::shared_ptr&lt;Dmn_Io&lt;std::string&gt;&gt;</div>
+<div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span>      m_output_handler{};          </div>
+<div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span>  <span class="keyword">const</span> <span class="keywordtype">bool</span> m_election_enabled{}; </div>
+<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>  <span class="keyword">mutable</span> std::mutex m_output_mutex{};</div>
+<div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span>  std::condition_variable m_output_setters_idle{};</div>
+<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span>  std::size_t m_output_setters{};</div>
+<div class="line"><a id="l00353" name="l00353"></a><span class="lineno">  353</span>  std::uint64_t m_output_generation{};</div>
+<div class="line"><a id="l00354" name="l00354"></a><span class="lineno">  354</span>  <span class="keywordtype">bool</span> m_output_failed{};</div>
+<div class="line"><a id="l00355" name="l00355"></a><span class="lineno">  355</span></div>
+<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span>  std::unique_ptr&lt;dmn::Dmn_Proc&gt;</div>
+<div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span>      m_input_proc{}; </div>
+<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span>  Dmn_DMesg::HandlerType</div>
+<div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span>      m_subscript_handler{}; </div>
+<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span>  Dmn_DMesg::HandlerType m_write_handler{}; </div>
+<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span>  Dmn_DMesg::HandlerType</div>
+<div class="line"><a id="l00365" name="l00365"></a><span class="lineno">  365</span>      m_sys_handler{}; </div>
+<div class="line"><a id="l00366" name="l00366"></a><span class="lineno">  366</span>  std::unique_ptr&lt;Heartbeat&gt; m_timer_proc{}; </div>
+<div class="line"><a id="l00367" name="l00367"></a><span class="lineno">  367</span> </div>
+<div class="line"><a id="l00368" name="l00368"></a><span class="lineno">  368</span>  dmn::DMesgPb</div>
+<div class="line"><a id="l00369" name="l00369"></a><span class="lineno">  369</span>      m_sys{}; </div>
+<div class="line"><a id="l00370" name="l00370"></a><span class="lineno">  370</span>  <span class="keywordtype">long</span> <span class="keywordtype">long</span> m_master_pending_counter{}; </div>
+<div class="line"><a id="l00372" name="l00372"></a><span class="lineno">  372</span>  <span class="keywordtype">long</span> <span class="keywordtype">long</span> m_master_sync_pending_counter{}; </div>
+<div class="line"><a id="l00374" name="l00374"></a><span class="lineno">  374</span>  <span class="keyword">struct </span>timeval m_last_remote_master_timestamp {</div>
+<div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span>  }; </div>
+<div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span>  std::unordered_map&lt;std::string, dmn::DMesgPb&gt;</div>
+<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span>      m_topic_last_dmesgpb{}; </div>
+<div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span>  std::deque&lt;dmn::DMesgPb&gt;</div>
+<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span>      m_outbound_pending_dmesgpb{}; </div>
+<div class="line"><a id="l00381" name="l00381"></a><span class="lineno">  381</span>  std::size_t m_pending_bytes{};    </div>
+<div class="line"><a id="l00382" name="l00382"></a><span class="lineno">  382</span> </div>
+<div class="line"><a id="l00383" name="l00383"></a><span class="lineno">  383</span>  std::atomic&lt;std::uint64_t&gt; m_malformed_input{};</div>
+<div class="line"><a id="l00384" name="l00384"></a><span class="lineno">  384</span>  std::atomic&lt;std::uint64_t&gt; m_invalid_input{};</div>
+<div class="line"><a id="l00385" name="l00385"></a><span class="lineno">  385</span>  std::atomic&lt;std::uint64_t&gt; m_oversized_input{};</div>
+<div class="line"><a id="l00386" name="l00386"></a><span class="lineno">  386</span>  std::atomic&lt;std::uint64_t&gt; m_input_failures{};</div>
+<div class="line"><a id="l00387" name="l00387"></a><span class="lineno">  387</span>  std::atomic&lt;std::uint64_t&gt; m_pending_overflow{};</div>
+<div class="line"><a id="l00388" name="l00388"></a><span class="lineno">  388</span>  std::atomic&lt;std::uint64_t&gt; m_repair_unavailable{};</div>
+<div class="line"><a id="l00389" name="l00389"></a><span class="lineno">  389</span>  std::atomic&lt;std::uint64_t&gt; m_output_failures{};</div>
+<div class="line"><a id="l00390" name="l00390"></a><span class="lineno">  390</span>  std::atomic&lt;std::uint64_t&gt; m_output_dropped{};</div>
+<div class="line"><a id="l00391" name="l00391"></a><span class="lineno">  391</span>  std::atomic&lt;std::uint64_t&gt; m_pending_discarded{};</div>
+<div class="line"><a id="l00392" name="l00392"></a><span class="lineno">  392</span>  std::atomic&lt;std::uint64_t&gt; m_shutdown_failures{};</div>
+<div class="line"><a id="l00393" name="l00393"></a><span class="lineno">  393</span> </div>
+<div class="line"><a id="l00394" name="l00394"></a><span class="lineno">  394</span>  std::atomic_flag m_ready{}; </div>
+<div class="line"><a id="l00396" name="l00396"></a><span class="lineno">  396</span> </div>
+<div class="line"><a id="l00397" name="l00397"></a><span class="lineno">  397</span>  <span class="keywordtype">bool</span> m_is_master{}; </div>
+<div class="line"><a id="l00398" name="l00398"></a><span class="lineno">  398</span>  <span class="keywordtype">long</span> <span class="keywordtype">long</span> m_number_of_neighbor{}; </div>
+<div class="line"><a id="l00400" name="l00400"></a><span class="lineno">  400</span> </div>
+<div class="line"><a id="l00401" name="l00401"></a><span class="lineno">  401</span>  std::atomic&lt;bool&gt; m_shutdown{}; </div>
+<div class="line"><a id="l00402" name="l00402"></a><span class="lineno">  402</span>  std::atomic&lt;bool&gt; m_shutdown_complete{};</div>
+<div class="line"><a id="l00403" name="l00403"></a><span class="lineno">  403</span>  std::mutex m_shutdown_mutex{};</div>
+<div class="line"><a id="l00404" name="l00404"></a><span class="lineno">  404</span>}; <span class="comment">// class Dmn_DMesgNet</span></div>
+</div>
+<div class="line"><a id="l00405" name="l00405"></a><span class="lineno">  405</span> </div>
+<div class="line"><a id="l00406" name="l00406"></a><span class="lineno">  406</span>} <span class="comment">// namespace dmn</span></div>
+<div class="line"><a id="l00407" name="l00407"></a><span class="lineno">  407</span> </div>
+<div class="line"><a id="l00408" name="l00408"></a><span class="lineno">  408</span><span class="preprocessor">#endif </span><span class="comment">// DMN_DMESGNET_HPP_</span></div>
+<div class="ttc" id="aclassdmn_1_1Dmn__DMesgNet_1_1Heartbeat_html"><div class="ttname"><a href="classdmn_1_1Dmn__DMesgNet_1_1Heartbeat.html">dmn::Dmn_DMesgNet::Heartbeat</a></div><div class="ttdoc">Owned heartbeat source used for election ticks.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.hpp:114</div></div>
+<div class="ttc" id="aclassdmn_1_1Dmn__DMesgNet_1_1Heartbeat_html_a22785ca4487e57064789f6e43796f0bd"><div class="ttname"><a href="classdmn_1_1Dmn__DMesgNet_1_1Heartbeat.html#a22785ca4487e57064789f6e43796f0bd">dmn::Dmn_DMesgNet::Heartbeat::~Heartbeat</a></div><div class="ttdeci">virtual ~Heartbeat()=default</div><div class="ttdoc">Destroy the source after stopping and joining its callbacks.</div></div>
+<div class="ttc" id="aclassdmn_1_1Dmn__DMesgNet_html"><div class="ttname"><a href="classdmn_1_1Dmn__DMesgNet.html">dmn::Dmn_DMesgNet</a></div><div class="ttdoc">Best-effort bridge between local DMesg and caller-supplied I/O.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.hpp:105</div></div>
+<div class="ttc" id="aclassdmn_1_1Dmn__DMesgNet_html_a2eb843cb538f769b3fd18748144c255b"><div class="ttname"><a href="classdmn_1_1Dmn__DMesgNet.html#a2eb843cb538f769b3fd18748144c255b">dmn::Dmn_DMesgNet::~Dmn_DMesgNet</a></div><div class="ttdeci">virtual ~Dmn_DMesgNet() noexcept</div><div class="ttdoc">Shut down the network bridge and release its resources.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.cpp:218</div></div>
+<div class="ttc" id="aclassdmn_1_1Dmn__DMesgNet_html_a4506ace95796353ae1e2a4b1262d822d"><div class="ttname"><a href="classdmn_1_1Dmn__DMesgNet.html#a4506ace95796353ae1e2a4b1262d822d">dmn::Dmn_DMesgNet::getLastTopicCacheInternal</a></div><div class="ttdeci">auto getLastTopicCacheInternal() -&gt; std::unordered_map&lt; std::string, dmn::DMesgPb &gt; &amp;override</div><div class="ttdoc">Return the internal per-topic last-published message cache.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.cpp:758</div></div>
+<div class="ttc" id="aclassdmn_1_1Dmn__DMesgNet_html_ab3b963d74f4cd3ad2d948d34defdc49a"><div class="ttname"><a href="classdmn_1_1Dmn__DMesgNet.html#ab3b963d74f4cd3ad2d948d34defdc49a">dmn::Dmn_DMesgNet::getStatus</a></div><div class="ttdeci">auto getStatus() const noexcept -&gt; Status</div><div class="ttdoc">Sample local error counters and readiness.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.cpp:920</div></div>
+<div class="ttc" id="aclassdmn_1_1Dmn__DMesgNet_html_acb3503dd41b83ae499b71749e4484877"><div class="ttname"><a href="classdmn_1_1Dmn__DMesgNet.html#acb3503dd41b83ae499b71749e4484877">dmn::Dmn_DMesgNet::setOutputHandler</a></div><div class="ttdeci">auto setOutputHandler(std::shared_ptr&lt; Dmn_Io&lt; std::string &gt; &gt; outputHandler) -&gt; bool</div><div class="ttdoc">Replace the outbound transport and re-enable network writes.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.cpp:860</div></div>
+<div class="ttc" id="aclassdmn_1_1Dmn__DMesgNet_html_aedfa359a021f1895089e958398566c66"><div class="ttname"><a href="classdmn_1_1Dmn__DMesgNet.html#aedfa359a021f1895089e958398566c66">dmn::Dmn_DMesgNet::reconciliateDMesgPbSys</a></div><div class="ttdeci">void reconciliateDMesgPbSys(const dmn::DMesgPb &amp;dmesgpb_other)</div><div class="ttdoc">Reconcile system-level information from a remote DMesgPb message.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.cpp:948</div></div>
+<div class="ttc" id="aclassdmn_1_1Dmn__DMesgNet_html_af51ce8455a640800645886fa56d59242"><div class="ttname"><a href="classdmn_1_1Dmn__DMesgNet.html#af51ce8455a640800645886fa56d59242">dmn::Dmn_DMesgNet::shutdown</a></div><div class="ttdeci">void shutdown()</div><div class="ttdoc">Stop network workers and handlers and discard unsent pending data.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.cpp:229</div></div>
+<div class="ttc" id="aclassdmn_1_1Dmn__DMesgNet_html_afafa37a545a0060ec87b9ad1415a8652"><div class="ttname"><a href="classdmn_1_1Dmn__DMesgNet.html#afafa37a545a0060ec87b9ad1415a8652">dmn::Dmn_DMesgNet::Dmn_DMesgNet</a></div><div class="ttdeci">Dmn_DMesgNet(std::string_view name, std::shared_ptr&lt; Dmn_Io&lt; std::string &gt; &gt; input_handler=nullptr, std::shared_ptr&lt; Dmn_Io&lt; std::string &gt; &gt; output_handler=nullptr)</div><div class="ttdoc">Dmn_DMesgNet constructor.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.cpp:154</div></div>
 <div class="ttc" id="aclassdmn_1_1Dmn__DMesg_html_a70ad3a65cf698516f1fff892eeddbdf7"><div class="ttname"><a href="classdmn_1_1Dmn__DMesg.html#a70ad3a65cf698516f1fff892eeddbdf7">dmn::Dmn_DMesg::Dmn_DMesg</a></div><div class="ttdeci">Dmn_DMesg(std::string_view name)</div><div class="ttdoc">Construct a Dmn_DMesg publisher instance.</div><div class="ttdef"><b>Definition</b> dmn-dmesg.cpp:618</div></div>
 <div class="ttc" id="aclassdmn_1_1Dmn__Io_html"><div class="ttname"><a href="classdmn_1_1Dmn__Io.html">dmn::Dmn_Io</a></div><div class="ttdoc">Transport-agnostic interface for reading and writing values of type T.</div><div class="ttdef"><b>Definition</b> dmn-io.hpp:53</div></div>
 <div class="ttc" id="admn-debug_8hpp_html"><div class="ttname"><a href="dmn-debug_8hpp.html">dmn-debug.hpp</a></div><div class="ttdoc">Lightweight debug-print macro controlled by the preprocessor.</div></div>
 <div class="ttc" id="admn-dmesg-pb-util_8hpp_html"><div class="ttname"><a href="dmn-dmesg-pb-util_8hpp.html">dmn-dmesg-pb-util.hpp</a></div><div class="ttdoc">Utility macros to populate fields of the DMesg protobuf messages.</div></div>
 <div class="ttc" id="admn-dmesg_8hpp_html"><div class="ttname"><a href="dmn-dmesg_8hpp.html">dmn-dmesg.hpp</a></div><div class="ttdoc">DMESG publisher/subscriber wrapper using Protobuf messages.</div></div>
 <div class="ttc" id="admn-io_8hpp_html"><div class="ttname"><a href="dmn-io_8hpp.html">dmn-io.hpp</a></div><div class="ttdoc">Generic IO interface used by the Dmn library.</div></div>
-<div class="ttc" id="admn-timer_8hpp_html"><div class="ttname"><a href="dmn-timer_8hpp.html">dmn-timer.hpp</a></div><div class="ttdoc">A recurring timer driven by Dmn_Pipe&#39;s scheduled-write worker.</div></div>
+<div class="ttc" id="astructdmn_1_1Dmn__DMesgNet_1_1Options_html"><div class="ttname"><a href="structdmn_1_1Dmn__DMesgNet_1_1Options.html">dmn::Dmn_DMesgNet::Options</a></div><div class="ttdoc">Resource limits and optional heartbeat source.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.hpp:132</div></div>
+<div class="ttc" id="astructdmn_1_1Dmn__DMesgNet_1_1Options_html_a490a658a989689280694c5fd92a0ead8"><div class="ttname"><a href="structdmn_1_1Dmn__DMesgNet_1_1Options.html#a490a658a989689280694c5fd92a0ead8">dmn::Dmn_DMesgNet::Options::m_heartbeat_factory</a></div><div class="ttdeci">std::function&lt; std::unique_ptr&lt; Heartbeat &gt;(std::function&lt; void()&gt;)&gt; m_heartbeat_factory</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.hpp:140</div></div>
+<div class="ttc" id="astructdmn_1_1Dmn__DMesgNet_1_1Options_html_a986271d443d69a4ac11354cac7884be7"><div class="ttname"><a href="structdmn_1_1Dmn__DMesgNet_1_1Options.html#a986271d443d69a4ac11354cac7884be7">dmn::Dmn_DMesgNet::Options::m_max_pending_messages</a></div><div class="ttdeci">std::size_t m_max_pending_messages</div><div class="ttdoc">Maximum queued message count.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.hpp:134</div></div>
+<div class="ttc" id="astructdmn_1_1Dmn__DMesgNet_1_1Options_html_af2b95ad3fc7f38811fb28fa20ba235e8"><div class="ttname"><a href="structdmn_1_1Dmn__DMesgNet_1_1Options.html#af2b95ad3fc7f38811fb28fa20ba235e8">dmn::Dmn_DMesgNet::Options::m_max_frame_bytes</a></div><div class="ttdeci">std::size_t m_max_frame_bytes</div><div class="ttdoc">Maximum inbound frame.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.hpp:133</div></div>
+<div class="ttc" id="astructdmn_1_1Dmn__DMesgNet_1_1Options_html_afadb69b40cb955552a8a437d18f9e2a8"><div class="ttname"><a href="structdmn_1_1Dmn__DMesgNet_1_1Options.html#afadb69b40cb955552a8a437d18f9e2a8">dmn::Dmn_DMesgNet::Options::m_max_pending_bytes</a></div><div class="ttdeci">std::size_t m_max_pending_bytes</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.hpp:135</div></div>
+<div class="ttc" id="astructdmn_1_1Dmn__DMesgNet_1_1Status_html"><div class="ttname"><a href="structdmn_1_1Dmn__DMesgNet_1_1Status.html">dmn::Dmn_DMesgNet::Status</a></div><div class="ttdoc">Local observations; counters do not imply remote delivery.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.hpp:148</div></div>
+<div class="ttc" id="astructdmn_1_1Dmn__DMesgNet_1_1Status_html_a20b2be6f05bf57a6a8d0f1edbbc1cb26"><div class="ttname"><a href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#a20b2be6f05bf57a6a8d0f1edbbc1cb26">dmn::Dmn_DMesgNet::Status::m_pending_overflow</a></div><div class="ttdeci">std::uint64_t m_pending_overflow</div><div class="ttdoc">Messages rejected by queue limits.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.hpp:153</div></div>
+<div class="ttc" id="astructdmn_1_1Dmn__DMesgNet_1_1Status_html_a2ec7e121d5358e181de9123fbd322ffe"><div class="ttname"><a href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#a2ec7e121d5358e181de9123fbd322ffe">dmn::Dmn_DMesgNet::Status::m_shutdown_failures</a></div><div class="ttdeci">std::uint64_t m_shutdown_failures</div><div class="ttdoc">Errors during shutdown.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.hpp:159</div></div>
+<div class="ttc" id="astructdmn_1_1Dmn__DMesgNet_1_1Status_html_a336e6f21619441ca112a64d2e0c9eb62"><div class="ttname"><a href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#a336e6f21619441ca112a64d2e0c9eb62">dmn::Dmn_DMesgNet::Status::m_repair_unavailable</a></div><div class="ttdeci">std::uint64_t m_repair_unavailable</div><div class="ttdoc">Repairs that could not proceed.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.hpp:154</div></div>
+<div class="ttc" id="astructdmn_1_1Dmn__DMesgNet_1_1Status_html_a35958a693b18d7baeaae6f086f8e943d"><div class="ttname"><a href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#a35958a693b18d7baeaae6f086f8e943d">dmn::Dmn_DMesgNet::Status::m_shutdown_started</a></div><div class="ttdeci">bool m_shutdown_started</div><div class="ttdoc">Shutdown has been requested.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.hpp:161</div></div>
+<div class="ttc" id="astructdmn_1_1Dmn__DMesgNet_1_1Status_html_a64eaa453e4d7d939acc9686f89e372a5"><div class="ttname"><a href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#a64eaa453e4d7d939acc9686f89e372a5">dmn::Dmn_DMesgNet::Status::m_output_failures</a></div><div class="ttdeci">std::uint64_t m_output_failures</div><div class="ttdoc">Exceptions from local output writes.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.hpp:155</div></div>
+<div class="ttc" id="astructdmn_1_1Dmn__DMesgNet_1_1Status_html_a6c85a38894eaf69d18a916844b2f9963"><div class="ttname"><a href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#a6c85a38894eaf69d18a916844b2f9963">dmn::Dmn_DMesgNet::Status::m_output_dropped</a></div><div class="ttdeci">std::uint64_t m_output_dropped</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.hpp:156</div></div>
+<div class="ttc" id="astructdmn_1_1Dmn__DMesgNet_1_1Status_html_a6e320c1997c15cd6bb431c15a05eb1e8"><div class="ttname"><a href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#a6e320c1997c15cd6bb431c15a05eb1e8">dmn::Dmn_DMesgNet::Status::m_ready</a></div><div class="ttdeci">bool m_ready</div><div class="ttdoc">Local readiness, not a remote acknowledgement.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.hpp:160</div></div>
+<div class="ttc" id="astructdmn_1_1Dmn__DMesgNet_1_1Status_html_a8e2d63066621cbaf5827af30cad70e86"><div class="ttname"><a href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#a8e2d63066621cbaf5827af30cad70e86">dmn::Dmn_DMesgNet::Status::m_oversized_input</a></div><div class="ttdeci">std::uint64_t m_oversized_input</div><div class="ttdoc">Oversized frames or datagrams.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.hpp:151</div></div>
+<div class="ttc" id="astructdmn_1_1Dmn__DMesgNet_1_1Status_html_aa30aec1b0ffc492a2524db4db6ab27b3"><div class="ttname"><a href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#aa30aec1b0ffc492a2524db4db6ab27b3">dmn::Dmn_DMesgNet::Status::m_pending_discarded</a></div><div class="ttdeci">std::uint64_t m_pending_discarded</div><div class="ttdoc">Pending messages lost on shutdown.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.hpp:158</div></div>
+<div class="ttc" id="astructdmn_1_1Dmn__DMesgNet_1_1Status_html_aa68e099aa3c201b351ebc57ea20b9c93"><div class="ttname"><a href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#aa68e099aa3c201b351ebc57ea20b9c93">dmn::Dmn_DMesgNet::Status::m_input_failures</a></div><div class="ttdeci">std::uint64_t m_input_failures</div><div class="ttdoc">Input errors that stopped the reader.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.hpp:152</div></div>
+<div class="ttc" id="astructdmn_1_1Dmn__DMesgNet_1_1Status_html_ab340ab19d9fd56a3c70a3ed7b7c5339f"><div class="ttname"><a href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#ab340ab19d9fd56a3c70a3ed7b7c5339f">dmn::Dmn_DMesgNet::Status::m_shutdown_complete</a></div><div class="ttdeci">bool m_shutdown_complete</div><div class="ttdoc">Network workers and handlers have stopped.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.hpp:162</div></div>
+<div class="ttc" id="astructdmn_1_1Dmn__DMesgNet_1_1Status_html_ac0da815924a44dccc74e6da4375f7354"><div class="ttname"><a href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#ac0da815924a44dccc74e6da4375f7354">dmn::Dmn_DMesgNet::Status::m_malformed_input</a></div><div class="ttdeci">std::uint64_t m_malformed_input</div><div class="ttdoc">Empty or unparseable input.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.hpp:149</div></div>
+<div class="ttc" id="astructdmn_1_1Dmn__DMesgNet_1_1Status_html_acce92903d40da2bbb44dbe73a072db3e"><div class="ttname"><a href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#acce92903d40da2bbb44dbe73a072db3e">dmn::Dmn_DMesgNet::Status::m_invalid_input</a></div><div class="ttdeci">std::uint64_t m_invalid_input</div><div class="ttdoc">Parseable invalid envelopes.</div><div class="ttdef"><b>Definition</b> dmn-dmesgnet.hpp:150</div></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 </div><!-- container -->

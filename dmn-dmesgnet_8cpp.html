@@ -107,9 +107,11 @@ $(function(){initNavTree('dmn-dmesgnet_8cpp.html','',''); });
 <code>#include &lt;cassert&gt;</code><br />
 <code>#include &lt;chrono&gt;</code><br />
 <code>#include &lt;exception&gt;</code><br />
+<code>#include &lt;functional&gt;</code><br />
 <code>#include &lt;iostream&gt;</code><br />
 <code>#include &lt;memory&gt;</code><br />
 <code>#include &lt;optional&gt;</code><br />
+<code>#include &lt;stdexcept&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
 <code>#include &lt;string_view&gt;</code><br />
 <code>#include &lt;sys/time.h&gt;</code><br />
@@ -121,7 +123,7 @@ $(function(){initNavTree('dmn-dmesgnet_8cpp.html','',''); });
 <p>This file provides the concrete implementation of the networked DMesg layer. Key responsibilities handled here:</p>
 <ul>
 <li>Constructor: initialises the local system DMesgPb (m_sys) with a creation timestamp and node identity, then wires up the subscriber handler, the optional input-reader thread, and the heartbeat timer.</li>
-<li>createInputHandlerProc(): starts a background Dmn_Proc thread that reads serialised DMesgPb strings from the input Dmn_Io, discards empty or malformed payloads, and dispatches valid messages as sys (reconciliation), conflict, force-playback, or ordinary messages. Oversized socket datagrams are logged and discarded; other socket read errors are logged and stop the input worker.</li>
+<li>createInputHandlerProc(): creates a background Dmn_Proc worker that reads serialised DMesgPb strings from the input Dmn_Io, discards empty or malformed payloads, and dispatches valid messages as sys (reconciliation), conflict, force-playback, or ordinary messages. Oversized socket datagrams are logged and discarded; other socket read errors are logged and stop the input worker.</li>
 <li>createSubscriptHandler(): registers a Dmn_DMesgHandler that intercepts every locally published DMesgPb and serialises it to the output Dmn_Io (subject to the m_ready flag and the outbound pending queue).</li>
 <li>createTimerProc(): installs a periodic heartbeat timer that drives the master-election state machine (MasterPending → Ready) and re-sends last-known topic messages when the node is master and its neighbour count increases.</li>
 <li>reconciliateDMesgPbSys(): applies the remote node's system message to local state; updates master identity, resets election counters, and maintains the neighbour list. </li>

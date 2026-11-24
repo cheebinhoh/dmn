@@ -99,9 +99,12 @@ $(function(){initNavTree('dmn-dmesgnet_8hpp.html','',''); });
 <code>#include &quot;<a class="el" href="dmn-dmesg-pb-util_8hpp_source.html">dmn-dmesg-pb-util.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="dmn-dmesg_8hpp_source.html">dmn-dmesg.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="dmn-io_8hpp_source.html">dmn-io.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="dmn-timer_8hpp_source.html">dmn-timer.hpp</a>&quot;</code><br />
 <code>#include &lt;atomic&gt;</code><br />
+<code>#include &lt;condition_variable&gt;</code><br />
+<code>#include &lt;cstddef&gt;</code><br />
 <code>#include &lt;cstdint&gt;</code><br />
+<code>#include &lt;deque&gt;</code><br />
+<code>#include &lt;functional&gt;</code><br />
 <code>#include &lt;memory&gt;</code><br />
 <code>#include &lt;mutex&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
@@ -114,6 +117,13 @@ $(function(){initNavTree('dmn-dmesgnet_8hpp.html','',''); });
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
 Classes</h2></td></tr>
 <tr class="memitem:dmn_3A_3ADmn_5FDMesgNet" id="r_dmn_3A_3ADmn_5FDMesgNet"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdmn_1_1Dmn__DMesgNet.html">dmn::Dmn_DMesgNet</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Best-effort bridge between local DMesg and caller-supplied I/O.  <a href="classdmn_1_1Dmn__DMesgNet.html#details">More...</a><br /></td></tr>
+<tr class="memitem:dmn_3A_3ADmn_5FDMesgNet_3A_3AHeartbeat" id="r_dmn_3A_3ADmn_5FDMesgNet_3A_3AHeartbeat"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdmn_1_1Dmn__DMesgNet_1_1Heartbeat.html">dmn::Dmn_DMesgNet::Heartbeat</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Owned heartbeat source used for election ticks.  <a href="classdmn_1_1Dmn__DMesgNet_1_1Heartbeat.html#details">More...</a><br /></td></tr>
+<tr class="memitem:dmn_3A_3ADmn_5FDMesgNet_3A_3AOptions" id="r_dmn_3A_3ADmn_5FDMesgNet_3A_3AOptions"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdmn_1_1Dmn__DMesgNet_1_1Options.html">dmn::Dmn_DMesgNet::Options</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resource limits and optional heartbeat source.  <a href="structdmn_1_1Dmn__DMesgNet_1_1Options.html#details">More...</a><br /></td></tr>
+<tr class="memitem:dmn_3A_3ADmn_5FDMesgNet_3A_3AStatus" id="r_dmn_3A_3ADmn_5FDMesgNet_3A_3AStatus"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html">dmn::Dmn_DMesgNet::Status</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Local observations; counters do not imply remote delivery.  <a href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#details">More...</a><br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-define-members" class="groupheader"><a id="define-members" name="define-members"></a>
 Macros</h2></td></tr>
@@ -144,10 +154,9 @@ Macros</h2></td></tr>
 </ul>
 </li>
 <li>Node states (high-level):<ol type="1">
-<li>Initialized: node starts, sends heartbeats and waits to learn of a master from neighbors or time out and self-elect.</li>
 <li>MasterPending: node expects a master's heartbeat; receiving one moves the node to Ready; timeout may cause self-proclamation as master.</li>
 <li>Ready: normal operation where a node follows the elected master. If it receives a relinquish message from the master it may participate in a re-election.</li>
-<li>Destroyed: final state (optionally persist last state).</li>
+<li>Destroyed: final state announced on shutdown when output is available.</li>
 </ol>
 </li>
 <li>Election/reconciliation rules (summary):<ul>
@@ -160,12 +169,12 @@ Macros</h2></td></tr>
 <p>Examples (brief):</p><ul>
 <li>Nodes A and B exchange system messages. A MasterPending node can self-elect after its configured timer ticks; a Ready node can later follow a remote Ready node's master claim if that node has an earlier initialization timestamp. This is cooperative election, not quorum-based agreement.</li>
 <li>When a new node C joins later, it learns the cluster through received heartbeats and follows the elected master.</li>
-<li>When the master shuts down, it sends a final Destroyed heartbeat; nodes receiving it remove that node from their known remote-node lists.</li>
+<li>On shutdown, a node attempts a final Destroyed heartbeat if output is available; nodes receiving it remove the sender from their known lists.</li>
 </ul>
 <p>Implementation notes:</p><ul>
 <li>Heartbeats are periodic (see DMN_DMESGNET_HEARTBEAT_IN_NS).</li>
 <li>Remote nodes are removed from the known-node list on a Destroyed message; absent heartbeats alone do not currently remove them.</li>
-<li>The class reconciles local DMesgPb state with remote DMesgPb messages to maintain consistent view of master and membership. </li>
+<li>Reconciliation maintains a local view of master and membership; peers can have different views. </li>
 </ul>
 </div></div><!-- contents -->
 </div><!-- doc-content -->

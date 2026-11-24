@@ -96,7 +96,7 @@ $(function(){initNavTree('classdmn_1_1Dmn__DMesgNet__Kafka.html','','classdmn_1_
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ad4fa7f7158c5dff1133b0a4ba29878ff" id="r_ad4fa7f7158c5dff1133b0a4ba29878ff"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ad4fa7f7158c5dff1133b0a4ba29878ff">Dmn_DMesgNet_Kafka</a> (std::string_view name, Dmn_Kafka::ConfigType configs)</td></tr>
-<tr class="memdesc:ad4fa7f7158c5dff1133b0a4ba29878ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a <code><a class="el" href="classdmn_1_1Dmn__DMesgNet__Kafka.html">Dmn_DMesgNet_Kafka</a></code> by creating a Kafka consumer and producer from <code class="param">configs</code> and wiring them as the input and output handlers of the underlying <code><a class="el" href="classdmn_1_1Dmn__DMesgNet.html">Dmn_DMesgNet</a></code>.  <br /></td></tr>
+<tr class="memdesc:ad4fa7f7158c5dff1133b0a4ba29878ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a <code><a class="el" href="classdmn_1_1Dmn__DMesgNet__Kafka.html">Dmn_DMesgNet_Kafka</a></code> by creating a Kafka consumer and producer from <code class="param">configs</code> and wiring them as the input and output handlers of the underlying <code><a class="el" href="classdmn_1_1Dmn__DMesgNet.html" title="Best-effort bridge between local DMesg and caller-supplied I/O.">Dmn_DMesgNet</a></code>.  <br /></td></tr>
 <tr class="memitem:afdaef6c35dff06c3bca2d61d8e73be1c" id="r_afdaef6c35dff06c3bca2d61d8e73be1c"><td class="memItemLeft" align="right" valign="top"><a id="afdaef6c35dff06c3bca2d61d8e73be1c" name="afdaef6c35dff06c3bca2d61d8e73be1c"></a>
 virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~Dmn_DMesgNet_Kafka</b> () noexcept</td></tr>
 <tr class="memdesc:afdaef6c35dff06c3bca2d61d8e73be1c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destroy the <code><a class="el" href="classdmn_1_1Dmn__DMesgNet__Kafka.html">Dmn_DMesgNet_Kafka</a></code> and release all resources. <br /></td></tr>
@@ -135,7 +135,7 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~Dmn_DMesgNet_Kafk
       </table>
 </div><div class="memdoc">
 
-<p>Construct a <code><a class="el" href="classdmn_1_1Dmn__DMesgNet__Kafka.html">Dmn_DMesgNet_Kafka</a></code> by creating a Kafka consumer and producer from <code class="param">configs</code> and wiring them as the input and output handlers of the underlying <code><a class="el" href="classdmn_1_1Dmn__DMesgNet.html">Dmn_DMesgNet</a></code>. </p>
+<p>Construct a <code><a class="el" href="classdmn_1_1Dmn__DMesgNet__Kafka.html">Dmn_DMesgNet_Kafka</a></code> by creating a Kafka consumer and producer from <code class="param">configs</code> and wiring them as the input and output handlers of the underlying <code><a class="el" href="classdmn_1_1Dmn__DMesgNet.html" title="Best-effort bridge between local DMesg and caller-supplied I/O.">Dmn_DMesgNet</a></code>. </p>
 <p>The caller must supply the common broker connection parameters in <code class="param">configs</code> (e.g. <code>bootstrap.servers</code>, SASL credentials). The following keys are set internally and must NOT be present in <code class="param">configs:</code> </p><ul>
 <li><code>"group.id"</code> : set to <code class="param">name</code>.</li>
 <li><code>"auto.offset.reset"</code>: set to <code>"earliest"</code>.</li>
@@ -145,7 +145,7 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~Dmn_DMesgNet_Kafk
 </ul>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">name</td><td>Identifier used for both the <code><a class="el" href="classdmn_1_1Dmn__DMesgNet.html">Dmn_DMesgNet</a></code> instance and the Kafka consumer group ID. </td></tr>
+    <tr><td class="paramname">name</td><td>Identifier used for both the <code><a class="el" href="classdmn_1_1Dmn__DMesgNet.html" title="Best-effort bridge between local DMesg and caller-supplied I/O.">Dmn_DMesgNet</a></code> instance and the Kafka consumer group ID. </td></tr>
     <tr><td class="paramname">configs</td><td>Kafka configuration entries (see above for reserved keys). </td></tr>
   </table>
   </dd>

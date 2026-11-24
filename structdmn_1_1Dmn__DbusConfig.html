@@ -104,13 +104,13 @@ Public Attributes</h2></td></tr>
 <tr class="memdesc:aca6e334e44e6d7605df65dd5d817a96a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Bus daemon address; empty selects the standard session bus.  <br /></td></tr>
 <tr class="memitem:afaeb7df0da0d0b1ced79667b66fa644f" id="r_afaeb7df0da0d0b1ced79667b66fa644f"><td class="memItemLeft" align="right" valign="top"><a id="afaeb7df0da0d0b1ced79667b66fa644f" name="afaeb7df0da0d0b1ced79667b66fa644f"></a>
 std::string&#160;</td><td class="memItemRight" valign="bottom"><b>signal_path</b> {&quot;/org/dmn/DMesg1&quot;}</td></tr>
-<tr class="memdesc:afaeb7df0da0d0b1ced79667b66fa644f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signal object path; defaults to the <a class="el" href="classdmn_1_1Dmn__DMesgNet.html">Dmn_DMesgNet</a> wire path. <br /></td></tr>
+<tr class="memdesc:afaeb7df0da0d0b1ced79667b66fa644f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signal object path; defaults to the <a class="el" href="classdmn_1_1Dmn__DMesgNet.html" title="Best-effort bridge between local DMesg and caller-supplied I/O.">Dmn_DMesgNet</a> wire path. <br /></td></tr>
 <tr class="memitem:aa963cf7cb3857a7627cdb25f1f1847bb" id="r_aa963cf7cb3857a7627cdb25f1f1847bb"><td class="memItemLeft" align="right" valign="top"><a id="aa963cf7cb3857a7627cdb25f1f1847bb" name="aa963cf7cb3857a7627cdb25f1f1847bb"></a>
 std::string&#160;</td><td class="memItemRight" valign="bottom"><b>signal_interface</b> {&quot;org.dmn.DMesg1.Transport&quot;}</td></tr>
-<tr class="memdesc:aa963cf7cb3857a7627cdb25f1f1847bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signal interface; defaults to the <a class="el" href="classdmn_1_1Dmn__DMesgNet.html">Dmn_DMesgNet</a> wire interface. <br /></td></tr>
+<tr class="memdesc:aa963cf7cb3857a7627cdb25f1f1847bb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signal interface; defaults to the <a class="el" href="classdmn_1_1Dmn__DMesgNet.html" title="Best-effort bridge between local DMesg and caller-supplied I/O.">Dmn_DMesgNet</a> wire interface. <br /></td></tr>
 <tr class="memitem:a5c50fa625a419c6ccd33a6f045f6620c" id="r_a5c50fa625a419c6ccd33a6f045f6620c"><td class="memItemLeft" align="right" valign="top"><a id="a5c50fa625a419c6ccd33a6f045f6620c" name="a5c50fa625a419c6ccd33a6f045f6620c"></a>
 std::string&#160;</td><td class="memItemRight" valign="bottom"><b>signal_member</b> {&quot;Message&quot;}</td></tr>
-<tr class="memdesc:a5c50fa625a419c6ccd33a6f045f6620c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signal member; defaults to the <a class="el" href="classdmn_1_1Dmn__DMesgNet.html">Dmn_DMesgNet</a> wire member. <br /></td></tr>
+<tr class="memdesc:a5c50fa625a419c6ccd33a6f045f6620c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Signal member; defaults to the <a class="el" href="classdmn_1_1Dmn__DMesgNet.html" title="Best-effort bridge between local DMesg and caller-supplied I/O.">Dmn_DMesgNet</a> wire member. <br /></td></tr>
 <tr class="memitem:a379a8686cc5a3433a4ebe912ae79f650" id="r_a379a8686cc5a3433a4ebe912ae79f650"><td class="memItemLeft" align="right" valign="top"><a id="a379a8686cc5a3433a4ebe912ae79f650" name="a379a8686cc5a3433a4ebe912ae79f650"></a>
 std::size_t&#160;</td><td class="memItemRight" valign="bottom"><b>max_message_bytes</b> {1024 * 1024}</td></tr>
 <tr class="memdesc:a379a8686cc5a3433a4ebe912ae79f650"><td class="mdescLeft">&#160;</td><td class="mdescRight">Maximum accepted payload size. <br /></td></tr>
@@ -123,7 +123,7 @@ std::size_t&#160;</td><td class="memItemRight" valign="bottom"><b>max_queued_byt
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Configuration shared by the D-Bus input and output endpoints. </p>
-<p>Endpoints carry byte arrays in D-Bus signals. The default routing tuple is the <a class="el" href="classdmn_1_1Dmn__DMesgNet.html">Dmn_DMesgNet</a> wire contract; callers can select another tuple for unrelated byte-oriented protocols.</p>
+<p>Endpoints carry byte arrays in D-Bus signals. The default routing tuple is the <a class="el" href="classdmn_1_1Dmn__DMesgNet.html" title="Best-effort bridge between local DMesg and caller-supplied I/O.">Dmn_DMesgNet</a> wire contract; callers can select another tuple for unrelated byte-oriented protocols.</p>
 <p>The bus daemon must already be running. An empty address selects the standard session bus. A non-empty address selects that exact bus daemon; it may be the standard system bus, an explicitly addressed session bus, or a separately started private bus instance. "Private bus" means a separate daemon instance; it is distinct from the private client connection that each endpoint opens to any selected bus. This configuration neither starts a daemon nor exports a Dmn D-Bus service, and connection failure never falls back to another bus. </p>
 </div><a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="aca6e334e44e6d7605df65dd5d817a96a" name="aca6e334e44e6d7605df65dd5d817a96a"></a>

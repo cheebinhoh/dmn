@@ -92,6 +92,11 @@ $(function(){initNavTree('classdmn_1_1Dmn__DMesgNet.html','','classdmn_1_1Dmn__D
   <div class="headertitle"><div class="title">dmn::Dmn_DMesgNet Class Reference</div></div>
 </div><!--header-->
 <div class="contents">
+
+<p>Best-effort bridge between local DMesg and caller-supplied I/O.  
+ <a href="#details">More...</a></p>
+
+<p><code>#include &lt;<a class="el" href="dmn-dmesgnet_8hpp_source.html">dmn-dmesgnet.hpp</a>&gt;</code></p>
 <div class="dynheader">
 Inheritance diagram for dmn::Dmn_DMesgNet:</div>
 <div class="dyncontent">
@@ -104,13 +109,23 @@ Inheritance diagram for dmn::Dmn_DMesgNet:</div>
   </map>
 </div></div>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
+Classes</h2></td></tr>
+<tr class="memitem:Heartbeat" id="r_Heartbeat"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdmn_1_1Dmn__DMesgNet_1_1Heartbeat.html">Heartbeat</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Owned heartbeat source used for election ticks.  <a href="classdmn_1_1Dmn__DMesgNet_1_1Heartbeat.html#details">More...</a><br /></td></tr>
+<tr class="memitem:Options" id="r_Options"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdmn_1_1Dmn__DMesgNet_1_1Options.html">Options</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resource limits and optional heartbeat source.  <a href="structdmn_1_1Dmn__DMesgNet_1_1Options.html#details">More...</a><br /></td></tr>
+<tr class="memitem:Status" id="r_Status"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html">Status</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Local observations; counters do not imply remote delivery.  <a href="structdmn_1_1Dmn__DMesgNet_1_1Status.html#details">More...</a><br /></td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:afafa37a545a0060ec87b9ad1415a8652" id="r_afafa37a545a0060ec87b9ad1415a8652"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#afafa37a545a0060ec87b9ad1415a8652">Dmn_DMesgNet</a> (std::string_view name, std::shared_ptr&lt; <a class="el" href="classdmn_1_1Dmn__Io.html">Dmn_Io</a>&lt; std::string &gt; &gt; input_handler=nullptr, std::shared_ptr&lt; <a class="el" href="classdmn_1_1Dmn__Io.html">Dmn_Io</a>&lt; std::string &gt; &gt; output_handler=nullptr)</td></tr>
-<tr class="memdesc:afafa37a545a0060ec87b9ad1415a8652"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classdmn_1_1Dmn__DMesgNet.html">Dmn_DMesgNet</a> constructor.  <br /></td></tr>
-<tr class="memitem:a2eb843cb538f769b3fd18748144c255b" id="r_a2eb843cb538f769b3fd18748144c255b"><td class="memItemLeft" align="right" valign="top"><a id="a2eb843cb538f769b3fd18748144c255b" name="a2eb843cb538f769b3fd18748144c255b"></a>
-virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~Dmn_DMesgNet</b> () noexcept</td></tr>
-<tr class="memdesc:a2eb843cb538f769b3fd18748144c255b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destructor: stops background procs, closes handlers, and sends a final Destroyed heartbeat to the network output if available. <br /></td></tr>
+<tr class="memdesc:afafa37a545a0060ec87b9ad1415a8652"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classdmn_1_1Dmn__DMesgNet.html" title="Best-effort bridge between local DMesg and caller-supplied I/O.">Dmn_DMesgNet</a> constructor.  <br /></td></tr>
+<tr class="memitem:a4ed362c2419d2741b5b503a73003c629" id="r_a4ed362c2419d2741b5b503a73003c629"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a4ed362c2419d2741b5b503a73003c629">Dmn_DMesgNet</a> (std::string_view name, std::shared_ptr&lt; <a class="el" href="classdmn_1_1Dmn__Io.html">Dmn_Io</a>&lt; std::string &gt; &gt; input_handler, std::shared_ptr&lt; <a class="el" href="classdmn_1_1Dmn__Io.html">Dmn_Io</a>&lt; std::string &gt; &gt; output_handler, <a class="el" href="structdmn_1_1Dmn__DMesgNet_1_1Options.html">Options</a> options)</td></tr>
+<tr class="memdesc:a4ed362c2419d2741b5b503a73003c629"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a node with explicit options.  <br /></td></tr>
+<tr class="memitem:a2eb843cb538f769b3fd18748144c255b" id="r_a2eb843cb538f769b3fd18748144c255b"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a2eb843cb538f769b3fd18748144c255b">~Dmn_DMesgNet</a> () noexcept</td></tr>
+<tr class="memdesc:a2eb843cb538f769b3fd18748144c255b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Shut down the network bridge and release its resources.  <br /></td></tr>
 <tr class="memitem:a558558553c681342095a4fe02aa7d9c7" id="r_a558558553c681342095a4fe02aa7d9c7"><td class="memItemLeft" align="right" valign="top"><a id="a558558553c681342095a4fe02aa7d9c7" name="a558558553c681342095a4fe02aa7d9c7"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>Dmn_DMesgNet</b> (const Dmn_DMesgNet &amp;obj)=delete</td></tr>
 <tr class="memitem:a71c7b3db7c6684da49c5ac8d8d6dd801" id="r_a71c7b3db7c6684da49c5ac8d8d6dd801"><td class="memItemLeft" align="right" valign="top"><a id="a71c7b3db7c6684da49c5ac8d8d6dd801" name="a71c7b3db7c6684da49c5ac8d8d6dd801"></a>
@@ -121,6 +136,10 @@ virtual&#160;</td><td class="memItemRight" valign="bottom"><b>~Dmn_DMesgNet</b> 
 <a class="el" href="#afafa37a545a0060ec87b9ad1415a8652">Dmn_DMesgNet</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (<a class="el" href="#afafa37a545a0060ec87b9ad1415a8652">Dmn_DMesgNet</a> &amp;&amp;obj)=delete</td></tr>
 <tr class="memitem:acb3503dd41b83ae499b71749e4484877" id="r_acb3503dd41b83ae499b71749e4484877"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#acb3503dd41b83ae499b71749e4484877">setOutputHandler</a> (std::shared_ptr&lt; <a class="el" href="classdmn_1_1Dmn__Io.html">Dmn_Io</a>&lt; std::string &gt; &gt; outputHandler) -&gt; bool</td></tr>
 <tr class="memdesc:acb3503dd41b83ae499b71749e4484877"><td class="mdescLeft">&#160;</td><td class="mdescRight">Replace the outbound transport and re-enable network writes.  <br /></td></tr>
+<tr class="memitem:ab3b963d74f4cd3ad2d948d34defdc49a" id="r_ab3b963d74f4cd3ad2d948d34defdc49a"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab3b963d74f4cd3ad2d948d34defdc49a">getStatus</a> () const noexcept -&gt; <a class="el" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html">Status</a></td></tr>
+<tr class="memdesc:ab3b963d74f4cd3ad2d948d34defdc49a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sample local error counters and readiness.  <br /></td></tr>
+<tr class="memitem:af51ce8455a640800645886fa56d59242" id="r_af51ce8455a640800645886fa56d59242"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af51ce8455a640800645886fa56d59242">shutdown</a> ()</td></tr>
+<tr class="memdesc:af51ce8455a640800645886fa56d59242"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stop network workers and handlers and discard unsent pending data.  <br /></td></tr>
 <tr class="inherit_header pub_methods_classdmn_1_1Dmn__DMesg"><td colspan="2" onclick="javascript:dynsection.toggleInherit('pub_methods_classdmn_1_1Dmn__DMesg')"><span class="dynarrow"><span class="arrowhead closed"></span></span>Public Member Functions inherited from <a class="el" href="classdmn_1_1Dmn__DMesg.html">dmn::Dmn_DMesg</a></td></tr>
 <tr class="memitem:a70ad3a65cf698516f1fff892eeddbdf7 inherit pub_methods_classdmn_1_1Dmn__DMesg" id="r_a70ad3a65cf698516f1fff892eeddbdf7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdmn_1_1Dmn__DMesg.html#a70ad3a65cf698516f1fff892eeddbdf7">Dmn_DMesg</a> (std::string_view name)</td></tr>
 <tr class="memdesc:a70ad3a65cf698516f1fff892eeddbdf7 inherit pub_methods_classdmn_1_1Dmn__DMesg"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct a <a class="el" href="classdmn_1_1Dmn__DMesg.html">Dmn_DMesg</a> publisher instance.  <br /></td></tr>
@@ -242,9 +261,12 @@ using&#160;</td><td class="memItemRight" valign="bottom"><b>Dmn_Pub_Filter_Task<
 <tr class="memitem:a18e868bdbc7a2d74542003333e0b0bec inherit pub_static_attribs_classdmn_1_1Dmn__DMesg" id="r_a18e868bdbc7a2d74542003333e0b0bec"><td class="memItemLeft" align="right" valign="top">static constexpr std::string_view&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdmn_1_1Dmn__DMesg.html#a18e868bdbc7a2d74542003333e0b0bec">kHandlerConfig_NoTopicFilter</a></td></tr>
 <tr class="memdesc:a18e868bdbc7a2d74542003333e0b0bec inherit pub_static_attribs_classdmn_1_1Dmn__DMesg"><td class="mdescLeft">&#160;</td><td class="mdescRight">If set to "yes" or "1", handlers opened with this config will ignore topic filtering when reading: read() returns messages regardless of topic value and write() will not set the message topic automatically.  <br /></td></tr>
 </table>
-<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>Best-effort bridge between local DMesg and caller-supplied I/O. </p>
+<p>Readiness and counters describe only local state and do not establish remote delivery, consensus, or authenticated peer identity. </p>
+</div><a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="afafa37a545a0060ec87b9ad1415a8652" name="afafa37a545a0060ec87b9ad1415a8652"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afafa37a545a0060ec87b9ad1415a8652">&#9670;&#160;</a></span>Dmn_DMesgNet()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#afafa37a545a0060ec87b9ad1415a8652">&#9670;&#160;</a></span>Dmn_DMesgNet() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -275,14 +297,20 @@ using&#160;</td><td class="memItemRight" valign="bottom"><b>Dmn_Pub_Filter_Task<
 </table>
 </div><div class="memdoc">
 
-<p><a class="el" href="classdmn_1_1Dmn__DMesgNet.html">Dmn_DMesgNet</a> constructor. </p>
-<p>Construct a <a class="el" href="classdmn_1_1Dmn__DMesgNet.html">Dmn_DMesgNet</a> instance and start background threads.</p>
-<p>Create a network-aware DMesg instance that can read/write serialized DMesgPb messages through <a class="el" href="classdmn_1_1Dmn__Io.html" title="Transport-agnostic interface for reading and writing values of type T.">Dmn_Io</a> handlers.</p>
+<p><a class="el" href="classdmn_1_1Dmn__DMesgNet.html" title="Best-effort bridge between local DMesg and caller-supplied I/O.">Dmn_DMesgNet</a> constructor. </p>
+<p>Construct a <a class="el" href="classdmn_1_1Dmn__DMesgNet.html" title="Best-effort bridge between local DMesg and caller-supplied I/O.">Dmn_DMesgNet</a> instance and start background threads.</p>
+<p>Create a network-aware DMesg instance that can read/write serialized DMesgPb messages through <a class="el" href="classdmn_1_1Dmn__Io.html" title="Transport-agnostic interface for reading and writing values of type T.">Dmn_Io</a> handlers using default options. With both endpoints present, heartbeat ticks drive local readiness; otherwise the node starts locally ready without running election.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">name</td><td>Identification name for this DMesgNet instance. </td></tr>
     <tr><td class="paramname">input_handler</td><td>Optional input handler to receive inbound serialized DMesgPb messages (std::string). If nullptr, no input processing is started. </td></tr>
-    <tr><td class="paramname">output_handler</td><td>Optional output handler to send outbound serialized DMesgPb messages (std::string). If nullptr, no network sends are performed.</td></tr>
+    <tr><td class="paramname">output_handler</td><td>Optional output handler to send outbound serialized DMesgPb messages (std::string). If nullptr, no network sends are performed. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::runtime_error</td><td>if the input worker fails to start.</td></tr>
   </table>
   </dd>
 </dl>
@@ -295,6 +323,84 @@ using&#160;</td><td class="memItemRight" valign="bottom"><b>Dmn_Pub_Filter_Task<
   </table>
   </dd>
 </dl>
+
+</div>
+</div>
+<a id="a4ed362c2419d2741b5b503a73003c629" name="a4ed362c2419d2741b5b503a73003c629"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4ed362c2419d2741b5b503a73003c629">&#9670;&#160;</a></span>Dmn_DMesgNet() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">dmn::Dmn_DMesgNet::Dmn_DMesgNet </td>
+          <td>(</td>
+          <td class="paramtype">std::string_view</td>          <td class="paramname"><span class="paramname"><em>name</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="classdmn_1_1Dmn__Io.html">Dmn_Io</a>&lt; std::string &gt; &gt;</td>          <td class="paramname"><span class="paramname"><em>input_handler</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="classdmn_1_1Dmn__Io.html">Dmn_Io</a>&lt; std::string &gt; &gt;</td>          <td class="paramname"><span class="paramname"><em>output_handler</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structdmn_1_1Dmn__DMesgNet_1_1Options.html">Options</a></td>          <td class="paramname"><span class="paramname"><em>options</em></span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Construct a node with explicit options. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">name</td><td>Node identifier. </td></tr>
+    <tr><td class="paramname">input_handler</td><td>Optional inbound endpoint. </td></tr>
+    <tr><td class="paramname">output_handler</td><td>Optional outbound endpoint. </td></tr>
+    <tr><td class="paramname">options</td><td>Resource limits and optional heartbeat factory. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::invalid_argument</td><td>if a limit is zero or the heartbeat factory returns null. </td></tr>
+    <tr><td class="paramname">std::runtime_error</td><td>if the input worker fails to start. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a2eb843cb538f769b3fd18748144c255b" name="a2eb843cb538f769b3fd18748144c255b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2eb843cb538f769b3fd18748144c255b">&#9670;&#160;</a></span>~Dmn_DMesgNet()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">dmn::Dmn_DMesgNet::~Dmn_DMesgNet </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel virtual">virtual</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Shut down the network bridge and release its resources. </p>
+<p>Destructor: stops background procs, closes handlers, and sends a final Destroyed heartbeat to the network output if available.</p>
+<p>Callers must ensure that no other thread is using the object during destruction. </p>
 
 </div>
 </div>
@@ -324,10 +430,39 @@ using&#160;</td><td class="memItemRight" valign="bottom"><b>Dmn_Pub_Filter_Task<
 
 <p>Return the internal per-topic last-published message cache. </p>
 <p>Return a mutable reference to the net-layer per-topic last-message cache.</p>
-<p>Overrides <code><a class="el" href="classdmn_1_1Dmn__DMesg.html#a14e645b4bb04c008fa1ef0aa30face65" title="Return the cache of last topic message.">Dmn_DMesg::getLastTopicCacheInternal()</a></code> to return the network layer's own cache (<code>m_topic_last_dmesgpb</code>) rather than the base-class cache, so that heartbeat and reconciliation logic use the correct view.</p>
+<p>Overrides <code><a class="el" href="classdmn_1_1Dmn__DMesg.html#a14e645b4bb04c008fa1ef0aa30face65" title="Return the cache of last topic message.">Dmn_DMesg::getLastTopicCacheInternal()</a></code> to return the network layer's own cache (<code>m_topic_last_dmesgpb</code>) rather than the base-class cache, so that heartbeat and reconciliation logic use the network view. Access is serialized by the DMesgNet async context.</p>
 <dl class="section return"><dt>Returns</dt><dd>Reference to the network layer's topic-to-last-message map. </dd></dl>
 
 <p>Reimplemented from <a class="el" href="classdmn_1_1Dmn__DMesg.html#a14e645b4bb04c008fa1ef0aa30face65">dmn::Dmn_DMesg</a>.</p>
+
+</div>
+</div>
+<a id="ab3b963d74f4cd3ad2d948d34defdc49a" name="ab3b963d74f4cd3ad2d948d34defdc49a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab3b963d74f4cd3ad2d948d34defdc49a">&#9670;&#160;</a></span>getStatus()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto dmn::Dmn_DMesgNet::getStatus </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const-&gt;<a class="el" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html">Status</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel nodiscard">nodiscard</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Sample local error counters and readiness. </p>
+<p>A successful local write is not evidence of remote receipt or application.</p>
+<dl class="section return"><dt>Returns</dt><dd>Thread-safe, independently sampled status fields. </dd></dl>
 
 </div>
 </div>
@@ -356,7 +491,7 @@ using&#160;</td><td class="memItemRight" valign="bottom"><b>Dmn_Pub_Filter_Task<
 
 <p>Reconcile system-level information from a remote DMesgPb message. </p>
 <p>Apply a received remote sys message to the local election state.</p>
-<p>This method updates local view of the cluster (master id, neighbor list, timestamps, etc.) based on information contained in dmesgpb_other. It is responsible for applying election/co-election logic (for example, when a remote node declares itself master or relinquishes mastership) and for ensuring local state stays consistent with observed remote state.</p>
+<p>This method updates local view of the cluster (master id, neighbor list, timestamps, etc.) based on information contained in dmesgpb_other. It is applies the local election heuristic and updates the observed membership list. Call only in the DMesgNet async context with a validated sys message; the resulting view does not guarantee agreement between nodes.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">dmesgpb_other</td><td>DMesgPb message received from a remote node.</td></tr>
@@ -393,8 +528,40 @@ using&#160;</td><td class="memItemRight" valign="bottom"><b>Dmn_Pub_Filter_Task<
 </div><div class="memdoc">
 
 <p>Replace the outbound transport and re-enable network writes. </p>
-<p>A failed output is not retried until this method installs a handler. Passing nullptr disables outbound writes. Any write already in progress may finish on the previous handler.</p>
+<p>A failed output is not retried until this method installs a handler. Passing nullptr disables outbound writes. Any write already in progress may finish on the previous handler. Installing an output schedules a pending-queue flush when locally ready; this call does not wait for it.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">outputHandler</td><td>New outbound transport, or nullptr to disable output. </td></tr>
+  </table>
+  </dd>
+</dl>
 <dl class="section return"><dt>Returns</dt><dd>false if shutdown has begun; otherwise true. </dd></dl>
+
+</div>
+</div>
+<a id="af51ce8455a640800645886fa56d59242" name="af51ce8455a640800645886fa56d59242"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af51ce8455a640800645886fa56d59242">&#9670;&#160;</a></span>shutdown()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void dmn::Dmn_DMesgNet::shutdown </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Stop network workers and handlers and discard unsent pending data. </p>
+<p>This operation is idempotent and waits for in-flight work. Do not call it from a DMesgNet handler, transport callback, or its own async context. It may block if a transport callback does not return. Input shutdown and final heartbeat errors are recorded in <a class="el" href="structdmn_1_1Dmn__DMesgNet_1_1Status.html" title="Local observations; counters do not imply remote delivery.">Status</a>, even if cleanup completes. Local DMesg handlers remain owned by the object until they are closed or the object is destroyed.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::exception</td><td>if cleanup cannot complete; a later call may retry. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

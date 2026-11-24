@@ -145,6 +145,7 @@ var hierarchy =
     [ "dmn::Dmn_Runtime_Task::promise_type::FinalAwaiter", "structdmn_1_1Dmn__Runtime__Task_1_1promise__type_1_1FinalAwaiter.html", null ],
     [ "dmn::Dmn_DMesg::HandlerEvent", "structdmn_1_1Dmn__DMesg_1_1HandlerEvent.html", null ],
     [ "dmn::Dmn_DMesg::HandlerSpec", "structdmn_1_1Dmn__DMesg_1_1HandlerSpec.html", null ],
+    [ "dmn::Dmn_DMesgNet::Heartbeat", "classdmn_1_1Dmn__DMesgNet_1_1Heartbeat.html", null ],
     [ "dmn::Dmn_AncsBluezMonitor::Impl", "classdmn_1_1Dmn__AncsBluezMonitor_1_1Impl.html", null ],
     [ "dmn::Dmn_AncsClient::Impl", "classdmn_1_1Dmn__AncsClient_1_1Impl.html", null ],
     [ "dmn::Dmn_BluezClient::Impl", "classdmn_1_1Dmn__BluezClient_1_1Impl.html", null ],
@@ -153,12 +154,14 @@ var hierarchy =
     [ "dmn::Dmn_DMesgDbus::Impl", "structdmn_1_1Dmn__DMesgDbus_1_1Impl.html", null ],
     [ "dmn::Dmn_BluezGattClient::Impl::NotificationState", "structdmn_1_1Dmn__BluezGattClient_1_1Impl_1_1NotificationState.html", null ],
     [ "dmn::Dmn_DbusValue::ObjectPath", "structdmn_1_1Dmn__DbusValue_1_1ObjectPath.html", null ],
+    [ "dmn::Dmn_DMesgNet::Options", "structdmn_1_1Dmn__DMesgNet_1_1Options.html", null ],
     [ "dmn::Dmn_Runtime_Task::promise_type", "structdmn_1_1Dmn__Runtime__Task_1_1promise__type.html", null ],
     [ "QueueType", null, [
       [ "dmn::Dmn_Pipe< std::shared_ptr< Dmn_Async_Handle >, QueueType< std::shared_ptr< Dmn_Async_Handle > > >", "classdmn_1_1Dmn__Pipe.html", null ]
     ] ],
     [ "dmn::ScopeGuard&lt; F &gt;", "classdmn_1_1ScopeGuard.html", null ],
     [ "dmn::Dmn_DbusValue::SignatureValue", "structdmn_1_1Dmn__DbusValue_1_1SignatureValue.html", null ],
+    [ "dmn::Dmn_DMesgNet::Status", "structdmn_1_1Dmn__DMesgNet_1_1Status.html", null ],
     [ "dmn::Dmn_DbusValue::StructData", "structdmn_1_1Dmn__DbusValue_1_1StructData.html", null ],
     [ "dmn::Dmn_Inflight_Guard&lt; T &gt;::Ticket", "classdmn_1_1Dmn__Inflight__Guard_1_1Ticket.html", null ],
     [ "dmn::TimedJobComparator", "structdmn_1_1TimedJobComparator.html", null ],
