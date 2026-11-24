@@ -413,6 +413,12 @@ make network DLock the acceptance test for this phase.
 
 ### Phase 3 — LAN discovery as an optional library (M)
 
+The proposed [discovery specification and test-driven implementation
+plan](specs/dmn-mdns-discovery-spec.md) refines this opportunity. Its ordered
+fake-first phases, Linux Avahi/macOS Bonjour backend gates, and explicit
+cross-platform qualification take precedence over the illustrative slices
+below. The specification remains unimplemented.
+
 Add a small optional `dmn-discovery` target and a discovery interface,
 initially independent of DMesgNet. The interface should represent browse,
 resolve, add/remove, daemon-unavailable, cancellation, and shutdown outcomes

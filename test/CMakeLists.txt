@@ -2,6 +2,74 @@
 
 # [TEST TYPE: GTEST]
 # Core unit and component tests (CTest label: dmn).
+add_library(dmn-discovery-core-test STATIC
+              ${PROJECT_SOURCE_DIR}/src/dmn-discovery-command.cpp
+              ${PROJECT_SOURCE_DIR}/src/dmn-discovery-core.cpp
+              ${PROJECT_SOURCE_DIR}/src/dmn-discovery-delivery.cpp
+              ${PROJECT_SOURCE_DIR}/src/dmn-discovery-dispatcher.cpp
+              ${PROJECT_SOURCE_DIR}/src/dmn-discovery-records.cpp
+              ${PROJECT_SOURCE_DIR}/src/dmn-discovery-retry.cpp
+              ${PROJECT_SOURCE_DIR}/src/dmn-discovery-session.cpp
+              ${PROJECT_SOURCE_DIR}/src/dmn-discovery-slots.cpp
+)
+
+target_include_directories(dmn-discovery-core-test
+                             PUBLIC ${PROJECT_SOURCE_DIR}/src
+)
+
+target_compile_options(dmn-discovery-core-test PRIVATE -Wall -Wextra -Wpedantic)
+
+ADD_TEST_EXECUTABLE(dmn dmn-test-discovery-core)
+target_link_libraries(dmn-test-discovery-core PRIVATE dmn-discovery-core-test)
+set_tests_properties(dmn-test-discovery-core
+                       PROPERTIES LABELS "dmn;dmn-discovery"
+)
+
+ADD_TEST_EXECUTABLE(dmn dmn-test-discovery-records)
+target_link_libraries(dmn-test-discovery-records PRIVATE dmn-discovery-core-test)
+set_tests_properties(dmn-test-discovery-records
+                       PROPERTIES LABELS "dmn;dmn-discovery"
+)
+
+ADD_TEST_EXECUTABLE(dmn dmn-test-discovery-retry)
+target_link_libraries(dmn-test-discovery-retry PRIVATE dmn-discovery-core-test)
+set_tests_properties(dmn-test-discovery-retry
+                       PROPERTIES LABELS "dmn;dmn-discovery"
+)
+
+ADD_TEST_EXECUTABLE(dmn dmn-test-discovery-delivery)
+target_link_libraries(dmn-test-discovery-delivery PRIVATE dmn-discovery-core-test)
+set_tests_properties(dmn-test-discovery-delivery
+                       PROPERTIES LABELS "dmn;dmn-discovery"
+)
+
+ADD_TEST_EXECUTABLE(dmn dmn-test-discovery-dispatcher)
+target_link_libraries(dmn-test-discovery-dispatcher PRIVATE dmn-discovery-core-test)
+set_tests_properties(dmn-test-discovery-dispatcher
+                       PROPERTIES LABELS "dmn;dmn-discovery"
+                                  TIMEOUT 20
+)
+
+ADD_TEST_EXECUTABLE(dmn dmn-test-discovery-command)
+target_link_libraries(dmn-test-discovery-command PRIVATE dmn-discovery-core-test)
+set_tests_properties(dmn-test-discovery-command
+                       PROPERTIES LABELS "dmn;dmn-discovery"
+                                  TIMEOUT 20
+)
+
+ADD_TEST_EXECUTABLE(dmn dmn-test-discovery-slots)
+target_link_libraries(dmn-test-discovery-slots PRIVATE dmn-discovery-core-test)
+set_tests_properties(dmn-test-discovery-slots
+                       PROPERTIES LABELS "dmn;dmn-discovery"
+)
+
+ADD_TEST_EXECUTABLE(dmn dmn-test-discovery-session)
+target_link_libraries(dmn-test-discovery-session PRIVATE dmn-discovery-core-test)
+set_tests_properties(dmn-test-discovery-session
+                       PROPERTIES LABELS "dmn;dmn-discovery"
+                                  TIMEOUT 20
+)
+
 ADD_TEST_EXECUTABLE(dmn
                       # FIXME: refactor this test so it does not run indefinitely
                       # dmn-test
@@ -616,6 +684,14 @@ if (ENABLE_VALGRIND)
   # [TEST TYPE: VALGRIND]
   # Run the selected regular GTest executables under Valgrind.
   SET(DMN_VALGRIND_TESTS
+        dmn-test-discovery-core
+        dmn-test-discovery-records
+        dmn-test-discovery-retry
+        dmn-test-discovery-delivery
+        dmn-test-discovery-dispatcher
+        dmn-test-discovery-command
+        dmn-test-discovery-slots
+        dmn-test-discovery-session
         dmn-test-async
         dmn-test-async-2
         dmn-test-async-2-queue-lf

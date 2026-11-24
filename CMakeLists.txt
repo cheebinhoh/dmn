@@ -36,6 +36,8 @@ option(DMN_ALLOW_DEPENDENCY_FETCH
        "Fetch missing build dependencies with CMake FetchContent" ON)
 option(ENABLE_DMN_DMESGNET
        "Build the Protobuf-based DMesg/DMesgNet stack and Kafka transport" ON)
+option(ENABLE_DMN_DISCOVERY
+       "Build the optional DNS-SD discovery library" OFF)
 option(ENABLE_ANCS "Build the optional ANCS protocol library" OFF)
 option(ENABLE_ANCS_HARDWARE_TESTS
        "Enable opt-in ANCS tests that use a physical iPhone over BlueZ" OFF)
@@ -61,6 +63,11 @@ endif()
 if (BUILD_KAFKA_TEST AND NOT ENABLE_DMN_DMESGNET)
   message(STATUS
           "BUILD_KAFKA_TEST=ON but ENABLE_DMN_DMESGNET=OFF; Kafka integration tests are skipped.")
+endif()
+
+if (ENABLE_DMN_DISCOVERY)
+  message(FATAL_ERROR
+          "ENABLE_DMN_DISCOVERY=ON is not yet supported; no native discovery backend is implemented.")
 endif()
 set(DMN_ANCS_HARDWARE_DEVICE "iPhone Old" CACHE STRING
     "Exact BlueZ display name or address used by opt-in ANCS hardware tests")
