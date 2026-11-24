@@ -45,8 +45,8 @@
  *   agreement.
  * - When a new node C joins later, it learns the cluster through received
  *   heartbeats and follows the elected master.
- * - When the master shuts down, it sends a final Destroyed heartbeat; nodes
- *   receiving it remove that node from their known remote-node lists.
+ * - On shutdown, a node attempts a final Destroyed heartbeat if output is
+ *   available; nodes receiving it remove the sender from their known lists.
  *
  * Implementation notes:
  * - Heartbeats are periodic (see DMN_DMESGNET_HEARTBEAT_IN_NS).
@@ -113,6 +113,9 @@ public:
    */
   class Heartbeat {
   public:
+    /**
+     * @brief Destroy the source after stopping and joining its callbacks.
+     */
     virtual ~Heartbeat() = default;
   };
 
@@ -163,7 +166,9 @@ public:
    * @brief Dmn_DMesgNet constructor.
    *
    * Create a network-aware DMesg instance that can read/write serialized
-   * DMesgPb messages through Dmn_Io handlers.
+   * DMesgPb messages through Dmn_Io handlers using default options. With both
+   * endpoints present, heartbeat ticks drive local readiness; otherwise the
+   * node starts locally ready without running election.
    *
    * @param name           Identification name for this DMesgNet instance.
    * @param input_handler  Optional input handler to receive inbound serialized
@@ -172,6 +177,7 @@ public:
    * @param output_handler Optional output handler to send outbound serialized
    * DMesgPb messages (std::string). If nullptr, no
    * network sends are performed.
+   * @throws std::runtime_error if the input worker fails to start.
    */
   explicit Dmn_DMesgNet(
       std::string_view name,
@@ -187,6 +193,7 @@ public:
    * @param options Resource limits and optional heartbeat factory.
    * @throws std::invalid_argument if a limit is zero or the heartbeat factory
    * returns null.
+   * @throws std::runtime_error if the input worker fails to start.
    */
   Dmn_DMesgNet(std::string_view name,
                std::shared_ptr<Dmn_Io<std::string>> input_handler,
@@ -211,7 +218,8 @@ public:
    *
    * A failed output is not retried until this method installs a handler.
    * Passing nullptr disables outbound writes. Any write already in progress
-   * may finish on the previous handler.
+   * may finish on the previous handler. Installing an output schedules a
+   * pending-queue flush when locally ready; this call does not wait for it.
    *
    * @param outputHandler New outbound transport, or nullptr to disable output.
    * @return false if shutdown has begun; otherwise true.
@@ -248,9 +256,9 @@ protected:
    *
    * This method updates local view of the cluster (master id, neighbor list,
    * timestamps, etc.) based on information contained in dmesgpb_other. It is
-   * responsible for applying election/co-election logic (for example, when a
-   * remote node declares itself master or relinquishes mastership) and for
-   * ensuring local state stays consistent with observed remote state.
+   * applies the local election heuristic and updates the observed membership
+   * list. Call only in the DMesgNet async context with a validated sys message;
+   * the resulting view does not guarantee agreement between nodes.
    *
    * @param dmesgpb_other DMesgPb message received from a remote node.
    */
@@ -262,7 +270,7 @@ protected:
    * Overrides @c Dmn_DMesg::getLastTopicCacheInternal() to return the
    * network layer's own cache (@c m_topic_last_dmesgpb) rather than the
    * base-class cache, so that heartbeat and reconciliation logic use the
-   * correct view.
+   * network view. Access is serialized by the DMesgNet async context.
    *
    * @return Reference to the network layer's topic-to-last-message map.
    */
@@ -283,12 +291,19 @@ private:
   void createSubscriptHandler();
 
   /**
-   * @brief Create and start the periodic heartbeat timer thread.
+   * @brief Create the heartbeat source or set the local-only readiness state.
+   *
+   * Called during construction. With both endpoints, the source schedules
+   * election and heartbeat work on the DMesgNet async context. Otherwise,
+   * the node becomes locally ready without starting a heartbeat source.
    */
   void createTimerProc();
 
   /**
    * @brief Drain queued outbound messages in publication order.
+   *
+   * Call in the DMesgNet async context while locally ready. A failed write
+   * leaves that message and later messages queued for a subsequent retry.
    */
   void sendPendingOutboundQueueMessage();
 
@@ -296,16 +311,30 @@ private:
    * @brief Retain an outbound message if both pending limits permit it.
    *
    * Called only in the DMesgNet async context.
+   *
+   * @param message Message to queue; overflow is recorded in local status.
    */
   void enqueuePendingOutboundMessage(const dmn::DMesgPb &message);
 
   /**
    * @brief Send one payload unless shutdown or an output failure has disabled
    *        outbound writes.
+   *
+   * A successful write only indicates local transport acceptance.
+   *
+   * @param payload Serialized message to write.
+   * @param duringShutdown Allow the final heartbeat after shutdown starts.
+   * @return True if the local output write completed without an exception.
    */
   auto writeOutput(const std::string &payload,
                    bool duringShutdown = false) noexcept -> bool;
 
+  /**
+   * @brief Check whether an output handler is installed and has not failed.
+   *
+   * @return True if output is currently available; this is a snapshot and does
+   * not guarantee a subsequent write will succeed.
+   */
   [[nodiscard]] auto hasOutputHandler() const -> bool;
 
   /**

@@ -11,7 +11,7 @@
  *   creation timestamp and node identity, then wires up the subscriber
  *   handler, the optional input-reader thread, and the heartbeat timer.
  *
- * - createInputHandlerProc(): starts a background Dmn_Proc thread that
+ * - createInputHandlerProc(): creates a background Dmn_Proc worker that
  *   reads serialised DMesgPb strings from the input Dmn_Io, discards empty or
  *   malformed payloads, and dispatches valid messages as sys (reconciliation),
  *   conflict, force-playback, or ordinary messages. Oversized socket datagrams
@@ -63,8 +63,19 @@ namespace dmn {
 
 namespace {
 
+/**
+ * @brief Default heartbeat source backed by the one-second Dmn_Timer.
+ *
+ * DMesgNet owns this source; destroying it stops the timer and its callbacks.
+ * The supplied tick schedules heartbeat work on the DMesgNet async context.
+ */
 class RealHeartbeat final : public Dmn_DMesgNet::Heartbeat {
 public:
+  /**
+   * @brief Start the periodic timer with the supplied heartbeat callback.
+   *
+   * @param tick Callback invoked by each timer tick.
+   */
   explicit RealHeartbeat(std::function<void()> tick)
       : m_timer{std::chrono::nanoseconds{DMN_DMESGNET_HEARTBEAT_IN_NS},
                 std::move(tick)} {}
@@ -73,12 +84,32 @@ private:
   Dmn_Timer<std::chrono::nanoseconds> m_timer;
 };
 
+/**
+ * @brief Check whether a protobuf timestamp has valid seconds and nanos.
+ *
+ * Used for system-node timestamps before they participate in reconciliation.
+ * This checks the protobuf representation, not clock accuracy or ordering.
+ *
+ * @param timestamp Timestamp to validate.
+ * @return True if seconds and nanos are within protobuf's valid ranges.
+ */
 auto isValidTimestamp(const google::protobuf::Timestamp &timestamp) -> bool {
   return timestamp.seconds() >= -62135596800LL &&
          timestamp.seconds() <= 253402300799LL && timestamp.nanos() >= 0 &&
          timestamp.nanos() < 1000000000;
 }
 
+/**
+ * @brief Check the semantic envelope of a parsed inbound message.
+ *
+ * Call after parsing and before dispatch. Application messages must not use
+ * the reserved system topic or body. System messages require a valid self
+ * record, timestamps, state and state-consistent master identifier.
+ * Validation does not authenticate the sender or establish delivery.
+ *
+ * @param message Parsed message to validate.
+ * @return True if the message satisfies these network-envelope checks.
+ */
 auto isValidNetworkMessage(const DMesgPb &message) -> bool {
   if (!DMesgTypePb_IsValid(message.type()) ||
       message.type() == DMesgTypePb::INVALID) {
@@ -126,6 +157,7 @@ Dmn_DMesgNet::Dmn_DMesgNet(std::string_view name,
     : Dmn_DMesgNet{name, std::move(input_handler), std::move(output_handler),
                    Options{}} {}
 
+// Configure handlers before enabling heartbeat ticks or starting input.
 Dmn_DMesgNet::Dmn_DMesgNet(std::string_view name,
                            std::shared_ptr<Dmn_Io<std::string>> input_handler,
                            std::shared_ptr<Dmn_Io<std::string>> output_handler,
@@ -193,6 +225,7 @@ Dmn_DMesgNet::~Dmn_DMesgNet() noexcept try {
             << "]: shutdown failed with a non-standard exception\n";
 }
 
+// Stop new submissions and workers, drain queued work, then release handlers.
 void Dmn_DMesgNet::shutdown() try {
   std::lock_guard shutdownLock{m_shutdown_mutex};
   if (m_shutdown_complete.load(std::memory_order_acquire)) {
@@ -293,14 +326,15 @@ void Dmn_DMesgNet::shutdown() try {
 }
 
 /**
- * @brief Start the background input-reader proc that reads serialised
+ * @brief Create the background input-reader proc that reads serialised
  * DMesgPb strings from the input Dmn_Io, discards empty/malformed payloads,
  * and dispatches valid messages as sys, conflict, force-playback, or ordinary
  * messages. Oversized datagrams are logged and discarded; other socket read
  * errors are logged and stop the input worker.
  *
  * Also opens the internal write handler and the sys handler used for
- * publishing heartbeat sys messages. Has no effect if m_input_handler is null.
+ * publishing heartbeat sys messages. The constructor starts the proc after
+ * initializing the heartbeat. Has no effect if m_input_handler is null.
  */
 void Dmn_DMesgNet::createInputHandlerProc() {
   if (m_input_handler) {
@@ -380,14 +414,6 @@ void Dmn_DMesgNet::createInputHandlerProc() {
                 continue;
               }
 
-              // this is important to prevent that the
-              // m_subscript_handler of this DMesgNet from
-              // reading this message again and send out.
-              //
-              // the Dmn_DMesgHandler->write will add the name
-              // of the Dmn_DMesgHandler from read it again,
-              // but it is good to be explicit.
-
               if (dmesgpb_read.type() == dmn::DMesgTypePb::sys) {
                 DMN_ASYNC_CALL_WITH_CAPTURE(
                     {
@@ -445,6 +471,8 @@ void Dmn_DMesgNet::createInputHandlerProc() {
                             << "]: force playback was rejected\n";
                 }
               } else {
+                // Mark inbound application messages so the network subscriber
+                // does not forward them back to the output.
                 DMESG_PB_SET_MSG_SOURCEWRITEHANDLERIDENTIFIER(dmesgpb_read,
                                                               this->m_name);
 
@@ -622,7 +650,7 @@ void Dmn_DMesgNet::createTimerProc() {
     // reaches DMN_DMESGNET_MASTERPENDING_MAX_COUNTER the node self-elects as
     // master (transitions to Ready and sets its own identifier as master).
     // When in Ready state but following a remote master, a separate sync
-    // counter tracks how long the master has been silent; if it exceeds
+    // counter tracks how long the master has been silent; when it reaches
     // DMN_DMESGNET_MASTERSYNC_MAX_COUNTER the node reverts to MasterPending.
     auto tick = [this]() -> void {
       if (m_shutdown.load(std::memory_order_acquire)) {
@@ -736,7 +764,8 @@ auto Dmn_DMesgNet::getLastTopicCacheInternal()
  * @brief Flush all queued outbound messages that were deferred while the node
  * was not yet ready (m_ready not set).
  *
- * Must only be called when m_ready is set and an output handler is installed.
+ * Called in the async context while ready. If output is unavailable or a write
+ * fails, unsent entries remain queued for a later attempt.
  */
 void Dmn_DMesgNet::sendPendingOutboundQueueMessage() {
   assert(m_ready.test());
@@ -761,6 +790,7 @@ void Dmn_DMesgNet::sendPendingOutboundQueueMessage() {
   }
 }
 
+// Apply count and serialized-byte limits to the async-context pending queue.
 void Dmn_DMesgNet::enqueuePendingOutboundMessage(const DMesgPb &message) {
   const auto bytes{message.ByteSizeLong()};
   if (m_outbound_pending_dmesgpb.size() >= m_options.m_max_pending_messages ||
@@ -776,6 +806,7 @@ void Dmn_DMesgNet::enqueuePendingOutboundMessage(const DMesgPb &message) {
   m_pending_bytes += bytes;
 }
 
+// Snapshot the handler so replacing it cannot invalidate a write in progress.
 auto Dmn_DMesgNet::writeOutput(const std::string &payload,
                                bool duringShutdown) noexcept -> bool {
   std::shared_ptr<Dmn_Io<std::string>> outputHandler;
@@ -825,6 +856,7 @@ auto Dmn_DMesgNet::writeOutput(const std::string &payload,
   return false;
 }
 
+// Install the transport and schedule a retry without waiting for the flush.
 auto Dmn_DMesgNet::setOutputHandler(
     std::shared_ptr<Dmn_Io<std::string>> outputHandler) -> bool {
   if (m_shutdown.load(std::memory_order_acquire)) {
@@ -850,6 +882,7 @@ auto Dmn_DMesgNet::setOutputHandler(
   }
 
   if (enablingOutput) {
+    // Shutdown waits for submissions to finish before its async drain barrier.
     const auto finishSubmission = [this] {
       std::lock_guard lock{m_output_mutex};
 
@@ -876,12 +909,14 @@ auto Dmn_DMesgNet::setOutputHandler(
   return true;
 }
 
+// Check availability under the same mutex used to replace or disable output.
 auto Dmn_DMesgNet::hasOutputHandler() const -> bool {
   std::lock_guard lock{m_output_mutex};
 
   return static_cast<bool>(m_output_handler) && !m_output_failed;
 }
 
+// Sample independent atomics; fields may represent different instants.
 auto Dmn_DMesgNet::getStatus() const noexcept -> Status {
   return {m_malformed_input.load(),
           m_invalid_input.load(),

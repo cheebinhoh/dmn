@@ -700,6 +700,7 @@ if (ENABLE_VALGRIND)
            dmn-test-dmesgnet-4
            dmn-test-dmesgnet-5
            dmn-test-dmesgnet-6
+           dmn-test-dmesgnet-phase2
            dmn-test-dmesgnet-shutdown
            dmn-test-kafka-config
     )
