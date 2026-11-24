@@ -148,11 +148,13 @@ endif()
 
 list(REMOVE_DUPLICATES _consumer_prefix_paths)
 list(JOIN _consumer_prefix_paths ";" _consumer_prefix_path_arg)
+string(REPLACE ";" "\\;" _consumer_prefix_path_arg_escaped
+       "${_consumer_prefix_path_arg}")
 
 set(_configure_command "${CMAKE_COMMAND}"
                        -S "${DMN_SOURCE_DIR}/test/cmake-package"
                        -B "${_consumer_build}"
-                       "-DCMAKE_PREFIX_PATH=${_consumer_prefix_path_arg}"
+                       "-DCMAKE_PREFIX_PATH=${_consumer_prefix_path_arg_escaped}"
                        "-DDmn_DIR=${_relocated}/${DMN_INSTALL_LIBDIR}/cmake/Dmn"
                        -DCMAKE_FIND_PACKAGE_NO_PACKAGE_REGISTRY=ON
                        -DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF
