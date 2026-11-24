@@ -22,14 +22,12 @@
  *   - its known remote-node list (the local node is stored separately).
  *
  * - Node states (high-level):
- *   1. Initialized: node starts, sends heartbeats and waits to learn of a
- *      master from neighbors or time out and self-elect.
- *   2. MasterPending: node expects a master's heartbeat; receiving one moves
+ *   1. MasterPending: node expects a master's heartbeat; receiving one moves
  *      the node to Ready; timeout may cause self-proclamation as master.
- *   3. Ready: normal operation where a node follows the elected master. If it
+ *   2. Ready: normal operation where a node follows the elected master. If it
  *      receives a relinquish message from the master it may participate in a
  *      re-election.
- *   4. Destroyed: final state (optionally persist last state).
+ *   3. Destroyed: final state announced on shutdown when output is available.
  *
  * - Election/reconciliation rules (summary):
  *   - A node in MasterPending self-elects after the configured number of
@@ -47,15 +45,15 @@
  *   agreement.
  * - When a new node C joins later, it learns the cluster through received
  *   heartbeats and follows the elected master.
- * - When the master shuts down, it sends a final Destroyed heartbeat; nodes
- *   receiving it remove that node from their known remote-node lists.
+ * - On shutdown, a node attempts a final Destroyed heartbeat if output is
+ *   available; nodes receiving it remove the sender from their known lists.
  *
  * Implementation notes:
  * - Heartbeats are periodic (see DMN_DMESGNET_HEARTBEAT_IN_NS).
  * - Remote nodes are removed from the known-node list on a Destroyed message;
  *   absent heartbeats alone do not currently remove them.
- * - The class reconciles local DMesgPb state with remote DMesgPb messages
- *   to maintain consistent view of master and membership.
+ * - Reconciliation maintains a local view of master and membership; peers
+ *   can have different views.
  */
 
 #ifndef DMN_DMESGNET_HPP_
@@ -65,10 +63,13 @@
 #include "dmn-dmesg-pb-util.hpp"
 #include "dmn-dmesg.hpp"
 #include "dmn-io.hpp"
-#include "dmn-timer.hpp"
 
 #include <atomic>
+#include <condition_variable>
+#include <cstddef>
 #include <cstdint>
+#include <deque>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -95,13 +96,79 @@ namespace dmn {
  */
 #define DMN_DMESGNET_MASTERSYNC_MAX_COUNTER (5)
 
+/**
+ * @brief Best-effort bridge between local DMesg and caller-supplied I/O.
+ *
+ * Readiness and counters describe only local state and do not establish remote
+ * delivery, consensus, or authenticated peer identity.
+ */
 class Dmn_DMesgNet : public Dmn_DMesg {
 public:
+  /**
+   * @brief Owned heartbeat source used for election ticks.
+   *
+   * Destruction must stop and join callbacks before returning. The factory
+   * must not invoke the callback synchronously and must not retain it outside
+   * the returned source, including when the factory fails.
+   */
+  class Heartbeat {
+  public:
+    /**
+     * @brief Destroy the source after stopping and joining its callbacks.
+     */
+    virtual ~Heartbeat() = default;
+  };
+
+  /**
+   * @brief Resource limits and optional heartbeat source.
+   *
+   * Pending messages are rejected when either bound is reached; they are not
+   * coalesced. A failed flush can leave messages pending after readiness.
+   * Byte limits count serialized sizes, not heap usage; they do not
+   * bound transport allocations, other async queues, or the topic cache.
+   * The inbound limit is checked after the transport returns a frame.
+   * All limits must be nonzero.
+   */
+  struct Options {
+    std::size_t m_max_frame_bytes{1024 * 1024}; ///< Maximum inbound frame.
+    std::size_t m_max_pending_messages{1024}; ///< Maximum queued message count.
+    std::size_t m_max_pending_bytes{4 * 1024 * 1024}; ///< Queued wire bytes.
+    /// Optional heartbeat source; empty selects the one-second real timer.
+    /// The factory must return a non-null source and honor Heartbeat's
+    /// contract.
+    std::function<std::unique_ptr<Heartbeat>(std::function<void()>)>
+        m_heartbeat_factory{};
+  };
+
+  /**
+   * @brief Local observations; counters do not imply remote delivery.
+   *
+   * Fields are sampled independently and may reflect concurrent updates.
+   */
+  struct Status {
+    std::uint64_t m_malformed_input{}; ///< Empty or unparseable input.
+    std::uint64_t m_invalid_input{};   ///< Parseable invalid envelopes.
+    std::uint64_t m_oversized_input{}; ///< Oversized frames or datagrams.
+    std::uint64_t m_input_failures{}; ///< Input errors that stopped the reader.
+    std::uint64_t m_pending_overflow{}; ///< Messages rejected by queue limits.
+    std::uint64_t m_repair_unavailable{}; ///< Repairs that could not proceed.
+    std::uint64_t m_output_failures{}; ///< Exceptions from local output writes.
+    std::uint64_t m_output_dropped{};  ///< Application messages dropped after
+                                       ///< an output became unavailable.
+    std::uint64_t m_pending_discarded{}; ///< Pending messages lost on shutdown.
+    std::uint64_t m_shutdown_failures{}; ///< Errors during shutdown.
+    bool m_ready{}; ///< Local readiness, not a remote acknowledgement.
+    bool m_shutdown_started{};  ///< Shutdown has been requested.
+    bool m_shutdown_complete{}; ///< Network workers and handlers have stopped.
+  };
+
   /**
    * @brief Dmn_DMesgNet constructor.
    *
    * Create a network-aware DMesg instance that can read/write serialized
-   * DMesgPb messages through Dmn_Io handlers.
+   * DMesgPb messages through Dmn_Io handlers using default options. With both
+   * endpoints present, heartbeat ticks drive local readiness; otherwise the
+   * node starts locally ready without running election.
    *
    * @param name           Identification name for this DMesgNet instance.
    * @param input_handler  Optional input handler to receive inbound serialized
@@ -110,12 +177,35 @@ public:
    * @param output_handler Optional output handler to send outbound serialized
    * DMesgPb messages (std::string). If nullptr, no
    * network sends are performed.
+   * @throws std::runtime_error if the input worker fails to start.
    */
   explicit Dmn_DMesgNet(
       std::string_view name,
       std::shared_ptr<Dmn_Io<std::string>> input_handler = nullptr,
       std::shared_ptr<Dmn_Io<std::string>> output_handler = nullptr);
 
+  /**
+   * @brief Construct a node with explicit options.
+   *
+   * @param name Node identifier.
+   * @param input_handler Optional inbound endpoint.
+   * @param output_handler Optional outbound endpoint.
+   * @param options Resource limits and optional heartbeat factory.
+   * @throws std::invalid_argument if a limit is zero or the heartbeat factory
+   * returns null.
+   * @throws std::runtime_error if the input worker fails to start.
+   */
+  Dmn_DMesgNet(std::string_view name,
+               std::shared_ptr<Dmn_Io<std::string>> input_handler,
+               std::shared_ptr<Dmn_Io<std::string>> output_handler,
+               Options options);
+
+  /**
+   * @brief Shut down the network bridge and release its resources.
+   *
+   * Callers must ensure that no other thread is using the object during
+   * destruction.
+   */
   virtual ~Dmn_DMesgNet() noexcept;
 
   Dmn_DMesgNet(const Dmn_DMesgNet &obj) = delete;
@@ -128,12 +218,37 @@ public:
    *
    * A failed output is not retried until this method installs a handler.
    * Passing nullptr disables outbound writes. Any write already in progress
-   * may finish on the previous handler.
+   * may finish on the previous handler. Installing an output schedules a
+   * pending-queue flush when locally ready; this call does not wait for it.
    *
+   * @param outputHandler New outbound transport, or nullptr to disable output.
    * @return false if shutdown has begun; otherwise true.
    */
   auto
   setOutputHandler(std::shared_ptr<Dmn_Io<std::string>> outputHandler) -> bool;
+
+  /**
+   * @brief Sample local error counters and readiness.
+   *
+   * A successful local write is not evidence of remote receipt or application.
+   *
+   * @return Thread-safe, independently sampled status fields.
+   */
+  [[nodiscard]] auto getStatus() const noexcept -> Status;
+
+  /**
+   * @brief Stop network workers and handlers and discard unsent pending data.
+   *
+   * This operation is idempotent and waits for in-flight work. Do not call it
+   * from a DMesgNet handler, transport callback, or its own async context.
+   * It may block if a transport callback does not return. Input shutdown and
+   * final heartbeat errors are recorded in Status, even if cleanup completes.
+   * Local DMesg handlers remain owned by the object until they are closed or
+   * the object is destroyed.
+   *
+   * @throws std::exception if cleanup cannot complete; a later call may retry.
+   */
+  void shutdown();
 
 protected:
   /**
@@ -141,9 +256,9 @@ protected:
    *
    * This method updates local view of the cluster (master id, neighbor list,
    * timestamps, etc.) based on information contained in dmesgpb_other. It is
-   * responsible for applying election/co-election logic (for example, when a
-   * remote node declares itself master or relinquishes mastership) and for
-   * ensuring local state stays consistent with observed remote state.
+   * applies the local election heuristic and updates the observed membership
+   * list. Call only in the DMesgNet async context with a validated sys message;
+   * the resulting view does not guarantee agreement between nodes.
    *
    * @param dmesgpb_other DMesgPb message received from a remote node.
    */
@@ -155,7 +270,7 @@ protected:
    * Overrides @c Dmn_DMesg::getLastTopicCacheInternal() to return the
    * network layer's own cache (@c m_topic_last_dmesgpb) rather than the
    * base-class cache, so that heartbeat and reconciliation logic use the
-   * correct view.
+   * network view. Access is serialized by the DMesgNet async context.
    *
    * @return Reference to the network layer's topic-to-last-message map.
    */
@@ -164,8 +279,8 @@ protected:
 
 private:
   /**
-   * @brief Create and start the background thread that reads from
-   *         @c m_input_handler and republishes inbound messages locally.
+   * @brief Create the input worker and handlers; the constructor starts the
+   *        worker after heartbeat initialization.
    */
   void createInputHandlerProc();
 
@@ -176,34 +291,65 @@ private:
   void createSubscriptHandler();
 
   /**
-   * @brief Create and start the periodic heartbeat timer thread.
+   * @brief Create the heartbeat source or set the local-only readiness state.
+   *
+   * Called during construction. With both endpoints, the source schedules
+   * election and heartbeat work on the DMesgNet async context. Otherwise,
+   * the node becomes locally ready without starting a heartbeat source.
    */
   void createTimerProc();
 
   /**
-   * @brief Drain and send any messages queued in the outbound pending
-   *         buffer (@c m_topic_outbound_pending_dmesgpb).
+   * @brief Drain queued outbound messages in publication order.
+   *
+   * Call in the DMesgNet async context while locally ready. A failed write
+   * leaves that message and later messages queued for a subsequent retry.
    */
   void sendPendingOutboundQueueMessage();
 
   /**
+   * @brief Retain an outbound message if both pending limits permit it.
+   *
+   * Called only in the DMesgNet async context.
+   *
+   * @param message Message to queue; overflow is recorded in local status.
+   */
+  void enqueuePendingOutboundMessage(const dmn::DMesgPb &message);
+
+  /**
    * @brief Send one payload unless shutdown or an output failure has disabled
    *        outbound writes.
+   *
+   * A successful write only indicates local transport acceptance.
+   *
+   * @param payload Serialized message to write.
+   * @param duringShutdown Allow the final heartbeat after shutdown starts.
+   * @return True if the local output write completed without an exception.
    */
   auto writeOutput(const std::string &payload,
                    bool duringShutdown = false) noexcept -> bool;
 
+  /**
+   * @brief Check whether an output handler is installed and has not failed.
+   *
+   * @return True if output is currently available; this is a snapshot and does
+   * not guarantee a subsequent write will succeed.
+   */
   [[nodiscard]] auto hasOutputHandler() const -> bool;
 
   /**
    * Constructor-initialized members.
    */
   std::string m_name{}; ///< Instance name.
+  Options m_options{};  ///< Resource limits.
   std::shared_ptr<Dmn_Io<std::string>>
       m_input_handler{}; ///< Inbound I/O handler.
   std::shared_ptr<Dmn_Io<std::string>>
-      m_output_handler{}; ///< Outbound I/O handler.
+      m_output_handler{};          ///< Outbound I/O handler.
+  const bool m_election_enabled{}; ///< Both endpoints existed at construction.
   mutable std::mutex m_output_mutex{};
+  std::condition_variable m_output_setters_idle{};
+  std::size_t m_output_setters{};
   std::uint64_t m_output_generation{};
   bool m_output_failed{};
 
@@ -217,8 +363,7 @@ private:
   Dmn_DMesg::HandlerType m_write_handler{}; ///< Handler for write operations.
   Dmn_DMesg::HandlerType
       m_sys_handler{}; ///< Handler for system (heartbeat) messages.
-  std::unique_ptr<dmn::Dmn_Timer<std::chrono::nanoseconds>>
-      m_timer_proc{}; ///< Heartbeat timer.
+  std::unique_ptr<Heartbeat> m_timer_proc{}; ///< Heartbeat timer.
 
   dmn::DMesgPb
       m_sys{}; ///< Local system DMesgPb (node identity, neighbor list).
@@ -231,9 +376,20 @@ private:
      ///< master heartbeat.
   std::unordered_map<std::string, dmn::DMesgPb>
       m_topic_last_dmesgpb{}; ///< Last published message per topic.
-  std::unordered_map<std::string, std::vector<dmn::DMesgPb>>
-      m_topic_outbound_pending_dmesgpb{}; ///< Outbound messages waiting to be
-                                          ///< sent.
+  std::deque<dmn::DMesgPb>
+      m_outbound_pending_dmesgpb{}; ///< Pending messages in publication order.
+  std::size_t m_pending_bytes{};    ///< Serialized size of pending messages.
+
+  std::atomic<std::uint64_t> m_malformed_input{};
+  std::atomic<std::uint64_t> m_invalid_input{};
+  std::atomic<std::uint64_t> m_oversized_input{};
+  std::atomic<std::uint64_t> m_input_failures{};
+  std::atomic<std::uint64_t> m_pending_overflow{};
+  std::atomic<std::uint64_t> m_repair_unavailable{};
+  std::atomic<std::uint64_t> m_output_failures{};
+  std::atomic<std::uint64_t> m_output_dropped{};
+  std::atomic<std::uint64_t> m_pending_discarded{};
+  std::atomic<std::uint64_t> m_shutdown_failures{};
 
   std::atomic_flag m_ready{}; ///< Set once master election has completed and
                               ///< this node is ready.
@@ -243,6 +399,8 @@ private:
                                     ///< (excluding self).
 
   std::atomic<bool> m_shutdown{}; ///< True once shutdown has been requested.
+  std::atomic<bool> m_shutdown_complete{};
+  std::mutex m_shutdown_mutex{};
 }; // class Dmn_DMesgNet
 
 } // namespace dmn
