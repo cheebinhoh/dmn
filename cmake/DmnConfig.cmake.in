@@ -1,0 +1,28 @@
+# Copyright © 2025 - 2026 Chee Bin HOH. All rights reserved.
+
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# Resolve only dependencies present in this build's exported target graph.
+find_dependency(ICU COMPONENTS uc)
+
+if (@ENABLE_DMN_DMESGNET@)
+  find_dependency(Protobuf)
+  find_dependency(PkgConfig)
+  pkg_check_modules(RDKAFKA REQUIRED IMPORTED_TARGET rdkafka)
+endif()
+
+if (@ENABLE_DBUS@)
+  find_dependency(PkgConfig)
+  pkg_check_modules(DBUS REQUIRED IMPORTED_TARGET dbus-1)
+endif()
+
+if (@ENABLE_FAULT_INJECTION@)
+  find_dependency(PkgConfig)
+  pkg_check_modules(LIBFIU REQUIRED IMPORTED_TARGET libfiu)
+endif()
+
+include("${CMAKE_CURRENT_LIST_DIR}/DmnTargets.cmake")
+
+check_required_components(Dmn)

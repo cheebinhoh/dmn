@@ -2,6 +2,16 @@
 
 # build the dmn library
 message(STATUS "build dmn...")
+include(CMakePackageConfigHelpers)
+
+# Keep public header sources visible in the build tree without exporting
+# absolute source/build paths to installed consumers.
+function(dmn_add_build_interface_sources target)
+  foreach(source IN LISTS ARGN)
+    target_sources(${target} INTERFACE "$<BUILD_INTERFACE:${source}>")
+  endforeach()
+endfunction()
+
 add_library(dmn
               ${CMAKE_CURRENT_SOURCE_DIR}/dmn-interval-btree.cpp
               ${CMAKE_CURRENT_SOURCE_DIR}/dmn-proc.cpp
@@ -10,6 +20,10 @@ add_library(dmn
               ${CMAKE_CURRENT_SOURCE_DIR}/dmn-socket.cpp
               ${CMAKE_CURRENT_SOURCE_DIR}/dmn-state.cpp
 )
+
+# The alias is shared by in-tree consumers and the installed Dmn:: namespace.
+add_library(Dmn::dmn ALIAS dmn)
+target_compile_features(dmn PUBLIC cxx_std_23)
 
 if (ENABLE_DMN_DMESGNET)
   target_sources(dmn
@@ -44,24 +58,23 @@ if (ENABLE_DMN_DMESGNET)
   endif()
 endif()
 
-target_include_directories(dmn PRIVATE ${PROJECT_SOURCE_DIR}/include)
-if (ENABLE_DMN_DMESGNET)
-  target_include_directories(dmn INTERFACE ${CMAKE_CURRENT_BINARY_DIR})
-endif()
-target_include_directories(dmn INTERFACE ${PROJECT_SOURCE_DIR})
 target_compile_options(dmn PRIVATE -Wall -Wextra -Wpedantic)
 
 set_target_properties(dmn PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 # The GATT API is a backend-neutral contract shared by ANCS and BlueZ.
 add_library(dmn-gatt INTERFACE)
+add_library(Dmn::dmn-gatt ALIAS dmn-gatt)
+target_compile_features(dmn-gatt INTERFACE cxx_std_23)
 
 target_include_directories(dmn-gatt
-                             INTERFACE ${PROJECT_SOURCE_DIR}/include
+                             INTERFACE
+                             $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+                             $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/dmn>
 )
 
-target_sources(dmn-gatt
-                 INTERFACE ${PROJECT_SOURCE_DIR}/include/dmn-gatt-client.hpp
+dmn_add_build_interface_sources(dmn-gatt
+                                  ${PROJECT_SOURCE_DIR}/include/dmn-gatt-client.hpp
 )
 
 if (ENABLE_ANCS)
@@ -69,12 +82,16 @@ if (ENABLE_ANCS)
                 ${CMAKE_CURRENT_SOURCE_DIR}/dmn-ancs-client.cpp
   )
 
+  add_library(Dmn::dmn-ancs ALIAS dmn-ancs)
+
   target_include_directories(dmn-ancs
-                               PUBLIC ${PROJECT_SOURCE_DIR}/include
+                               PUBLIC
+                               $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+                               $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/dmn>
   )
 
-  target_sources(dmn-ancs
-                   INTERFACE ${PROJECT_SOURCE_DIR}/include/dmn-ancs-client.hpp
+  dmn_add_build_interface_sources(dmn-ancs
+                                    ${PROJECT_SOURCE_DIR}/include/dmn-ancs-client.hpp
   )
 
   target_compile_options(dmn-ancs PRIVATE -Wall -Wextra -Wpedantic)
@@ -82,18 +99,18 @@ if (ENABLE_ANCS)
   target_link_libraries(dmn-ancs PUBLIC dmn dmn-gatt)
 
   install(TARGETS dmn-ancs
-            ARCHIVE DESTINATION lib/dmn
+            EXPORT DmnTargets
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/dmn
             COMPONENT Development
-            LIBRARY DESTINATION lib/dmn
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/dmn
             COMPONENT Runtime
-            RUNTIME DESTINATION bin
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
             COMPONENT Runtime
   )
 endif()
 
 # Public core headers: consumers see these through the dmn target interface.
-target_sources(dmn
-                 INTERFACE
+dmn_add_build_interface_sources(dmn
                  ${PROJECT_SOURCE_DIR}/include/dmn-async.hpp
                  ${PROJECT_SOURCE_DIR}/include/dmn-blockingqueue-lf.hpp
                  ${PROJECT_SOURCE_DIR}/include/dmn-blockingqueue-mt.hpp
@@ -117,8 +134,7 @@ target_sources(dmn
 )
 
 if (ENABLE_DMN_DMESGNET)
-  target_sources(dmn
-                   INTERFACE
+  dmn_add_build_interface_sources(dmn
                    ${PROJECT_SOURCE_DIR}/include/dmn-dlock.hpp
                    ${PROJECT_SOURCE_DIR}/include/dmn-dmesg-pb-util.hpp
                    ${PROJECT_SOURCE_DIR}/include/dmn-dmesg.hpp
@@ -128,8 +144,7 @@ if (ENABLE_DMN_DMESGNET)
                    ${CMAKE_CURRENT_BINARY_DIR}/proto/dmn-dmesg-type.pb.h
                    ${CMAKE_CURRENT_BINARY_DIR}/proto/dmn-dmesg.pb.h
   )
-  target_sources(dmn
-                   INTERFACE
+  dmn_add_build_interface_sources(dmn
                    ${PROJECT_SOURCE_DIR}/include/kafka/dmn-dmesgnet-kafka.hpp
                    ${PROJECT_SOURCE_DIR}/include/kafka/dmn-kafka-util.hpp
                    ${PROJECT_SOURCE_DIR}/include/kafka/dmn-kafka.hpp
@@ -137,32 +152,36 @@ if (ENABLE_DMN_DMESGNET)
 endif()
 
 if (ENABLE_FAULT_INJECTION)
-  target_sources(dmn
-                   INTERFACE
+  dmn_add_build_interface_sources(dmn
                    ${PROJECT_SOURCE_DIR}/include/dmn-fault-injection.hpp
   )
 endif()
 
 target_include_directories(dmn
-                             INTERFACE
-                             ${CMAKE_CURRENT_SOURCE_DIR}
+                             PUBLIC
+                             $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+                             $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}>
+                             $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+                             $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/dmn>
 )
 
 if (ENABLE_DMN_DMESGNET AND DEFINED protobuf_SOURCE_DIR)
   target_include_directories(dmn
-                               INTERFACE "${protobuf_SOURCE_DIR}/src"
+                               INTERFACE
+                               "$<BUILD_INTERFACE:${protobuf_SOURCE_DIR}/src>"
   )
 endif()
 
 if (DEFINED absl_SOURCE_DIR)
   target_include_directories(dmn
-                               INTERFACE "${absl_SOURCE_DIR}"
+                               INTERFACE "$<BUILD_INTERFACE:${absl_SOURCE_DIR}>"
   )
 endif()
 
 if (ENABLE_DMN_DMESGNET AND DMN_RDKAFKA_INCLUDE_DIR)
   target_include_directories(dmn
-                               PUBLIC "${DMN_RDKAFKA_INCLUDE_DIR}"
+                               PUBLIC "$<BUILD_INTERFACE:${DMN_RDKAFKA_INCLUDE_DIR}>"
   )
 endif()
 
@@ -173,19 +192,40 @@ if(ENABLE_FAULT_INJECTION)
                                FIU_ENABLE=1
   )
 
-  target_link_libraries(dmn PUBLIC ${DMN_LIBFIU_TARGET})
+  target_link_libraries(dmn
+                          PUBLIC
+                          "$<BUILD_INTERFACE:${DMN_LIBFIU_TARGET}>"
+                          "$<INSTALL_INTERFACE:PkgConfig::LIBFIU>"
+  )
+
   if (TARGET libfiu-build)
     add_dependencies(dmn libfiu-build)
   endif()
 endif()
 
-target_link_libraries(dmn PUBLIC ICU::uc)
+# Exported link interfaces use package targets; the build interface may instead
+# use dependencies fetched into this build tree.
+target_link_libraries(dmn
+                        PUBLIC
+                        "$<BUILD_INTERFACE:ICU::uc>"
+                        "$<INSTALL_INTERFACE:ICU::uc>"
+)
+
 if (ENABLE_DMN_DMESGNET)
-  target_link_libraries(dmn PUBLIC protobuf::libprotobuf)
-  target_link_libraries(dmn PUBLIC ${DMN_RDKAFKA_TARGET})
+  target_link_libraries(dmn
+                          PUBLIC
+                          "$<BUILD_INTERFACE:protobuf::libprotobuf>"
+                          "$<INSTALL_INTERFACE:protobuf::libprotobuf>"
+                          "$<BUILD_INTERFACE:${DMN_RDKAFKA_TARGET}>"
+                          "$<INSTALL_INTERFACE:PkgConfig::RDKAFKA>"
+  )
 endif()
 if (NOT APPLE)
-  target_link_libraries(dmn PUBLIC atomic)
+  target_link_libraries(dmn
+                          PUBLIC
+                          "$<BUILD_INTERFACE:atomic>"
+                          "$<INSTALL_INTERFACE:atomic>"
+  )
 endif()
 
 if (ENABLE_DBUS)
@@ -196,22 +236,26 @@ if (ENABLE_DBUS)
                 ${CMAKE_CURRENT_SOURCE_DIR}/dmn-dbus-value.cpp
   )
 
+  add_library(Dmn::dmn-dbus ALIAS dmn-dbus)
+
   if (ENABLE_DMN_DMESGNET)
     target_sources(dmn-dbus
                      PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/dmn-dmesgnet-dbus.cpp
     )
-    target_sources(dmn-dbus
-                     INTERFACE ${PROJECT_SOURCE_DIR}/include/dmn-dmesgnet-dbus.hpp
+
+    dmn_add_build_interface_sources(dmn-dbus
+                                      ${PROJECT_SOURCE_DIR}/include/dmn-dmesgnet-dbus.hpp
     )
   endif()
 
   target_include_directories(dmn-dbus
-                               PUBLIC ${PROJECT_SOURCE_DIR}/include
+                               PUBLIC
+                               $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+                               $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/dmn>
   )
 
   # Public optional API; the implementation-only runtime header stays PRIVATE.
-  target_sources(dmn-dbus
-                   INTERFACE
+  dmn_add_build_interface_sources(dmn-dbus
                    ${PROJECT_SOURCE_DIR}/include/dmn-dbus-client.hpp
                    ${PROJECT_SOURCE_DIR}/include/dmn-dbus-config.hpp
                    ${PROJECT_SOURCE_DIR}/include/dmn-dbus-io.hpp
@@ -229,15 +273,18 @@ if (ENABLE_DBUS)
 
   target_link_libraries(dmn-dbus
                           PUBLIC dmn
-                          PRIVATE PkgConfig::DBUS
+                          PRIVATE
+                          "$<BUILD_INTERFACE:PkgConfig::DBUS>"
+                          "$<INSTALL_INTERFACE:PkgConfig::DBUS>"
   )
 
   install(TARGETS dmn-dbus
-            ARCHIVE DESTINATION lib/dmn
+            EXPORT DmnTargets
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/dmn
             COMPONENT Development
-            LIBRARY DESTINATION lib/dmn
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/dmn
             COMPONENT Runtime
-            RUNTIME DESTINATION bin
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
             COMPONENT Runtime
   )
 endif()
@@ -248,12 +295,15 @@ if (ENABLE_BLUEZ)
                 ${CMAKE_CURRENT_SOURCE_DIR}/dmn-bluez-gatt-client.cpp
   )
 
+  add_library(Dmn::dmn-bluez ALIAS dmn-bluez)
+
   target_include_directories(dmn-bluez
-                               PUBLIC ${PROJECT_SOURCE_DIR}/include
+                               PUBLIC
+                               $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+                               $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/dmn>
   )
 
-  target_sources(dmn-bluez
-                   INTERFACE
+  dmn_add_build_interface_sources(dmn-bluez
                    ${PROJECT_SOURCE_DIR}/include/dmn-bluez-client.hpp
                    ${PROJECT_SOURCE_DIR}/include/dmn-bluez-gatt-client.hpp
                    ${PROJECT_SOURCE_DIR}/include/dmn-gatt-client.hpp
@@ -264,11 +314,12 @@ if (ENABLE_BLUEZ)
   target_link_libraries(dmn-bluez PUBLIC dmn-dbus dmn-gatt)
 
   install(TARGETS dmn-bluez
-            ARCHIVE DESTINATION lib/dmn
+            EXPORT DmnTargets
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/dmn
             COMPONENT Development
-            LIBRARY DESTINATION lib/dmn
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/dmn
             COMPONENT Runtime
-            RUNTIME DESTINATION bin
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
             COMPONENT Runtime
   )
 endif()
@@ -278,12 +329,15 @@ if (ENABLE_ANCS AND ENABLE_BLUEZ)
                 ${CMAKE_CURRENT_SOURCE_DIR}/dmn-ancs-bluez-monitor.cpp
   )
 
+  add_library(Dmn::dmn-ancs-bluez-monitor ALIAS dmn-ancs-bluez-monitor)
+
   target_include_directories(dmn-ancs-bluez-monitor
-                               PUBLIC ${PROJECT_SOURCE_DIR}/include
+                               PUBLIC
+                               $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+                               $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/dmn>
   )
 
-  target_sources(dmn-ancs-bluez-monitor
-                   INTERFACE
+  dmn_add_build_interface_sources(dmn-ancs-bluez-monitor
                    ${PROJECT_SOURCE_DIR}/include/dmn-ancs-bluez-monitor.hpp
   )
 
@@ -296,28 +350,35 @@ if (ENABLE_ANCS AND ENABLE_BLUEZ)
   )
 
   install(TARGETS dmn-ancs-bluez-monitor
-            ARCHIVE DESTINATION lib/dmn
+            EXPORT DmnTargets
+            ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/dmn
             COMPONENT Development
-            LIBRARY DESTINATION lib/dmn
+            LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/dmn
             COMPONENT Runtime
-            RUNTIME DESTINATION bin
+            RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
             COMPONENT Runtime
   )
 endif()
 
-# Install the library binary
+# Export the library targets as one feature-conditioned package. The
+# DmnConfig.cmake template resolves only the external dependencies used by
+# targets included in this build.
 install(TARGETS dmn
-          #   EXPORT mylibTargets
-          ARCHIVE DESTINATION lib/dmn
+          EXPORT DmnTargets
+          ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}/dmn
           COMPONENT Development
-          LIBRARY DESTINATION lib/dmn
+          LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}/dmn
           COMPONENT Runtime
-          RUNTIME DESTINATION bin
+          RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
           COMPONENT Runtime
-          INCLUDES DESTINATION include/dmn
 )
 
-# Install only headers for enabled optional features.
+# Export the backend-neutral API even when no ANCS or BlueZ backend is enabled.
+install(TARGETS dmn-gatt
+          EXPORT DmnTargets
+)
+
+# Install the public API headers for the enabled feature set.
 set(DMN_EXCLUDED_PUBLIC_HEADER_PATTERNS)
 
 list(APPEND DMN_EXCLUDED_PUBLIC_HEADER_PATTERNS
@@ -360,12 +421,6 @@ if (NOT ENABLE_BLUEZ)
   )
 endif()
 
-if (NOT ENABLE_BLUEZ AND NOT ENABLE_ANCS)
-  list(APPEND DMN_EXCLUDED_PUBLIC_HEADER_PATTERNS
-         PATTERN "dmn-gatt-client.hpp" EXCLUDE
-  )
-endif()
-
 if (NOT ENABLE_FAULT_INJECTION)
   list(APPEND DMN_EXCLUDED_PUBLIC_HEADER_PATTERNS
          PATTERN "dmn-fault-injection.hpp" EXCLUDE
@@ -373,17 +428,48 @@ if (NOT ENABLE_FAULT_INJECTION)
 endif()
 
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/
-          DESTINATION include/dmn
+          DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/dmn
           COMPONENT Development
           ${DMN_EXCLUDED_PUBLIC_HEADER_PATTERNS}
 )
 
-# Export the targets for use with find_package()
-#install(EXPORT mylibTargets
-#    FILE mylibTargets.cmake
-#    NAMESPACE MyLib::
-#    DESTINATION lib/cmake/mylib
-#)
+if (ENABLE_DMN_DMESGNET)
+  # Public DMesg headers include generated protobuf headers under proto/.
+  install(FILES
+            ${CMAKE_CURRENT_BINARY_DIR}/proto/dmn-dlock.pb.h
+            ${CMAKE_CURRENT_BINARY_DIR}/proto/dmn-dmesg-body.pb.h
+            ${CMAKE_CURRENT_BINARY_DIR}/proto/dmn-dmesg-type.pb.h
+            ${CMAKE_CURRENT_BINARY_DIR}/proto/dmn-dmesg.pb.h
+          DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/dmn/proto
+          COMPONENT Development
+  )
+endif()
+
+configure_package_config_file(
+  "${PROJECT_SOURCE_DIR}/cmake/DmnConfig.cmake.in"
+  "${PROJECT_BINARY_DIR}/DmnConfig.cmake"
+  INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/Dmn"
+)
+
+write_basic_package_version_file(
+  "${PROJECT_BINARY_DIR}/DmnConfigVersion.cmake"
+  VERSION "${PROJECT_VERSION}"
+  COMPATIBILITY SameMajorVersion
+)
+
+install(EXPORT DmnTargets
+          FILE DmnTargets.cmake
+          NAMESPACE Dmn::
+          DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Dmn
+          COMPONENT Development
+)
+
+install(FILES
+          "${PROJECT_BINARY_DIR}/DmnConfig.cmake"
+          "${PROJECT_BINARY_DIR}/DmnConfigVersion.cmake"
+        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Dmn
+        COMPONENT Development
+)
 
 # Application entry points are maintained separately from reusable libraries.
 add_subdirectory(app)

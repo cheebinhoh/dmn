@@ -140,6 +140,31 @@ ctest --test-dir build-dev -L dmn --output-on-failure
 cmake --install build-dev --component Development
 ```
 
+The Development install includes a relocatable CMake package. A separate
+consumer project can link the installed target without adding Dmn source or
+build directories:
+
+```cmake
+find_package(Dmn CONFIG REQUIRED)
+
+add_executable(my-app main.cpp)
+target_link_libraries(my-app PRIVATE Dmn::dmn)
+```
+
+`Dmn::dmn` reflects the features enabled when Dmn was built. With the default
+`ENABLE_DMN_DMESGNET=ON`, it includes DMesg/DMesgNet and Kafka and requires
+ICU, Protobuf, and librdkafka in the consumer environment. A core-only build
+with `ENABLE_DMN_DMESGNET=OFF` does not require Protobuf or librdkafka.
+`Dmn::dmn-gatt` is always exported; `Dmn::dmn-ancs`, `Dmn::dmn-dbus`,
+`Dmn::dmn-bluez`, and `Dmn::dmn-ancs-bluez-monitor` are available only when
+their corresponding optional libraries were enabled at package build time.
+The installed package discovers system dependencies; it does not fetch or
+install dependencies for consumers. See
+[`cmake-package-spec.md`](docs/specs/cmake-package-spec.md) for the target
+matrix and package validation contract.
+For a shared-library build, also install the `Runtime` component so the
+imported targets' shared library files are present.
+
 The DMesg/DMesgNet stack remains enabled in this developer configuration, so
 it also builds the Kafka sender/receiver examples. Use the
 [core-library-only configuration](#core-library-only) to omit those executables
