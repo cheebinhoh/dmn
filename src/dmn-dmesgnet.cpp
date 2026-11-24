@@ -48,9 +48,11 @@
 #include <cassert>
 #include <chrono>
 #include <exception>
+#include <functional>
 #include <iostream>
 #include <memory>
 #include <optional>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <sys/time.h>
@@ -58,6 +60,55 @@
 #include <utility>
 
 namespace dmn {
+
+namespace {
+
+class RealHeartbeat final : public Dmn_DMesgNet::Heartbeat {
+public:
+  explicit RealHeartbeat(std::function<void()> tick)
+      : m_timer{std::chrono::nanoseconds{DMN_DMESGNET_HEARTBEAT_IN_NS},
+                std::move(tick)} {}
+
+private:
+  Dmn_Timer<std::chrono::nanoseconds> m_timer;
+};
+
+auto isValidTimestamp(const google::protobuf::Timestamp &timestamp) -> bool {
+  return timestamp.seconds() >= -62135596800LL &&
+         timestamp.seconds() <= 253402300799LL && timestamp.nanos() >= 0 &&
+         timestamp.nanos() < 1000000000;
+}
+
+auto isValidNetworkMessage(const DMesgPb &message) -> bool {
+  if (!DMesgTypePb_IsValid(message.type()) ||
+      message.type() == DMesgTypePb::INVALID) {
+    return false;
+  }
+
+  if (message.type() != DMesgTypePb::sys) {
+    return message.topic() != kDMesgSysIdentifier &&
+           (!message.has_body() || !message.body().has_sys());
+  }
+
+  if (message.topic() != kDMesgSysIdentifier || !message.has_body() ||
+      !message.body().has_sys() || !message.body().sys().has_self()) {
+    return false;
+  }
+
+  const auto &self{message.body().sys().self()};
+  if (self.identifier().empty() || !DMesgStatePb_IsValid(self.state()) ||
+      self.state() == DMesgStatePb::Invalid ||
+      !self.has_initializedtimestamp() || !self.has_updatedtimestamp() ||
+      !isValidTimestamp(self.initializedtimestamp()) ||
+      !isValidTimestamp(self.updatedtimestamp())) {
+    return false;
+  }
+
+  return self.state() == DMesgStatePb::Ready ? !self.masteridentifier().empty()
+                                             : self.masteridentifier().empty();
+}
+
+} // namespace
 
 /**
  * @brief Construct a Dmn_DMesgNet instance and start background threads.
@@ -72,8 +123,22 @@ namespace dmn {
 Dmn_DMesgNet::Dmn_DMesgNet(std::string_view name,
                            std::shared_ptr<Dmn_Io<std::string>> input_handler,
                            std::shared_ptr<Dmn_Io<std::string>> output_handler)
-    : Dmn_DMesg{name}, m_name{name}, m_input_handler{std::move(input_handler)},
-      m_output_handler{std::move(output_handler)} {
+    : Dmn_DMesgNet{name, std::move(input_handler), std::move(output_handler),
+                   Options{}} {}
+
+Dmn_DMesgNet::Dmn_DMesgNet(std::string_view name,
+                           std::shared_ptr<Dmn_Io<std::string>> input_handler,
+                           std::shared_ptr<Dmn_Io<std::string>> output_handler,
+                           Options options)
+    : Dmn_DMesg{name}, m_name{name}, m_options{options},
+      m_input_handler{std::move(input_handler)},
+      m_output_handler{std::move(output_handler)},
+      m_election_enabled{static_cast<bool>(m_input_handler) &&
+                         static_cast<bool>(m_output_handler)} {
+  if (!m_options.m_max_frame_bytes || !m_options.m_max_pending_messages ||
+      !m_options.m_max_pending_bytes) {
+    throw std::invalid_argument("Dmn_DMesgNet limits must be nonzero");
+  }
 
   // Initialize the DMesgNet state
   struct timeval tval {};
@@ -91,12 +156,26 @@ Dmn_DMesgNet::Dmn_DMesgNet(std::string_view name,
   DMESG_PB_SYS_NODE_SET_STATE(self, dmn::DMesgStatePb::MasterPending);
   DMESG_PB_SYS_NODE_SET_MASTERIDENTIFIER(self, "");
 
-  this->createSubscriptHandler();
-  this->createInputHandlerProc();
-  this->createTimerProc();
+  try {
+    this->createSubscriptHandler();
+    this->createInputHandlerProc();
+    if (m_election_enabled && m_sys_handler) {
+      m_sys_handler->write(this->m_sys);
+    }
 
-  if (m_sys_handler) {
-    m_sys_handler->write(this->m_sys);
+    this->createTimerProc();
+
+    if (!m_election_enabled && m_sys_handler) {
+      m_sys_handler->write(this->m_sys);
+    }
+
+    if (m_input_proc && !m_input_proc->exec()) {
+      throw std::runtime_error("Dmn_DMesgNet input worker failed to start");
+    }
+  } catch (...) {
+    shutdown();
+
+    throw;
   }
 }
 
@@ -105,13 +184,40 @@ Dmn_DMesgNet::Dmn_DMesgNet(std::string_view name,
  * final Destroyed heartbeat to the network output if available.
  */
 Dmn_DMesgNet::~Dmn_DMesgNet() noexcept try {
+  shutdown();
+} catch (const std::exception &error) {
+  std::cerr << "Dmn_DMesgNet[" << m_name
+            << "]: shutdown failed: " << error.what() << '\n';
+} catch (...) {
+  std::cerr << "Dmn_DMesgNet[" << m_name
+            << "]: shutdown failed with a non-standard exception\n";
+}
+
+void Dmn_DMesgNet::shutdown() try {
+  std::lock_guard shutdownLock{m_shutdown_mutex};
+  if (m_shutdown_complete.load(std::memory_order_acquire)) {
+    return;
+  }
+
   // Release the input handler early: a Kafka handler may continue receiving
   // messages, including ones generated by this Dmn_DMesgNet, delaying teardown.
 
-  m_shutdown = true;
+  {
+    std::unique_lock outputLock{m_output_mutex};
+
+    m_shutdown = true;
+    m_output_setters_idle.wait(outputLock,
+                               [this] { return m_output_setters == 0; });
+  }
 
   if (m_input_handler) {
-    m_input_handler->shutdown();
+    try {
+      m_input_handler->shutdown();
+    } catch (const std::exception &error) {
+      ++m_shutdown_failures;
+      std::cerr << "Dmn_DMesgNet[" << m_name
+                << "]: input shutdown failed: " << error.what() << '\n';
+    }
   }
 
   m_input_proc.reset();
@@ -124,6 +230,9 @@ Dmn_DMesgNet::~Dmn_DMesgNet() noexcept try {
   if (m_input_handler) {
     m_input_handler.reset();
   }
+
+  // Tasks already running may still use the internal handler proxies.
+  this->addExecTaskWithWait([] {})->wait();
 
   // Now it is safe to close the write handler, since no thread should be
   // using it anymore.
@@ -138,6 +247,16 @@ Dmn_DMesgNet::~Dmn_DMesgNet() noexcept try {
   if (m_subscript_handler) {
     Dmn_DMesg::closeHandler(m_subscript_handler);
   }
+
+  // Handler and input shutdown prevent new work; drain already queued tasks
+  // before the network-specific members are destroyed.
+  auto pendingWork{this->addExecTaskWithWait([this] {
+    m_ready.clear();
+    m_pending_discarded += m_outbound_pending_dmesgpb.size();
+    m_outbound_pending_dmesgpb.clear();
+    m_pending_bytes = 0;
+  })};
+  pendingWork->wait();
 
   if (hasOutputHandler()) {
     // Before destroying Dmn_DMesgNet, send a final heartbeat and relinquish
@@ -160,12 +279,17 @@ Dmn_DMesgNet::~Dmn_DMesgNet() noexcept try {
     std::string serialized_string{};
     this->m_sys.SerializeToString(&serialized_string);
 
-    writeOutput(serialized_string, true);
+    if (!writeOutput(serialized_string, true)) {
+      ++m_shutdown_failures;
+    }
   }
 
-} catch (...) {
-  // explicit return to resolve exception as destructor must be noexcept
-  return;
+  m_shutdown_complete.store(true, std::memory_order_release);
+} catch (const std::exception &error) {
+  ++m_shutdown_failures;
+  std::cerr << "Dmn_DMesgNet[" << m_name
+            << "]: shutdown failed: " << error.what() << '\n';
+  throw;
 }
 
 /**
@@ -199,14 +323,24 @@ void Dmn_DMesgNet::createInputHandlerProc() {
               }
 
               if (error.code() == std::errc::message_size) {
+                ++m_oversized_input;
                 std::cerr << "Dmn_DMesgNet[" << m_name
                           << "]: input read failed: " << error.what() << '\n';
 
                 continue;
               }
 
+              ++m_input_failures;
               std::cerr << "Dmn_DMesgNet[" << m_name
                         << "]: input read failed: " << error.what() << '\n';
+
+              break;
+            } catch (const std::exception &error) {
+              if (!m_shutdown) {
+                ++m_input_failures;
+                std::cerr << "Dmn_DMesgNet[" << m_name
+                          << "]: input read failed: " << error.what() << '\n';
+              }
 
               break;
             }
@@ -218,9 +352,27 @@ void Dmn_DMesgNet::createInputHandlerProc() {
             Dmn_Proc::yield();
 
             if (data) {
+              if (data->size() > m_options.m_max_frame_bytes) {
+                ++m_oversized_input;
+                std::cerr << "Dmn_DMesgNet[" << m_name
+                          << "]: discarded oversized input message\n";
+
+                continue;
+              }
+
               if (data->empty() || !dmesgpb_read.ParseFromString(*data)) {
+                ++m_malformed_input;
                 std::cerr << "Dmn_DMesgNet[" << m_name
                           << "]: discarded empty or malformed input message\n";
+
+                continue;
+              }
+
+              if (!isValidNetworkMessage(dmesgpb_read)) {
+                ++m_invalid_input;
+                std::cerr << "Dmn_DMesgNet[" << m_name
+                          << "]: discarded invalid input message\n";
+
                 continue;
               }
 
@@ -249,7 +401,13 @@ void Dmn_DMesgNet::createInputHandlerProc() {
               } else if (dmesgpb_read.conflict()) {
                 auto lastMesgPb{
                     this->getTopicLastMessage(dmesgpb_read.topic())};
-                assert(lastMesgPb);
+                if (!lastMesgPb || !hasOutputHandler()) {
+                  ++m_repair_unavailable;
+                  std::cerr << "Dmn_DMesgNet[" << m_name
+                            << "]: conflict repair unavailable\n";
+
+                  continue;
+                }
 
                 DMN_ASYNC_CALL_WITH_CAPTURE(
                     {
@@ -282,7 +440,9 @@ void Dmn_DMesgNet::createInputHandlerProc() {
                       },
                       this, dmesgpb_read);
                 } else {
-                  assert("force and playback write fail" == nullptr);
+                  ++m_repair_unavailable;
+                  std::cerr << "Dmn_DMesgNet[" << m_name
+                            << "]: force playback was rejected\n";
                 }
               } else {
                 DMESG_PB_SET_MSG_SOURCEWRITEHANDLERIDENTIFIER(dmesgpb_read,
@@ -309,6 +469,14 @@ void Dmn_DMesgNet::createInputHandlerProc() {
                       },
                       this, dmesgpb_read);
                 } else {
+                  if (!lastMesgPb || !hasOutputHandler()) {
+                    ++m_repair_unavailable;
+                    std::cerr << "Dmn_DMesgNet[" << m_name
+                              << "]: conflict repair unavailable\n";
+
+                    continue;
+                  }
+
                   DMN_ASYNC_CALL_WITH_CAPTURE(
                       {
                         if (m_shutdown.load(std::memory_order_acquire)) {
@@ -335,8 +503,6 @@ void Dmn_DMesgNet::createInputHandlerProc() {
             }
           }
         });
-
-    m_input_proc->exec();
 
     m_sys_handler = Dmn_DMesg::openHandler(
         m_name + "_sys",
@@ -393,10 +559,21 @@ void Dmn_DMesgNet::createSubscriptHandler() {
                 if (ready || dmesgPbWrite.type() == dmn::DMesgTypePb::sys) {
                   if (dmesgPbWrite.type() != dmn::DMesgTypePb::sys) {
                     this->sendPendingOutboundQueueMessage();
+                    if (!m_outbound_pending_dmesgpb.empty()) {
+                      enqueuePendingOutboundMessage(dmesgPbWrite);
+
+                      return;
+                    }
                   }
 
                   dmesgPbWrite.SerializeToString(&serialized_string);
                   if (!writeOutput(serialized_string)) {
+                    if (dmesgPbWrite.type() != DMesgTypePb::sys) {
+                      ++m_output_dropped;
+                      std::cerr << "Dmn_DMesgNet[" << m_name
+                                << "]: outbound message was not written\n";
+                    }
+
                     return;
                   }
 
@@ -406,12 +583,18 @@ void Dmn_DMesgNet::createSubscriptHandler() {
                     this->sendPendingOutboundQueueMessage();
                   }
                 } else {
-                  auto &pendingQueue =
-                      m_topic_outbound_pending_dmesgpb[dmesgPbWrite.topic()];
-                  pendingQueue.push_back(dmesgPbWrite);
+                  enqueuePendingOutboundMessage(dmesgPbWrite);
                 }
               },
               this, dmesgPbWrite);
+        } else {
+          std::lock_guard lock{m_output_mutex};
+
+          if (m_output_failed && dmesgPbWrite.type() != DMesgTypePb::sys) {
+            ++m_output_dropped;
+            std::cerr << "Dmn_DMesgNet[" << m_name
+                      << "]: outbound message skipped after output failure\n";
+          }
         }
       },
       handlerConfig);
@@ -430,11 +613,10 @@ void Dmn_DMesgNet::createSubscriptHandler() {
  * master is silent for DMN_DMESGNET_MASTERSYNC_MAX_COUNTER ticks, the node
  * reverts to MasterPending.
  *
- * If no input/output handlers are provided the node transitions directly to
- * Ready.
+ * If either input or output is absent, the node transitions directly to Ready.
  */
 void Dmn_DMesgNet::createTimerProc() {
-  if (m_input_handler && hasOutputHandler()) {
+  if (m_election_enabled) {
     // Periodic heartbeat timer that drives master election.
     // When in MasterPending state the counter increments each tick; once it
     // reaches DMN_DMESGNET_MASTERPENDING_MAX_COUNTER the node self-elects as
@@ -442,95 +624,102 @@ void Dmn_DMesgNet::createTimerProc() {
     // When in Ready state but following a remote master, a separate sync
     // counter tracks how long the master has been silent; if it exceeds
     // DMN_DMESGNET_MASTERSYNC_MAX_COUNTER the node reverts to MasterPending.
-    m_timer_proc = std::make_unique<dmn::Dmn_Timer<std::chrono::nanoseconds>>(
-        std::chrono::nanoseconds(DMN_DMESGNET_HEARTBEAT_IN_NS),
-        [this]() -> void {
-          if (m_shutdown.load(std::memory_order_acquire)) {
-            return;
-          }
+    auto tick = [this]() -> void {
+      if (m_shutdown.load(std::memory_order_acquire)) {
+        return;
+      }
 
-          this->addExecTask([this]() -> void {
-            if (m_shutdown.load(std::memory_order_acquire)) {
+      this->addExecTask([this]() -> void {
+        if (m_shutdown.load(std::memory_order_acquire)) {
+          return;
+        }
+
+        if (this->m_sys.body().sys().self().state() ==
+            dmn::DMesgStatePb::MasterPending) {
+          this->m_master_pending_counter++;
+
+          if (this->m_master_pending_counter >=
+              DMN_DMESGNET_MASTERPENDING_MAX_COUNTER) {
+            this->m_master_pending_counter = 0;
+
+            auto *self =
+                this->m_sys.mutable_body()->mutable_sys()->mutable_self();
+            DMESG_PB_SYS_NODE_SET_STATE(self, dmn::DMesgStatePb::Ready);
+            DMESG_PB_SYS_NODE_SET_MASTERIDENTIFIER(self, this->m_name);
+
+            struct timeval tval {};
+            gettimeofday(&tval, nullptr);
+
+            DMESG_PB_SYS_NODE_SET_UPDATEDTIMESTAMP_FROM_TV(self, tval);
+
+            m_ready.test_and_set(std::memory_order_relaxed);
+            m_ready.notify_all();
+          }
+        } else if (this->m_sys.body().sys().self().state() ==
+                   dmn::DMesgStatePb::Ready) {
+          if (this->m_sys.body().sys().self().masteridentifier() !=
+              this->m_sys.body().sys().self().identifier()) {
+            this->m_master_sync_pending_counter++;
+
+            if (this->m_master_sync_pending_counter >=
+                DMN_DMESGNET_MASTERSYNC_MAX_COUNTER) {
+              this->m_master_sync_pending_counter = 0;
+              this->m_last_remote_master_timestamp = {};
+
+              auto *self =
+                  this->m_sys.mutable_body()->mutable_sys()->mutable_self();
+
+              DMESG_PB_SYS_NODE_SET_MASTERIDENTIFIER(self, "");
+              DMESG_PB_SYS_NODE_SET_STATE(self,
+                                          dmn::DMesgStatePb::MasterPending);
+
+              m_ready.clear(std::memory_order_relaxed);
+            }
+          }
+        }
+
+        this->m_sys_handler->write(this->m_sys);
+
+        const bool master{this->m_sys.body().sys().self().masteridentifier() ==
+                          this->m_sys.body().sys().self().identifier()};
+
+        // if self is a master, # of neighbor is increase,
+        // let resend prior last message per topic.
+        if (hasOutputHandler() && master &&
+            (m_number_of_neighbor <
+             this->m_sys.body().sys().nodelist().size())) {
+          for (auto &topic_dmesgpb : m_topic_last_dmesgpb) {
+            dmn::DMesgPb pb{topic_dmesgpb.second};
+
+            DMESG_PB_SET_MSG_PLAYBACK(pb, true);
+            DMESG_PB_SET_MSG_SOURCEWRITEHANDLERIDENTIFIER(pb, this->m_name);
+
+            std::string serialized_string{};
+            pb.SerializeToString(&serialized_string);
+            if (!writeOutput(serialized_string)) {
               return;
             }
+          }
+        }
 
-            if (this->m_sys.body().sys().self().state() ==
-                dmn::DMesgStatePb::MasterPending) {
-              this->m_master_pending_counter++;
-
-              if (this->m_master_pending_counter >=
-                  DMN_DMESGNET_MASTERPENDING_MAX_COUNTER) {
-                this->m_master_pending_counter = 0;
-
-                auto *self =
-                    this->m_sys.mutable_body()->mutable_sys()->mutable_self();
-                DMESG_PB_SYS_NODE_SET_STATE(self, dmn::DMesgStatePb::Ready);
-                DMESG_PB_SYS_NODE_SET_MASTERIDENTIFIER(self, this->m_name);
-
-                struct timeval tval {};
-                gettimeofday(&tval, nullptr);
-
-                DMESG_PB_SYS_NODE_SET_UPDATEDTIMESTAMP_FROM_TV(self, tval);
-
-                m_ready.test_and_set(std::memory_order_relaxed);
-                m_ready.notify_all();
-              }
-            } else if (this->m_sys.body().sys().self().state() ==
-                       dmn::DMesgStatePb::Ready) {
-              if (this->m_sys.body().sys().self().masteridentifier() !=
-                  this->m_sys.body().sys().self().identifier()) {
-                this->m_master_sync_pending_counter++;
-
-                if (this->m_master_sync_pending_counter >=
-                    DMN_DMESGNET_MASTERSYNC_MAX_COUNTER) {
-                  this->m_master_sync_pending_counter = 0;
-                  this->m_last_remote_master_timestamp = {};
-
-                  auto *self =
-                      this->m_sys.mutable_body()->mutable_sys()->mutable_self();
-
-                  DMESG_PB_SYS_NODE_SET_MASTERIDENTIFIER(self, "");
-                  DMESG_PB_SYS_NODE_SET_STATE(self,
-                                              dmn::DMesgStatePb::MasterPending);
-
-                  m_ready.clear(std::memory_order_relaxed);
-                }
-              }
-            }
-
-            this->m_sys_handler->write(this->m_sys);
-
-            const bool master{
-                this->m_sys.body().sys().self().masteridentifier() ==
-                this->m_sys.body().sys().self().identifier()};
-
-            // if self is a master, # of neighbor is increase,
-            // let resend prior last message per topic.
-            if (hasOutputHandler() && master &&
-                (m_number_of_neighbor <
-                 this->m_sys.body().sys().nodelist().size())) {
-              for (auto &topic_dmesgpb : m_topic_last_dmesgpb) {
-                dmn::DMesgPb pb{topic_dmesgpb.second};
-
-                DMESG_PB_SET_MSG_PLAYBACK(pb, true);
-                DMESG_PB_SET_MSG_SOURCEWRITEHANDLERIDENTIFIER(pb, this->m_name);
-
-                std::string serialized_string{};
-                pb.SerializeToString(&serialized_string);
-                if (!writeOutput(serialized_string)) {
-                  return;
-                }
-              }
-            }
-
-            m_number_of_neighbor = this->m_sys.body().sys().nodelist().size();
-            m_is_master = master;
-          });
-        });
+        m_number_of_neighbor = this->m_sys.body().sys().nodelist().size();
+        m_is_master = master;
+      });
+    };
+    if (m_options.m_heartbeat_factory) {
+      m_timer_proc = m_options.m_heartbeat_factory(std::move(tick));
+      if (!m_timer_proc) {
+        throw std::invalid_argument("heartbeat factory returned null");
+      }
+    } else {
+      m_timer_proc = std::make_unique<RealHeartbeat>(std::move(tick));
+    }
   } else {
     auto *self = this->m_sys.mutable_body()->mutable_sys()->mutable_self();
     DMESG_PB_SYS_NODE_SET_STATE(self, dmn::DMesgStatePb::Ready);
     DMESG_PB_SYS_NODE_SET_MASTERIDENTIFIER(self, this->m_name);
+    m_ready.test_and_set(std::memory_order_relaxed);
+    m_ready.notify_all();
   }
 }
 
@@ -553,23 +742,38 @@ void Dmn_DMesgNet::sendPendingOutboundQueueMessage() {
   assert(m_ready.test());
 
   if (hasOutputHandler() && !m_shutdown.load(std::memory_order_acquire)) {
-    for (auto &p : m_topic_outbound_pending_dmesgpb) {
-      for (auto &dmesgPb : p.second) {
-        std::string serialized_string{};
+    while (!m_outbound_pending_dmesgpb.empty()) {
+      auto &dmesgPb{m_outbound_pending_dmesgpb.front()};
+      std::string serialized_string{};
 
-        dmesgPb.SerializeToString(&serialized_string);
-        if (!writeOutput(serialized_string)) {
-          return;
-        }
-
-        if (dmesgPb.type() != dmn::DMesgTypePb::sys) {
-          m_topic_last_dmesgpb[dmesgPb.topic()] = dmesgPb;
-        }
+      dmesgPb.SerializeToString(&serialized_string);
+      if (!writeOutput(serialized_string)) {
+        return;
       }
 
-      p.second.clear();
+      if (dmesgPb.type() != dmn::DMesgTypePb::sys) {
+        m_topic_last_dmesgpb[dmesgPb.topic()] = dmesgPb;
+      }
+
+      m_pending_bytes -= dmesgPb.ByteSizeLong();
+      m_outbound_pending_dmesgpb.pop_front();
     }
   }
+}
+
+void Dmn_DMesgNet::enqueuePendingOutboundMessage(const DMesgPb &message) {
+  const auto bytes{message.ByteSizeLong()};
+  if (m_outbound_pending_dmesgpb.size() >= m_options.m_max_pending_messages ||
+      bytes > m_options.m_max_pending_bytes - m_pending_bytes) {
+    ++m_pending_overflow;
+    std::cerr << "Dmn_DMesgNet[" << m_name
+              << "]: pending outbound queue is full\n";
+
+    return;
+  }
+
+  m_outbound_pending_dmesgpb.push_back(message);
+  m_pending_bytes += bytes;
 }
 
 auto Dmn_DMesgNet::writeOutput(const std::string &payload,
@@ -594,6 +798,7 @@ auto Dmn_DMesgNet::writeOutput(const std::string &payload,
   }
 
   const auto markOutputFailed = [this, outputGeneration]() {
+    ++m_output_failures;
     std::lock_guard lock{m_output_mutex};
 
     if (m_output_generation == outputGeneration) {
@@ -626,15 +831,47 @@ auto Dmn_DMesgNet::setOutputHandler(
     return false;
   }
 
-  std::lock_guard lock{m_output_mutex};
+  const bool enablingOutput{static_cast<bool>(outputHandler)};
 
-  if (m_shutdown.load(std::memory_order_acquire)) {
-    return false;
+  {
+    std::lock_guard lock{m_output_mutex};
+
+    if (m_shutdown.load(std::memory_order_acquire)) {
+      return false;
+    }
+
+    m_output_handler = std::move(outputHandler);
+    ++m_output_generation;
+    m_output_failed = false;
+
+    if (enablingOutput) {
+      ++m_output_setters;
+    }
   }
 
-  m_output_handler = std::move(outputHandler);
-  ++m_output_generation;
-  m_output_failed = false;
+  if (enablingOutput) {
+    const auto finishSubmission = [this] {
+      std::lock_guard lock{m_output_mutex};
+
+      if (--m_output_setters == 0) {
+        m_output_setters_idle.notify_all();
+      }
+    };
+
+    try {
+      this->addExecTask([this] {
+        if (!m_shutdown.load(std::memory_order_acquire) && m_ready.test()) {
+          sendPendingOutboundQueueMessage();
+        }
+      });
+    } catch (...) {
+      finishSubmission();
+
+      throw;
+    }
+
+    finishSubmission();
+  }
 
   return true;
 }
@@ -643,6 +880,22 @@ auto Dmn_DMesgNet::hasOutputHandler() const -> bool {
   std::lock_guard lock{m_output_mutex};
 
   return static_cast<bool>(m_output_handler) && !m_output_failed;
+}
+
+auto Dmn_DMesgNet::getStatus() const noexcept -> Status {
+  return {m_malformed_input.load(),
+          m_invalid_input.load(),
+          m_oversized_input.load(),
+          m_input_failures.load(),
+          m_pending_overflow.load(),
+          m_repair_unavailable.load(),
+          m_output_failures.load(),
+          m_output_dropped.load(),
+          m_pending_discarded.load(),
+          m_shutdown_failures.load(),
+          m_ready.test(),
+          m_shutdown.load(),
+          m_shutdown_complete.load()};
 }
 
 /**
@@ -664,7 +917,7 @@ void Dmn_DMesgNet::reconciliateDMesgPbSys(const dmn::DMesgPb &dmesgpb_other) {
   struct timeval tval {};
   gettimeofday(&tval, nullptr);
 
-  if (self->state() == dmn::DMesgStatePb::MasterPending &&
+  if (m_election_enabled && self->state() == dmn::DMesgStatePb::MasterPending &&
       other.state() == dmn::DMesgStatePb::Ready) {
     assert(self->masteridentifier().empty());
     assert(!other.masteridentifier().empty());
@@ -683,7 +936,7 @@ void Dmn_DMesgNet::reconciliateDMesgPbSys(const dmn::DMesgPb &dmesgpb_other) {
     m_ready.notify_all();
 
     this->sendPendingOutboundQueueMessage();
-  } else if (self->state() == dmn::DMesgStatePb::Ready) {
+  } else if (m_election_enabled && self->state() == dmn::DMesgStatePb::Ready) {
     assert(!self->masteridentifier().empty());
     assert(0 == this->m_master_pending_counter);
 

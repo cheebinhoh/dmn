@@ -77,10 +77,15 @@ the timer/election state machine is skipped and the local `m_sys` value is set
 directly to `Ready` with self as master. This fallback does not perform peer
 discovery.
 
-The fallback does not set the atomic `m_ready` flag used by application-message
-outbound buffering. Consequently, an output-only instance can have local
-`Ready` state while its non-system outbound messages continue to queue rather
-than send. This is a code-level inconsistency, not an intended contract.
+For deterministic election tests, `Options::m_heartbeat_factory` can supply an
+owned heartbeat source. Its destructor must stop and join callbacks; an empty
+factory uses the normal one-second timer. This controls ticks, not the
+wall-clock timestamps carried in system messages.
+
+The fallback also sets the local readiness flag: output-only nodes send
+application messages immediately, and input-only nodes accept input without
+running election transitions. Changing an output handler later does not start
+a heartbeat timer or change the construction mode.
 
 ### 2.2 Local-to-network application messages
 
@@ -95,7 +100,8 @@ For each locally published message, the subscriber's async callback:
 1. writes this node's name into `sourceWriteHandlerIdentifier`;
 2. sends a serialized message immediately if `m_ready` is set, or if the
    message is a system message;
-3. otherwise queues non-system messages by topic until readiness;
+3. otherwise queues non-system messages in publication order until readiness,
+   subject to the configured count and serialized-byte limits;
 4. records each transmitted non-system message as the last value for its topic.
 
 When the local node believes itself to be master and observes the local
@@ -107,7 +113,8 @@ that a particular joining node received or applied the value.
 
 ### 2.3 Network-to-local messages
 
-The input process blocks on `read()`, parses each string as `DMesgPb`, and
+The input process blocks on `read()`, rejects frames over the configured size,
+parses each string as `DMesgPb`, validates its type and system envelope, and
 discards a message whose `sourceWriteHandlerIdentifier` equals the local node
 name. It then handles system and application messages differently:
 
@@ -122,7 +129,29 @@ name. It then handles system and application messages differently:
   local last-topic cache, may mark it conflicted, and submits it through the
   internal writer. Accepted messages update the network layer's last-value
   cache. A rejected/conflicting message results in conflict and cached
-  force/playback frames being emitted.
+  force/playback frames being emitted when a cached value and output exist.
+  Unavailable repair is reported rather than dereferencing a missing value.
+
+The `Options` defaults limit inbound frames to 1 MiB and pre-ready messages to
+1024 items and 4 MiB of serialized data. Rejected queue entries are not
+coalesced or retried. These bounds do not limit allocations by the transport,
+other async queues, or the per-topic cache; the inbound limit is checked after
+the transport returns the frame. After a failed flush, later messages already
+being processed cannot overtake the retained queue; they are queued within the
+same bounds or rejected. `getStatus()` exposes independent local counters for
+malformed, invalid and oversized inputs, input and output failures, unavailable
+repair, queue overflow, and messages dropped after output failure. Output
+replacement retries queued messages after readiness. These observations do not
+acknowledge remote delivery or application.
+
+`shutdown()` is idempotent and stops the input and timer workers, closes the
+network's internal handlers, drains already submitted work, discards pending
+messages, and attempts a final `Destroyed` heartbeat when output is available.
+Status reports shutdown start and completion, discarded pending messages, and
+shutdown errors. Completion means local cleanup finished, not that a peer
+received the heartbeat. Callers must not invoke shutdown from the network's
+async context or its callbacks; local DMesg handlers remain usable until closed
+or the node is destroyed, but no longer forward over the network.
 
 The receive path is a bridge into the local DMesg publisher, not a remote
 commit acknowledgement. Local per-topic counters and conflict state are
@@ -164,8 +193,8 @@ With both I/O endpoints configured, the transitions are:
 - **Ready, observes conflicting `Ready` master claim:** adopts the sender's
   claimed master if that sender's initialization timestamp is earlier than
   the local node's.
-- **Destruction:** stops input/timer processing and handlers, then directly
-  attempts a final `Destroyed` sys write if output exists.
+- **Shutdown/destruction:** stops input/timer processing and handlers, then
+  directly attempts a final `Destroyed` sys write if output is available.
 
 The thresholds are callback counts, not protocol deadlines: delays, scheduler
 latency, and timer behavior affect elapsed time. The code tracks a timestamp
@@ -224,8 +253,8 @@ individually:
   not translated into per-peer DMesgNet membership or application-apply
   acknowledgements.
 
-The DMesgNet input code rejects empty payloads and checks the result of
-`ParseFromString()`, logging and discarding invalid messages. The message
+The DMesgNet input code rejects empty or oversized payloads, checks
+`ParseFromString()`, and rejects invalid types and system envelopes. The message
 envelope still has no authenticated transport-sender field; its source
 identifiers are payload values and can be spoofed by a sender able to publish
 to the configured channel.
@@ -272,7 +301,7 @@ Tests `-7` through `-9` are present but commented out in
 `test/CMakeLists.txt`; they are not routine CI evidence.
 
 - **`-1`:** single-node startup state emission, self-`Ready`, and final
-  `Destroyed`. **Limit:** sleeps through timer; no peer behavior.
+  `Destroyed`. **Limit:** uses the real timer; no peer behavior.
 - **`-2`:** two pipe-forwarded nodes discover one another; tests the
   first-started-master expectation, explicit departure, and survivor promotion.
   **Limit:** timing-driven two-node path; no partition or quorum test.
@@ -297,14 +326,14 @@ passing evidence:
 - `-8` attempts playback to a later socket-connected node. The first node has
   both input and output sockets, but the test is disabled and timing-driven;
   it does not establish deterministic delivery or replay.
-- `-9` attempts one-way pipe-backed delivery. The sender is output-only and
-  does not set `m_ready`; its assertions do not establish delivery under the
-  current code.
+- `-9` attempts one-way pipe-backed delivery but remains disabled and does not
+  establish delivery under the current code.
 
-These tests are integration examples, not deterministic protocol tests. They
-use sleeps, wall-clock timer behavior, and shared captured state; they do not
-prove convergence under arbitrary schedules or the guarantees listed as
-nonexistent above.
+Most of these tests are timing-driven integration examples. The `-1` lifecycle
+test now waits on output events rather than fixed sleeps; the `phase2` test
+uses controllable I/O and heartbeat ticks for validation, buffering, endpoint,
+and election cases. They do not prove convergence under arbitrary schedules or
+the guarantees listed as nonexistent above.
 
 ## 7. Full design review: improvement gaps
 
@@ -313,14 +342,9 @@ security-reviewed.
 
 **P0 — Input and repair-path safety**
 
-- **Gap:** Input rejects empty and malformed protobuf payloads but does not
-  validate the semantic shape of parseable messages before dispatch. **Improve:**
-  validate required envelope/body fields and add deterministic malformed,
-  semantically invalid, and oversized-frame coverage.
-- **Gap:** Conflict handling assumes a cached last-topic value exists and can
-  dereference an empty optional. An input-only node has no output handler,
-  while some conflict paths write to it. **Improve:** make missing cache/output
-  explicit error outcomes; do not assert, dereference, or silently claim repair.
+- **Implemented:** Input rejects empty, malformed, oversized, and invalid
+  envelopes; conflict paths report missing cache or output instead of
+  dereferencing an empty optional.
 - **Gap:** Identity and system state come from the payload; there is no
   authenticated transport sender or check that sys `self.identifier` matches
   the actual sender. **Improve:** validate stable authenticated member identity,
@@ -342,24 +366,19 @@ security-reviewed.
   per topic, with no per-peer cursor, consistent snapshot, or acknowledgement.
   **Improve:** either label replay as best-effort cache sync or add versioned
   snapshots/cursors and explicit receiver acknowledgements.
-- **Gap:** The no-both-endpoints fallback sets protobuf state to `Ready` but
-  not `m_ready`, leaving output-only application messages queued. **Improve:**
-  define readiness consistently and test all four endpoint combinations.
+- **Implemented:** The local ready flag matches the no-both-endpoints fallback;
+  the endpoint combinations are covered by focused tests.
 
 **P2 — Resource bounds and evidence**
 
-- **Gap:** Pre-ready outbound messages are retained in unbounded per-topic
-  vectors. **Improve:** specify bounds, coalescing/rejection behavior, and
-  observable overflow.
+- **Implemented:** Pre-ready messages use a bounded FIFO with observable
+  overflow and no implicit coalescing.
 - **Gap:** Playback checks neighbor-count increases, so replacing one peer with
   another at the same count does not trigger it. **Improve:** track membership
   generation/per-peer joins and make replay idempotent per peer.
-- **Gap:** Some remote-state assumptions are enforced only by `assert`.
-  **Improve:** validate state enums and required fields with explicit error
-  reporting.
-- **Gap:** Tests `-7` through `-9` are disabled and active tests are
-  sleep-driven. **Improve:** correct and register useful adapter smoke tests,
-  plus deterministic fake-clock/fake-I/O transition and fault tests.
+- **Gap:** Tests `-7` through `-9` are disabled and several active integration
+  tests remain sleep-driven. **Improve:** correct and register useful adapter
+  smoke tests and extend controlled scheduling to their multi-node cases.
 
 ### 7.1 Improvement boundary: better convergence is not consensus
 
