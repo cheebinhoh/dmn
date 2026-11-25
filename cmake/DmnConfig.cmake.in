@@ -25,7 +25,9 @@ endif()
 
 if (@ENABLE_DMN_DISCOVERY@)
   find_dependency(Threads)
-  include("${CMAKE_CURRENT_LIST_DIR}/DmnAvahiInstalled.cmake")
+  if ("@CMAKE_SYSTEM_NAME@" STREQUAL "Linux")
+    include("${CMAKE_CURRENT_LIST_DIR}/DmnAvahiInstalled.cmake")
+  endif()
 endif()
 
 include("${CMAKE_CURRENT_LIST_DIR}/DmnTargets.cmake")

@@ -2,11 +2,15 @@
  * Copyright © 2026 Chee Bin HOH. All rights reserved.
  *
  * @file dmn-discovery.cpp
- * @brief Public discovery API backed by the Linux Avahi session owner.
+ * @brief Public discovery API backed by the selected native session owner.
  */
 
 #include "dmn-discovery.hpp"
+#ifdef DMN_DISCOVERY_USE_BONJOUR
+#include "dmn-discovery-bonjour-sessions.hpp"
+#else
 #include "dmn-discovery-avahi-registration-session.hpp"
+#endif
 #include "dmn-discovery-public-conversion.hpp"
 
 #include <new>
@@ -14,6 +18,12 @@
 
 namespace dmn {
 namespace {
+
+#ifdef DMN_DISCOVERY_USE_BONJOUR
+using DiscoveryBackend = detail::DiscoveryBonjourSessions;
+#else
+using DiscoveryBackend = detail::DiscoveryAvahiRegistrationSessions;
+#endif
 
 Dmn_DiscoveryError allocationError() {
   return {Dmn_DiscoveryErrorKind::ResourceLimit, {}, {}, {}};
@@ -43,7 +53,7 @@ struct Dmn_DiscoveryRegistration::Impl {
 
 struct Dmn_DiscoveryClient::Impl {
   detail::DiscoveryOptions m_options;
-  std::shared_ptr<detail::DiscoveryAvahiRegistrationSessions> m_backend;
+  std::shared_ptr<DiscoveryBackend> m_backend;
 };
 
 Dmn_DiscoveryBrowser::Dmn_DiscoveryBrowser(std::shared_ptr<Impl> impl)
@@ -123,12 +133,16 @@ Dmn_DiscoveryClient::create(Dmn_DiscoveryOptions options) try {
         validated.error(), Dmn_DiscoveryErrorKind::Internal)};
   }
 
-  auto backend{detail::DiscoveryAvahiRegistrationSessions::create(
-      nativeOptions, detail::makeDiscoveryAvahiApi(),
-      detail::makeDiscoveryAvahiRegistrationApi(),
-      detail::makeDiscoveryAvahiBrowserApi(),
-      detail::makeDiscoveryAvahiRecordApi(),
-      detail::makeDiscoveryAvahiResolverApi())};
+#ifdef DMN_DISCOVERY_USE_BONJOUR
+  auto backend{DiscoveryBackend::create(nativeOptions)};
+#else
+  auto backend{
+      DiscoveryBackend::create(nativeOptions, detail::makeDiscoveryAvahiApi(),
+                               detail::makeDiscoveryAvahiRegistrationApi(),
+                               detail::makeDiscoveryAvahiBrowserApi(),
+                               detail::makeDiscoveryAvahiRecordApi(),
+                               detail::makeDiscoveryAvahiResolverApi())};
+#endif
   if (!backend) {
     return std::unexpected{detail::discoveryPublicError(
         backend.error(), Dmn_DiscoveryErrorKind::BackendUnavailable)};

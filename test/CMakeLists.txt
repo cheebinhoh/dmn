@@ -26,6 +26,39 @@ target_link_libraries(dmn-discovery-core-test PUBLIC dmn)
 
 target_compile_options(dmn-discovery-core-test PRIVATE -Wall -Wextra -Wpedantic)
 
+ADD_TEST_EXECUTABLE(dmn dmn-test-discovery-bonjour)
+target_sources(dmn-test-discovery-bonjour
+                 PRIVATE ${PROJECT_SOURCE_DIR}/src/dmn-discovery.cpp
+                         ${PROJECT_SOURCE_DIR}/src/dmn-discovery-public-conversion.cpp
+                         ${PROJECT_SOURCE_DIR}/src/dmn-discovery-bonjour-poll.cpp
+                         ${PROJECT_SOURCE_DIR}/src/dmn-discovery-bonjour-native.cpp
+                         ${PROJECT_SOURCE_DIR}/src/dmn-discovery-bonjour-address.cpp
+                         ${PROJECT_SOURCE_DIR}/src/dmn-discovery-bonjour-browser.cpp
+                         ${PROJECT_SOURCE_DIR}/src/dmn-discovery-bonjour-contribution.cpp
+                         ${PROJECT_SOURCE_DIR}/src/dmn-discovery-bonjour-mapping.cpp
+                         ${PROJECT_SOURCE_DIR}/src/dmn-discovery-bonjour-operation.cpp
+                         ${PROJECT_SOURCE_DIR}/src/dmn-discovery-bonjour-record.cpp
+                         ${PROJECT_SOURCE_DIR}/src/dmn-discovery-bonjour-registration.cpp
+                         ${PROJECT_SOURCE_DIR}/src/dmn-discovery-bonjour-sessions.cpp
+                         ${PROJECT_SOURCE_DIR}/include/dmn-discovery-bonjour-browser.hpp
+                         ${PROJECT_SOURCE_DIR}/include/dmn-discovery-bonjour-contribution.hpp
+                         ${PROJECT_SOURCE_DIR}/include/dmn-discovery-bonjour-address.hpp
+                         ${PROJECT_SOURCE_DIR}/include/dmn-discovery-bonjour-mapping.hpp
+                         ${PROJECT_SOURCE_DIR}/include/dmn-discovery-bonjour-operation.hpp
+                         ${PROJECT_SOURCE_DIR}/include/dmn-discovery-bonjour-record.hpp
+                         ${PROJECT_SOURCE_DIR}/include/dmn-discovery-bonjour-registration.hpp
+                         ${PROJECT_SOURCE_DIR}/include/dmn-discovery-bonjour-sessions.hpp
+                         ${PROJECT_SOURCE_DIR}/include/dmn-discovery-bonjour-poll.hpp)
+target_include_directories(dmn-test-discovery-bonjour
+                             PRIVATE ${PROJECT_SOURCE_DIR}/test/cmake-bonjour)
+target_compile_definitions(dmn-test-discovery-bonjour
+                             PRIVATE DMN_DISCOVERY_USE_BONJOUR=1)
+target_link_libraries(dmn-test-discovery-bonjour PRIVATE dmn-discovery-core-test)
+set_tests_properties(dmn-test-discovery-bonjour
+                       PROPERTIES LABELS "dmn;dmn-discovery"
+                                  TIMEOUT 20
+)
+
 ADD_TEST_EXECUTABLE(dmn dmn-test-discovery-core)
 target_link_libraries(dmn-test-discovery-core PRIVATE dmn-discovery-core-test)
 set_tests_properties(dmn-test-discovery-core
@@ -718,6 +751,7 @@ if (ENABLE_VALGRIND)
   # [TEST TYPE: VALGRIND]
   # Run the selected regular GTest executables under Valgrind.
   SET(DMN_VALGRIND_TESTS
+        dmn-test-discovery-bonjour
         dmn-test-discovery-core
         dmn-test-discovery-public-conversion
         dmn-test-discovery-records
