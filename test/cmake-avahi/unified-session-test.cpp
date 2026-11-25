@@ -774,6 +774,148 @@ void disconnectDuringFailedRegistration() {
   check((*client)->shutdown().has_value(), "shutdown failed");
 }
 
+void backendReportAllocationInvalidatesAllSessions(bool partial) {
+  auto poll{std::make_shared<Poll>()};
+  auto groups{std::make_shared<Groups>()};
+  auto browsers{std::make_shared<Browsers>()};
+  auto records{std::make_shared<Records>()};
+  auto resolvers{std::make_shared<Resolvers>()};
+  auto client{DiscoveryAvahiRegistrationSessions::create(
+      {}, poll, groups, browsers, records, resolvers)};
+  check(client.has_value(), "client create");
+  auto existing{(*client)->advertise(
+      {{"Existing", "_ipp._tcp", "local.", 7}, 8080, {}}, {})};
+  check(existing.has_value(), "existing registration admission");
+  auto browser{(*client)->browse({"_ipp._tcp", "local.", 7}, {})};
+  check(browser.has_value(), "browser admission");
+  waitFor([&] { return records->created > 0 && resolvers->created > 0; });
+  groups->duringCreate = [poll] { poll->disconnectNow(); };
+  const char *lossPoint{
+      partial ? "dmn/discovery/avahi/loss-transition-partial-error"
+              : "dmn/discovery/avahi/loss-transition-error"};
+  const char *reportPoint{
+      partial ? "dmn/discovery/avahi/backend-report-partial-allocation"
+              : "dmn/discovery/avahi/backend-report-allocation"};
+  check(fiu_enable(lossPoint, 1, nullptr, FIU_ONETIME) == 0,
+        "could not enable transition fault");
+  check(fiu_enable(reportPoint, 1, nullptr, FIU_ONETIME) == 0,
+        "could not enable backend report fault");
+  auto registration{(*client)->advertise(
+      {{"Printer", "_ipp._tcp", "local.", 7}, 8080, {}}, {})};
+  check(registration.has_value(), "registration admission lost handle");
+  check(fiu_fail(lossPoint) == 0 && fiu_fail(reportPoint) == 0,
+        "fault was not reached");
+  auto status{browser->snapshot()};
+  check(status.m_delivery.m_state == DiscoveryDeliveryState::kOverflow &&
+            !status.m_backend_available &&
+            existing->status().m_state ==
+                DiscoveryRegistrationState::kOverflow &&
+            registration->status().m_state ==
+                DiscoveryRegistrationState::kOverflow,
+        "backend allocation failure was not latched for all sessions");
+  check(browser->stop().has_value(), "browser stop failed");
+  check(existing->stop().has_value(), "existing registration stop failed");
+  check(registration->stop().has_value(), "registration stop failed");
+  check((*client)->shutdown().has_value(), "shutdown failed");
+}
+
+void browserPreAdmissionExceptionReleasesCapacity() {
+  auto poll{std::make_shared<Poll>()};
+  auto groups{std::make_shared<Groups>()};
+  auto browsers{std::make_shared<Browsers>()};
+  auto records{std::make_shared<Records>()};
+  auto resolvers{std::make_shared<Resolvers>()};
+  DiscoveryOptions options;
+  options.m_max_browsers = 1;
+  auto client{DiscoveryAvahiRegistrationSessions::create(
+      options, poll, groups, browsers, records, resolvers)};
+  check(client.has_value(), "client create");
+  check(fiu_enable("dmn/discovery/browser/model-allocation", 1, nullptr,
+                   FIU_ONETIME) == 0,
+        "could not enable model fault");
+  auto failed{(*client)->browse({"_ipp._tcp", "local.", 7}, {})};
+  check(!failed && failed.error().m_kind == DiscoveryErrorKind::kResourceLimit,
+        "model failure was not reported");
+  auto browser{(*client)->browse({"_ipp._tcp", "local.", 7}, {})};
+  check(browser.has_value(), "failed admission retained browser capacity");
+  check(browser->stop().has_value(), "browser stop failed");
+  check((*client)->shutdown().has_value(), "shutdown failed");
+}
+
+void backendReportReturnedAllocationInvalidatesAllSessions() {
+  auto poll{std::make_shared<Poll>()};
+  auto groups{std::make_shared<Groups>()};
+  auto browsers{std::make_shared<Browsers>()};
+  auto records{std::make_shared<Records>()};
+  auto resolvers{std::make_shared<Resolvers>()};
+  std::atomic<bool> failTransitions{false};
+  auto client{DiscoveryAvahiRegistrationSessions::create(
+      {}, poll, groups, browsers, records, resolvers,
+      std::chrono::steady_clock::now,
+      [&](DiscoveryRegistrationFaultPoint point) {
+        if (failTransitions &&
+            point == DiscoveryRegistrationFaultPoint::kTransitionDelivery)
+          throw std::bad_alloc{};
+      })};
+  check(client.has_value(), "client create");
+  auto existing{(*client)->advertise(
+      {{"Existing", "_ipp._tcp", "local.", 7}, 8080, {}}, {})};
+  auto browser{(*client)->browse({"_ipp._tcp", "local.", 7}, {})};
+  check(existing && browser, "initial admission");
+  waitFor([&] { return records->created > 0 && resolvers->created > 0; });
+  groups->duringCreate = [poll, &failTransitions] {
+    failTransitions = true;
+    poll->disconnectNow();
+  };
+  check(fiu_enable("dmn/discovery/avahi/loss-transition-report-error", 1,
+                   nullptr, FIU_ONETIME) == 0,
+        "could not enable transition fault");
+  auto registration{(*client)->advertise(
+      {{"Printer", "_ipp._tcp", "local.", 7}, 8080, {}}, {})};
+  check(registration.has_value(), "registration admission lost handle");
+  const auto status{browser->snapshot()};
+  check(status.m_delivery.m_state == DiscoveryDeliveryState::kOverflow &&
+            !status.m_backend_available &&
+            existing->status().m_state == DiscoveryRegistrationState::kOverflow,
+        "returned allocation error did not invalidate all sessions");
+  failTransitions = false;
+  check(browser->stop().has_value(), "browser stop failed");
+  check(existing->stop().has_value(), "existing registration stop failed");
+  check(registration->stop().has_value(), "registration stop failed");
+  check((*client)->shutdown().has_value(), "shutdown failed");
+}
+
+void existingOverflowDoesNotSpreadDuringBackendFailure() {
+  auto poll{std::make_shared<Poll>()};
+  auto groups{std::make_shared<Groups>()};
+  auto browsers{std::make_shared<Browsers>()};
+  auto records{std::make_shared<Records>()};
+  auto resolvers{std::make_shared<Resolvers>()};
+  auto client{DiscoveryAvahiRegistrationSessions::create(
+      {}, poll, groups, browsers, records, resolvers)};
+  check(client.has_value(), "client create");
+  check(fiu_enable("dmn/discovery/avahi/registration-existing-overflow", 1,
+                   nullptr, FIU_ONETIME) == 0,
+        "could not enable registration fault");
+  auto registration{(*client)->advertise(
+      {{"Printer", "_ipp._tcp", "local.", 7}, 8080, {}}, {})};
+  auto browser{(*client)->browse({"_ipp._tcp", "local.", 7}, {})};
+  check(registration && browser, "admission");
+  check(registration->status().m_state == DiscoveryRegistrationState::kOverflow,
+        "registration did not overflow");
+  waitFor([&] { return records->created > 0 && resolvers->created > 0; });
+  poll->fail();
+  waitFor([&] { return poll->clientFreed == 1; });
+  auto status{browser->snapshot()};
+  check(status.m_delivery.m_state == DiscoveryDeliveryState::kRunning &&
+            !status.m_backend_available && status.m_cleanup_error &&
+            status.m_cleanup_error->m_kind == DiscoveryErrorKind::kBackend,
+        "prior registration overflow contaminated browser failure");
+  check(browser->stop().has_value(), "browser stop failed");
+  check(registration->stop().has_value(), "registration stop failed");
+  check(!(*client)->shutdown(), "poll failure was not retained");
+}
+
 void cleanupAllocationReleasesAllNativeObjects() {
   check(fiu_init(0) == 0, "fiu initialization failed");
   auto poll{std::make_shared<Poll>()};
@@ -824,6 +966,11 @@ int main() {
   postAdmissionFailureFromCallback();
   disconnectDuringFailedAdmission();
   disconnectDuringFailedRegistration();
+  backendReportAllocationInvalidatesAllSessions(false);
+  backendReportAllocationInvalidatesAllSessions(true);
+  backendReportReturnedAllocationInvalidatesAllSessions();
+  existingOverflowDoesNotSpreadDuringBackendFailure();
+  browserPreAdmissionExceptionReleasesCapacity();
   cleanupAllocationReleasesAllNativeObjects();
 #endif
 }

@@ -103,6 +103,7 @@ void runDispatcher(const std::shared_ptr<DiscoveryDispatcherState> &state) {
         state->m_last_served = it->first;
         break;
       }
+
       ++it;
     }
 
@@ -134,6 +135,7 @@ void runDispatcher(const std::shared_ptr<DiscoveryDispatcherState> &state) {
     } catch (...) {
       failed = true;
     }
+
     activeDispatcher = nullptr;
     lock.lock();
     session->m_active = false;
@@ -141,6 +143,7 @@ void runDispatcher(const std::shared_ptr<DiscoveryDispatcherState> &state) {
       session->m_callback_failed = true;
       session->m_queue.stop();
     }
+
     state->m_changed.notify_all();
   }
 }
@@ -162,10 +165,13 @@ void runDispatcherSafely(
       state->m_startup_complete = true;
       state->m_changed.notify_all();
     }
+
     if (error != 0) {
       throw std::system_error{error, std::generic_category()};
     }
+
     runDispatcher(state);
+
     return;
 #if defined(__GLIBCXX__)
   } catch (const __cxxabiv1::__forced_unwind &) {
@@ -184,8 +190,10 @@ void runDispatcherSafely(
       session->m_queue.stop();
       session->m_active = false;
     }
+
     state->m_changed.notify_all();
   }
+
   if (state->m_startup_error == 0 && state->m_worker_failure) {
     state->m_worker_failure();
   }
@@ -217,9 +225,11 @@ DiscoveryResult DiscoveryDeliveryHandle::postData(std::uint64_t epoch,
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "stale delivery epoch"}};
   }
+
   auto result{m_session->m_queue.pushData(std::move(event))};
   m_state->m_wake = true;
   m_state->m_changed.notify_all();
+
   return result;
 }
 
@@ -234,9 +244,11 @@ DiscoveryResult DiscoveryDeliveryHandle::postRegistration(
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "stale delivery epoch"}};
   }
+
   auto result{m_session->m_queue.pushRegistration(std::move(status))};
   m_state->m_wake = true;
   m_state->m_changed.notify_all();
+
   return result;
 }
 
@@ -245,10 +257,12 @@ DiscoveryResult DiscoveryDeliveryHandle::registrationBackendChange(
   if (!m_state || !m_session) {
     return invalidHandle();
   }
+
   std::lock_guard lock{m_state->m_mutex};
   auto result{m_session->m_queue.registrationBackendChange(std::move(status))};
   m_state->m_wake = true;
   m_state->m_changed.notify_all();
+
   return result;
 }
 
@@ -264,9 +278,11 @@ DiscoveryDeliveryHandle::postControl(std::uint64_t epoch,
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "stale delivery epoch"}};
   }
+
   auto result{m_session->m_queue.pushControl(control)};
   m_state->m_wake = true;
   m_state->m_changed.notify_all();
+
   return result;
 }
 
@@ -281,9 +297,11 @@ DiscoveryDeliveryHandle::backendLost(std::uint64_t epoch) const {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "stale delivery epoch"}};
   }
+
   auto result{m_session->m_queue.backendLost()};
   m_state->m_wake = true;
   m_state->m_changed.notify_all();
+
   return result;
 }
 
@@ -298,9 +316,11 @@ DiscoveryDeliveryHandle::backendAvailable(std::uint64_t epoch) const {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "stale delivery epoch"}};
   }
+
   auto result{m_session->m_queue.backendAvailable()};
   m_state->m_wake = true;
   m_state->m_changed.notify_all();
+
   return result;
 }
 
@@ -313,6 +333,7 @@ DiscoveryResult DiscoveryDeliveryHandle::failOverflow() const {
   auto result{m_session->m_queue.failOverflow()};
   m_state->m_wake = true;
   m_state->m_changed.notify_all();
+
   return result;
 }
 
@@ -320,6 +341,7 @@ void DiscoveryDeliveryHandle::latchOverflow() const {
   if (!m_state || !m_session) {
     throw std::logic_error{"invalid discovery delivery handle"};
   }
+
   std::lock_guard lock{m_state->m_mutex};
   m_session->m_queue.latchOverflow();
   m_state->m_wake = true;
@@ -335,6 +357,7 @@ DiscoveryDeliveryHandle::beginReset() const {
   if (!m_state || !m_session) {
     return std::unexpected{invalidHandle().error()};
   }
+
   if (activeDispatcher == m_state.get()) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kReentrantCall,
                                           "reentrant reset barrier"}};
@@ -355,6 +378,7 @@ DiscoveryResult DiscoveryDeliveryHandle::awaitReset(std::uint64_t epoch) const {
   if (!m_state || !m_session) {
     return invalidHandle();
   }
+
   if (activeDispatcher == m_state.get()) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kReentrantCall,
                                           "reentrant reset barrier"}};
@@ -365,6 +389,7 @@ DiscoveryResult DiscoveryDeliveryHandle::awaitReset(std::uint64_t epoch) const {
     return std::unexpected{
         DiscoveryError{DiscoveryErrorKind::kCancelled, "reset was superseded"}};
   }
+
   m_state->m_changed.wait(lock, [&] {
     return !m_session->m_active || m_session->m_active_epoch >= epoch;
   });
@@ -372,10 +397,12 @@ DiscoveryResult DiscoveryDeliveryHandle::awaitReset(std::uint64_t epoch) const {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kCallbackFailure,
                                           "discovery callback failed"}};
   }
+
   if (m_session->m_queue.state() != DiscoveryDeliveryState::kRunning) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
                                           "discovery delivery unavailable"}};
   }
+
   if (m_session->m_queue.epoch() != epoch) {
     return std::unexpected{
         DiscoveryError{DiscoveryErrorKind::kCancelled, "reset was superseded"}};
@@ -388,6 +415,7 @@ DiscoveryResult DiscoveryDeliveryHandle::beginStop() const {
   if (!m_state || !m_session) {
     return invalidHandle();
   }
+
   if (activeDispatcher == m_state.get()) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kReentrantCall,
                                           "reentrant stop barrier"}};
@@ -405,14 +433,17 @@ DiscoveryResult DiscoveryDeliveryHandle::cancelFromCallback() const {
   if (!m_state || !m_session) {
     return invalidHandle();
   }
+
   if (activeDispatcher != m_state.get()) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                           "not in callback context"}};
   }
+
   std::lock_guard lock{m_state->m_mutex};
   m_session->m_queue.stop();
   m_state->m_wake = true;
   m_state->m_changed.notify_all();
+
   return {};
 }
 
@@ -420,16 +451,19 @@ DiscoveryResult DiscoveryDeliveryHandle::abandonUnpublished() const {
   if (!m_state || !m_session) {
     return invalidHandle();
   }
+
   std::unique_lock lock{m_state->m_mutex};
   if (m_session->m_active) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                           "unpublished callback is active"}};
   }
+
   m_session->m_queue.stop();
   m_state->m_sessions.erase(m_session->m_id);
   DiscoveryDispatcher::Handler retired{std::move(m_session->m_handler)};
   lock.unlock();
   retireHandler(retired, m_state.get());
+
   return {};
 }
 
@@ -437,6 +471,7 @@ DiscoveryResult DiscoveryDeliveryHandle::awaitStop() const {
   if (!m_state || !m_session) {
     return invalidHandle();
   }
+
   if (activeDispatcher == m_state.get()) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kReentrantCall,
                                           "reentrant stop barrier"}};
@@ -447,6 +482,7 @@ DiscoveryResult DiscoveryDeliveryHandle::awaitStop() const {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "stop not started"}};
   }
+
   m_state->m_changed.wait(lock, [&] { return !m_session->m_active; });
   m_state->m_sessions.erase(m_session->m_id);
   DiscoveryDispatcher::Handler retired{std::move(m_session->m_handler)};
@@ -460,6 +496,7 @@ DiscoveryResult DiscoveryDeliveryHandle::reset() const {
   if (!m_state || !m_session) {
     return invalidHandle();
   }
+
   if (activeDispatcher == m_state.get()) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kReentrantCall,
                                           "reentrant reset barrier"}};
@@ -478,6 +515,7 @@ DiscoveryResult DiscoveryDeliveryHandle::stop() const {
   if (!m_state || !m_session) {
     return invalidHandle();
   }
+
   if (activeDispatcher == m_state.get()) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kReentrantCall,
                                           "reentrant stop barrier"}};
@@ -497,6 +535,7 @@ DiscoveryDeliverySnapshot DiscoveryDeliveryHandle::snapshot() const {
   }
 
   std::lock_guard lock{m_state->m_mutex};
+
   return {m_session->m_queue.epoch(), m_session->m_queue.sequence(),
           m_session->m_queue.state(), m_session->m_callback_failed,
           m_session->m_queue.overflowed()};
@@ -513,6 +552,7 @@ DiscoveryDispatcher::DiscoveryDispatcher(std::size_t maxSessions,
     throw std::system_error{EAGAIN, std::generic_category(),
                             "starting discovery callback worker"};
   }
+
   {
     std::unique_lock lock{m_state->m_mutex};
     m_state->m_changed.wait(lock,
@@ -521,10 +561,12 @@ DiscoveryDispatcher::DiscoveryDispatcher(std::size_t maxSessions,
     if (error != 0) {
       lock.unlock();
       static_cast<void>(m_worker.wait());
+
       throw std::system_error{error, std::generic_category(),
                               "starting discovery callback worker"};
     }
   }
+
   m_worker_started = true;
 }
 
@@ -542,10 +584,12 @@ DiscoveryDispatcher::create(std::size_t maxData, std::size_t maxControl,
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "delivery limits must be nonzero"}};
   }
+
   if (m_state->m_shutdown) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kStopped,
                                           "discovery dispatcher stopped"}};
   }
+
   if (m_state->m_sessions.size() >= m_state->m_max_sessions ||
       m_state->m_next_id == 0) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
@@ -574,9 +618,11 @@ DiscoveryResult DiscoveryDispatcher::shutdown() {
       static_cast<void>(id);
       session->m_queue.stop();
     }
+
     m_state->m_wake = true;
     m_state->m_changed.notify_all();
   }
+
   if (m_worker_started) {
     try {
       static_cast<void>(m_worker.wait());
@@ -591,9 +637,11 @@ DiscoveryResult DiscoveryDispatcher::shutdown() {
       m_worker_error = DiscoveryError{DiscoveryErrorKind::kBackend,
                                       "discovery callback worker failed"};
     }
+
     if (m_worker.isJoinable()) {
       return std::unexpected{*m_worker_error};
     }
+
     m_worker_started = false;
   }
 
@@ -611,16 +659,19 @@ DiscoveryResult DiscoveryDispatcher::shutdown() {
       if (m_state->m_sessions.empty()) {
         break;
       }
+
       const auto session{m_state->m_sessions.begin()->second};
       retired = std::move(session->m_handler);
       m_state->m_sessions.erase(m_state->m_sessions.begin());
     }
+
     retireHandler(retired, m_state.get());
   }
 
   if (m_worker_error) {
     return std::unexpected{*m_worker_error};
   }
+
   return {};
 }
 

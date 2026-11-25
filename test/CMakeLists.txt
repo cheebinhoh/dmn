@@ -608,6 +608,9 @@ file(GLOB DMN_PUBLIC_HEADERS CONFIGURE_DEPENDS
 set(DMN_STANDALONE_HEADER_SOURCES)
 
 foreach(header IN LISTS DMN_PUBLIC_HEADERS)
+  if (header MATCHES "/dmn-discovery-[^/]*\\.hpp$")
+    continue()
+  endif()
   if (NOT ENABLE_DMN_DMESGNET AND
       header MATCHES "/(dmn-(dlock|dmesg)[^/]*|kafka)/?")
     continue()

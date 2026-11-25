@@ -24,9 +24,11 @@ public:
                           void *context) override {
     return avahi_entry_group_new(client, callback, context);
   }
+
   void free(AvahiEntryGroup *group) noexcept override {
     avahi_entry_group_free(group);
   }
+
   int add(AvahiEntryGroup *group, AvahiIfIndex interfaceIndex,
           AvahiProtocol protocol, AvahiPublishFlags flags, const char *name,
           const char *type, const char *domain, std::uint16_t port,
@@ -35,12 +37,15 @@ public:
                                                 flags, name, type, domain,
                                                 nullptr, port, txt);
   }
+
   int commit(AvahiEntryGroup *group) override {
     return avahi_entry_group_commit(group);
   }
+
   int clientError(AvahiClient *client) override {
     return avahi_client_errno(client);
   }
+
   const char *errorString(int error) override { return avahi_strerror(error); }
 };
 
@@ -53,8 +58,9 @@ struct StringListDeleter {
 };
 
 struct StartingGuard {
-  bool &m_starting;
   ~StartingGuard() { m_starting = false; }
+
+  bool &m_starting;
 };
 
 } // namespace
@@ -70,6 +76,7 @@ DiscoveryResult validateDiscoveryAvahiAdvertisement(
   if (auto result{validateAdvertisement(options, advertisement)}; !result) {
     return result;
   }
+
   const auto &key{advertisement.m_key};
   if (advertisement.m_txt.size() > 1 &&
       std::any_of(advertisement.m_txt.begin(), advertisement.m_txt.end(),
@@ -78,6 +85,7 @@ DiscoveryResult validateDiscoveryAvahiAdvertisement(
         DiscoveryErrorKind::kUnsupported,
         "Avahi cannot preserve empty TXT entries in a multi-entry record"}};
   }
+
   const auto domain{canonicalizeDomain(key.m_domain)};
   const auto local{canonicalizeDomain("local.")};
   if (!domain || !local || *domain != *local) {
@@ -85,12 +93,14 @@ DiscoveryResult validateDiscoveryAvahiAdvertisement(
         DiscoveryError{DiscoveryErrorKind::kUnsupported,
                        "non-local registration unsupported"}};
   }
+
   if (key.m_interface &&
       *key.m_interface > static_cast<std::uint32_t>(
                              std::numeric_limits<AvahiIfIndex>::max())) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "invalid Avahi interface"}};
   }
+
   return {};
 }
 
@@ -118,11 +128,13 @@ DiscoveryResult DiscoveryAvahiRegistration::start() {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "invalid Avahi registration state"}};
   }
+
   if (auto result{
           validateDiscoveryAvahiAdvertisement(m_options, m_advertisement)};
       !result) {
     return result;
   }
+
   const auto &key{m_advertisement.m_key};
   std::unique_ptr<AvahiStringList, StringListDeleter> txt;
   for (const auto &entry : m_advertisement.m_txt) {
@@ -132,9 +144,11 @@ DiscoveryResult DiscoveryAvahiRegistration::start() {
       return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
                                             "Avahi TXT allocation failed"}};
     }
+
     static_cast<void>(txt.release());
     txt.reset(next);
   }
+
   m_error.reset();
   m_callback_failed = false;
   m_callback_allocation_failed = false;
@@ -144,15 +158,19 @@ DiscoveryResult DiscoveryAvahiRegistration::start() {
   m_group.reset(m_api->create(m_client, onGroup, this));
   if (auto result{status()}; !result) {
     m_group.reset();
+
     return result;
   }
+
   if (!m_group) {
     return std::unexpected{nativeError("Avahi group creation failed",
                                        m_api->clientError(m_client))};
   }
+
   if (m_collision) {
     return {};
   }
+
   const auto interfaceIndex{key.m_interface
                                 ? static_cast<AvahiIfIndex>(*key.m_interface)
                                 : AVAHI_IF_UNSPEC};
@@ -163,8 +181,10 @@ DiscoveryResult DiscoveryAvahiRegistration::start() {
                              txt.get())};
   if (auto result{status()}; !result) {
     m_group.reset();
+
     return result;
   }
+
   if (added == AVAHI_ERR_COLLISION) {
     try {
       notify(DiscoveryAvahiRegistrationEvent::kCollision);
@@ -174,25 +194,33 @@ DiscoveryResult DiscoveryAvahiRegistration::start() {
     } catch (...) {
       m_callback_failed = true;
     }
+
     auto result{status()};
     if (!result) {
       m_group.reset();
     }
+
     return result;
   }
+
   if (added < 0) {
     auto error{nativeError("Avahi service registration failed", added)};
     m_group.reset();
+
     return std::unexpected{std::move(error)};
   }
+
   if (m_collision) {
     return {};
   }
+
   const int committed{m_api->commit(m_group.get())};
   if (auto result{status()}; !result) {
     m_group.reset();
+
     return result;
   }
+
   if (committed == AVAHI_ERR_COLLISION) {
     try {
       notify(DiscoveryAvahiRegistrationEvent::kCollision);
@@ -202,17 +230,22 @@ DiscoveryResult DiscoveryAvahiRegistration::start() {
     } catch (...) {
       m_callback_failed = true;
     }
+
     auto result{status()};
     if (!result) {
       m_group.reset();
     }
+
     return result;
   }
+
   if (committed < 0) {
     auto error{nativeError("Avahi group commit failed", committed)};
     m_group.reset();
+
     return std::unexpected{std::move(error)};
   }
+
   return {};
 }
 
@@ -221,13 +254,16 @@ DiscoveryResult DiscoveryAvahiRegistration::status() const {
     return std::unexpected{
         DiscoveryError{DiscoveryErrorKind::kResourceLimit, {}}};
   }
+
   if (m_callback_failed) {
     return std::unexpected{DiscoveryError{
         DiscoveryErrorKind::kBackend, "Avahi registration callback failed"}};
   }
+
   if (m_error) {
     return std::unexpected{*m_error};
   }
+
   return {};
 }
 
@@ -236,7 +272,9 @@ DiscoveryResult DiscoveryAvahiRegistration::stop() {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                           "reentrant Avahi registration stop"}};
   }
+
   m_group.reset();
+
   return {};
 }
 
@@ -258,9 +296,11 @@ void DiscoveryAvahiRegistration::notify(DiscoveryAvahiRegistrationEvent event) {
   if (m_collision) {
     return;
   }
+
   if (event == DiscoveryAvahiRegistrationEvent::kCollision) {
     m_collision = true;
   }
+
   if (m_handler) {
     auto result{m_handler(event)};
     if (!result) {
@@ -277,6 +317,7 @@ void DiscoveryAvahiRegistration::onGroup(AvahiEntryGroup *group,
       (!self.m_starting && (!self.m_group || self.m_group.get() != group))) {
     return;
   }
+
   ++self.m_callback_depth;
   try {
     if (!self.m_error && !self.m_callback_failed) {
@@ -314,6 +355,7 @@ void DiscoveryAvahiRegistration::onGroup(AvahiEntryGroup *group,
       self.m_callback_failed = true;
     }
   }
+
   --self.m_callback_depth;
 }
 

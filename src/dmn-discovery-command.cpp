@@ -66,8 +66,7 @@ DiscoveryResult invokeCommand(const DiscoveryCommandWorker::Command &command) {
 #endif
   } catch (const std::bad_alloc &) {
     return std::unexpected{
-        DiscoveryError{DiscoveryErrorKind::kResourceLimit,
-                       "discovery command allocation failed"}};
+        DiscoveryError{DiscoveryErrorKind::kResourceLimit, {}}};
   } catch (...) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                           "discovery command threw"}};
@@ -132,9 +131,11 @@ void runCommands(const std::shared_ptr<DiscoveryCommandState> &state) {
         });
       }
     }
+
     if (state->m_shutdown) {
       break;
     }
+
     if (state->m_controls.empty() && state->m_commands.empty()) {
       continue;
     }
@@ -162,12 +163,15 @@ void runCommands(const std::shared_ptr<DiscoveryCommandState> &state) {
       state->m_control_slots.erase(*item->m_control);
     }
   }
+
   for (const auto &item : state->m_commands) {
     item->m_promise.set_value(std::unexpected{std::move(item->m_cancelled)});
   }
+
   for (const auto &item : state->m_controls) {
     item->m_promise.set_value(std::unexpected{std::move(item->m_cancelled)});
   }
+
   state->m_commands.clear();
   state->m_controls.clear();
   state->m_control_slots.clear();
@@ -207,10 +211,13 @@ void runCommandsSafely(const std::shared_ptr<DiscoveryCommandState> &state) {
       state->m_startup_complete = true;
       state->m_changed.notify_all();
     }
+
     if (error != 0) {
       throw std::system_error{error, std::generic_category()};
     }
+
     runCommands(state);
+
     return;
 #if defined(__GLIBCXX__)
   } catch (const __cxxabiv1::__forced_unwind &) {
@@ -231,20 +238,24 @@ void runCommandsSafely(const std::shared_ptr<DiscoveryCommandState> &state) {
           std::unexpected{std::move(state->m_running->m_worker_failure)});
       state->m_running.reset();
     }
+
     for (const auto &item : state->m_commands) {
       item->m_promise.set_value(
           std::unexpected{std::move(item->m_worker_failure)});
     }
+
     for (const auto &item : state->m_controls) {
       item->m_promise.set_value(
           std::unexpected{std::move(item->m_worker_failure)});
     }
+
     state->m_commands.clear();
     state->m_controls.clear();
     state->m_control_slots.clear();
     poller = std::move(state->m_poller);
     state->m_changed.notify_all();
   }
+
   if (poller) {
     activeWorker = state.get();
     const auto stopped{invokeCommand([&] { return poller->stop(); })};
@@ -271,6 +282,7 @@ DiscoveryCommandWorker::DiscoveryCommandWorker(std::size_t maxCommands,
     throw std::system_error{EAGAIN, std::generic_category(),
                             "starting discovery state worker"};
   }
+
   {
     std::unique_lock lock{m_state->m_mutex};
     m_state->m_changed.wait(lock,
@@ -279,10 +291,12 @@ DiscoveryCommandWorker::DiscoveryCommandWorker(std::size_t maxCommands,
     if (error != 0) {
       lock.unlock();
       static_cast<void>(m_worker.wait());
+
       throw std::system_error{error, std::generic_category(),
                               "starting discovery state worker"};
     }
   }
+
   m_worker_started = true;
 }
 
@@ -308,10 +322,12 @@ DiscoveryCommandWorker::submit(Command command) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "empty discovery command"}};
   }
+
   if (m_state->m_shutdown) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kStopped,
                                           "discovery worker stopped"}};
   }
+
   if (m_state->m_commands.size() >= m_state->m_max_commands) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
                                           "discovery command queue full"}};
@@ -322,7 +338,9 @@ DiscoveryCommandWorker::submit(Command command) {
   if (m_state->m_poller) {
     m_state->m_poller->wake();
   }
+
   m_state->m_changed.notify_one();
+
   return item->m_completion;
 }
 
@@ -331,6 +349,7 @@ DiscoveryResult DiscoveryCommandWorker::execute(Command command) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "empty discovery command"}};
   }
+
   if (activeWorker == m_state.get()) {
     return invokeCommand(command);
   }
@@ -339,6 +358,7 @@ DiscoveryResult DiscoveryCommandWorker::execute(Command command) {
   if (!submitted) {
     return std::unexpected{submitted.error()};
   }
+
   return submitted->get();
 }
 
@@ -348,6 +368,7 @@ DiscoveryResult DiscoveryCommandWorker::attachPoller(
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "empty discovery poller"}};
   }
+
   return execute([state = m_state, poller = std::move(poller)]() {
     {
       std::lock_guard lock{state->m_mutex};
@@ -356,6 +377,7 @@ DiscoveryResult DiscoveryCommandWorker::attachPoller(
             DiscoveryErrorKind::kBackend, "discovery poller unavailable"}}};
       }
     }
+
     auto result{invokeCommand([&] { return poller->start(); })};
     if (!result) {
       auto stopped{invokeCommand([&] { return poller->stop(); })};
@@ -365,19 +387,24 @@ DiscoveryResult DiscoveryCommandWorker::attachPoller(
             result.error().m_message +
                 "; poll cleanup failed: " + stopped.error().m_message}}};
       }
+
       return result;
     }
+
     {
       std::lock_guard lock{state->m_mutex};
       if (!state->m_shutdown) {
         state->m_poller = poller;
+
         return DiscoveryResult{};
       }
     }
+
     auto stopped{invokeCommand([&] { return poller->stop(); })};
     if (!stopped) {
       return stopped;
     }
+
     return cancelled();
   });
 }
@@ -391,6 +418,7 @@ DiscoveryCommandWorker::submitControl(std::uint64_t session,
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "invalid discovery control"}};
   }
+
   if (m_state->m_shutdown) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kStopped,
                                           "discovery worker stopped"}};
@@ -401,6 +429,7 @@ DiscoveryCommandWorker::submitControl(std::uint64_t session,
       existing != m_state->m_control_slots.end()) {
     return existing->second->m_completion;
   }
+
   const ControlKey stopKey{session, DiscoveryCommandControl::kStop};
   if (control == DiscoveryCommandControl::kReset &&
       m_state->m_control_slots.contains(stopKey)) {
@@ -420,6 +449,7 @@ DiscoveryCommandWorker::submitControl(std::uint64_t session,
       ++sessionCount;
     }
   }
+
   if (!sessionPresent && sessionCount >= m_state->m_max_control_sessions) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
                                           "discovery control slots full"}};
@@ -446,12 +476,16 @@ DiscoveryCommandWorker::submitControl(std::uint64_t session,
     }
   } catch (...) {
     m_state->m_control_slots.erase(key);
+
     throw;
   }
+
   if (m_state->m_poller) {
     m_state->m_poller->wake();
   }
+
   m_state->m_changed.notify_one();
+
   return item->m_completion;
 }
 
@@ -468,17 +502,21 @@ DiscoveryResult DiscoveryCommandWorker::shutdown() {
     for (const auto &item : m_state->m_commands) {
       item->m_promise.set_value(std::unexpected{std::move(item->m_cancelled)});
     }
+
     for (const auto &item : m_state->m_controls) {
       item->m_promise.set_value(std::unexpected{std::move(item->m_cancelled)});
       m_state->m_control_slots.erase(*item->m_control);
     }
+
     m_state->m_commands.clear();
     m_state->m_controls.clear();
     if (m_state->m_poller) {
       m_state->m_poller->wake();
     }
+
     m_state->m_changed.notify_all();
   }
+
   if (m_worker_started) {
     try {
       static_cast<void>(m_worker.wait());
@@ -493,17 +531,22 @@ DiscoveryResult DiscoveryCommandWorker::shutdown() {
       m_worker_error = DiscoveryError{DiscoveryErrorKind::kBackend,
                                       "discovery worker failed"};
     }
+
     if (m_worker.isJoinable()) {
       return std::unexpected{*m_worker_error};
     }
+
     m_worker_started = false;
   }
+
   if (m_worker_error) {
     return std::unexpected{*m_worker_error};
   }
+
   if (m_state->m_poll_error) {
     return std::unexpected{*m_state->m_poll_error};
   }
+
   return {};
 }
 
@@ -515,11 +558,13 @@ DiscoveryCommandWorker::joinAfterPollFailure() {
       return false;
     }
   }
+
   static_cast<void>(shutdown());
   std::lock_guard lock{m_state->m_mutex};
   if (m_state->m_cleanup_error) {
     return std::unexpected{*m_state->m_cleanup_error};
   }
+
   return true;
 }
 

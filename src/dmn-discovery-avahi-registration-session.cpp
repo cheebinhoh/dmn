@@ -57,11 +57,14 @@ bool sameDnsName(std::string_view a, std::string_view b) {
     if (fold(a[i]) != fold(b[i]))
       return false;
   }
+
   return true;
 }
+
 bool sameKey(const DiscoveryServiceKey &a, const DiscoveryServiceKey &b) {
   const auto leftDomain{canonicalizeDomain(a.m_domain)};
   const auto rightDomain{canonicalizeDomain(b.m_domain)};
+
   return a.m_interface == b.m_interface &&
          sameDnsName(a.m_instance, b.m_instance) &&
          sameDnsName(a.m_type, b.m_type) && leftDomain && rightDomain &&
@@ -81,8 +84,10 @@ public:
     if (auto owner{m_owner.lock()}) {
       owner->reap();
     }
+
     return result;
   }
+
   DiscoveryResult wait(bool block) override {
     auto result{m_poller->wait(block)};
     if (auto owner{m_owner.lock()}) {
@@ -95,16 +100,21 @@ public:
         owner->failBackend(result.error());
       } else if (auto driven{owner->driveBrowsers()}; !driven) {
         owner->failBackend(driven.error());
+
         return std::unexpected{driven.error()};
       } else if (*driven &&
                  **driven == std::chrono::steady_clock::time_point::min()) {
         owner->m_force_poll_iteration = true;
       }
+
       owner->reap();
     }
+
     return result;
   }
+
   void wake() noexcept override { m_poller->wake(); }
+
   DiscoveryResult stop() override { return m_poller->stop(); }
 
 private:
@@ -155,11 +165,13 @@ DiscoveryAvahiRegistrationSessions::create(
         DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                        "invalid Avahi registration backend"}};
   }
+
   if ((browserApi || recordApi || resolverApi) &&
       (!browserApi || !recordApi || !resolverApi)) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "incomplete Avahi browser backend"}};
   }
+
   auto owner{std::shared_ptr<DiscoveryAvahiRegistrationSessions>{
       new DiscoveryAvahiRegistrationSessions{
           options, std::move(registrationApi), std::move(browserApi),
@@ -177,6 +189,7 @@ DiscoveryAvahiRegistrationSessions::create(
   if (auto result{owner->m_client.attachPoller(std::move(driving))}; !result) {
     return std::unexpected{result.error()};
   }
+
   return owner;
 } catch (const std::bad_alloc &) {
   return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
@@ -192,6 +205,7 @@ DiscoveryAvahiRegistrationSessions::advertise(
       !result) {
     return std::unexpected{result.error()};
   }
+
   using Output = std::expected<DiscoveryRegistrationHandle, DiscoveryError>;
   auto output{std::make_shared<std::optional<Output>>()};
   auto result{m_client.dispatchNative([this,
@@ -202,6 +216,7 @@ DiscoveryAvahiRegistrationSessions::advertise(
       return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
                                             "registration ID exhausted"}};
     }
+
     const auto id{m_next_id++};
     auto entry{std::make_unique<Entry>(Entry{advertisement, {}, {}})};
     std::weak_ptr<DiscoveryAvahiRegistrationSessions> weak{shared_from_this()};
@@ -211,20 +226,32 @@ DiscoveryAvahiRegistrationSessions::advertise(
       }
     }};
     m_entries.emplace(id, std::move(entry));
-    auto handle{m_client.advertise(std::move(advertisement), std::move(handler),
-                                   std::move(cancellation))};
+    auto handle{[&] {
+      try {
+        return m_client.advertise(std::move(advertisement), std::move(handler),
+                                  std::move(cancellation));
+      } catch (...) {
+        m_entries.erase(id);
+
+        throw;
+      }
+    }()};
     if (!handle) {
       m_entries.erase(id);
+
       return std::unexpected{handle.error()};
     }
+
     m_entries.at(id)->m_handle = *handle;
     *output = *handle;
     try {
 #ifdef FIU_ENABLE
       if (fiu_fail("dmn/discovery/avahi/registration-post-admission") ||
-          fiu_fail("dmn/discovery/avahi/registration-post-admission-nested")) {
+          fiu_fail("dmn/discovery/avahi/registration-post-admission-nested") ||
+          fiu_fail("dmn/discovery/avahi/registration-existing-overflow")) {
         throw std::bad_alloc{};
       }
+
       if (fiu_fail("dmn/discovery/avahi/registration-post-admission-error")) {
         throw std::runtime_error{"injected registration startup failure"};
       }
@@ -239,6 +266,7 @@ DiscoveryAvahiRegistrationSessions::advertise(
               fiu_fail("dmn/discovery/avahi/registration-after-disconnect")) {
             throw std::bad_alloc{};
           }
+
           if (fiu_fail("dmn/discovery/avahi/registration-after-start-error")) {
             throw std::runtime_error{"injected registration startup failure"};
           }
@@ -251,6 +279,7 @@ DiscoveryAvahiRegistrationSessions::advertise(
                 current.m_handle.backendFailed(available.error()));
           }
         }
+
         if (m_loss_pending) {
           try {
             loseClient();
@@ -259,6 +288,7 @@ DiscoveryAvahiRegistrationSessions::advertise(
                          "Avahi registration backend transition failed"});
           }
         }
+
         reap();
       }
     } catch (const std::bad_alloc &) {
@@ -267,7 +297,8 @@ DiscoveryAvahiRegistrationSessions::advertise(
       } else if (auto found{m_entries.find(id)}; found != m_entries.end()) {
         found->second->m_native.reset();
       }
-      handle->failPostAdmissionAllocation();
+
+      handle->failResourceLimit();
 #if defined(__GLIBCXX__)
     } catch (const __cxxabiv1::__forced_unwind &) {
       throw;
@@ -278,20 +309,23 @@ DiscoveryAvahiRegistrationSessions::advertise(
       } else if (auto found{m_entries.find(id)}; found != m_entries.end()) {
         found->second->m_native.reset();
       }
+
       try {
         auto failed{handle->backendFailed({DiscoveryErrorKind::kBackend, {}})};
         if (!failed &&
             failed.error().m_kind == DiscoveryErrorKind::kResourceLimit)
-          handle->failPostAdmissionAllocation();
+          handle->failResourceLimit();
       } catch (const std::bad_alloc &) {
-        handle->failPostAdmissionAllocation();
+        handle->failResourceLimit();
       }
     }
+
     return {};
   })};
   if (!result) {
     return std::unexpected{result.error()};
   }
+
   return std::move(**output);
 } catch (const std::bad_alloc &) {
   return std::unexpected{
@@ -307,6 +341,7 @@ DiscoveryAvahiRegistrationSessions::browse(
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kUnsupported,
                                           "Avahi browsing not configured"}};
   }
+
   if (!validateServiceType(query.m_type) || !validateDomain(query.m_domain) ||
       (!addressFamilies[0] && !addressFamilies[1]) ||
       (query.m_interface &&
@@ -316,6 +351,7 @@ DiscoveryAvahiRegistrationSessions::browse(
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "invalid Avahi browser query"}};
   }
+
   auto output{std::make_shared<std::optional<DiscoverySessionHandle>>()};
   auto result{m_client.dispatchNative([this, query = std::move(query),
                                        handler = std::move(handler),
@@ -325,6 +361,7 @@ DiscoveryAvahiRegistrationSessions::browse(
       return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
                                             "discovery ID exhausted"}};
     }
+
     const auto id{m_next_id++};
     auto entry{std::make_unique<BrowserEntry>()};
     entry->m_query = std::move(query);
@@ -334,21 +371,33 @@ DiscoveryAvahiRegistrationSessions::browse(
         [weak, id]() -> DiscoveryResult {
           if (auto self{weak.lock()})
             return self->cancelBrowser(id);
+
           return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                                 "Avahi owner unavailable"}};
         },
         [weak, id]() -> DiscoveryResult {
           if (auto self{weak.lock()})
             return self->resetBrowser(id);
+
           return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                                 "Avahi owner unavailable"}};
         }};
     m_browsers.emplace(id, std::move(entry));
-    auto handle{m_client.browse(std::move(handler), std::move(lifecycle))};
+    auto handle{[&] {
+      try {
+        return m_client.browse(std::move(handler), std::move(lifecycle));
+      } catch (...) {
+        m_browsers.erase(id);
+
+        throw;
+      }
+    }()};
     if (!handle) {
       m_browsers.erase(id);
+
       return std::unexpected{handle.error()};
     }
+
     auto &current{*m_browsers.at(id)};
     current.m_handle = *handle;
     *output = *handle;
@@ -358,6 +407,7 @@ DiscoveryAvahiRegistrationSessions::browse(
           fiu_fail("dmn/discovery/avahi/browser-post-admission-nested")) {
         throw std::bad_alloc{};
       }
+
       if (fiu_fail("dmn/discovery/avahi/browser-post-admission-error")) {
         throw std::runtime_error{"injected browser startup failure"};
       }
@@ -372,6 +422,7 @@ DiscoveryAvahiRegistrationSessions::browse(
               fiu_fail("dmn/discovery/avahi/browser-after-disconnect")) {
             throw std::bad_alloc{};
           }
+
           if (fiu_fail("dmn/discovery/avahi/browser-after-start-error")) {
             throw std::runtime_error{"injected browser startup failure"};
           }
@@ -380,6 +431,7 @@ DiscoveryAvahiRegistrationSessions::browse(
                    DiscoveryDeliveryState::kRunning) {
           current.m_error = available.error();
         }
+
         if (m_loss_pending) {
           try {
             loseClient();
@@ -388,6 +440,7 @@ DiscoveryAvahiRegistrationSessions::browse(
                          "Avahi browser backend transition failed"});
           }
         }
+
         if (auto driven{driveBrowsers()}; !driven) {
           failBackend(driven.error());
         } else if (*driven &&
@@ -401,7 +454,8 @@ DiscoveryAvahiRegistrationSessions::browse(
       } else if (auto found{m_browsers.find(id)}; found != m_browsers.end()) {
         releaseBrowserNative(*found->second);
       }
-      handle->failPostAdmissionAllocation();
+
+      handle->failResourceLimit();
 #if defined(__GLIBCXX__)
     } catch (const __cxxabiv1::__forced_unwind &) {
       throw;
@@ -412,19 +466,22 @@ DiscoveryAvahiRegistrationSessions::browse(
       } else if (auto found{m_browsers.find(id)}; found != m_browsers.end()) {
         releaseBrowserNative(*found->second);
       }
+
       try {
         auto failed{handle->backendFailed({DiscoveryErrorKind::kBackend, {}})};
         if (!failed &&
             failed.error().m_kind == DiscoveryErrorKind::kResourceLimit)
-          handle->failPostAdmissionAllocation();
+          handle->failResourceLimit();
       } catch (const std::bad_alloc &) {
-        handle->failPostAdmissionAllocation();
+        handle->failResourceLimit();
       }
     }
+
     return {};
   })};
   if (!result)
     return std::unexpected{result.error()};
+
   return std::move(**output);
 } catch (const std::bad_alloc &) {
   return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
@@ -437,8 +494,9 @@ void DiscoveryAvahiRegistrationSessions::startBrowser(BrowserEntry &entry) {
   const auto epoch{entry.m_handle.snapshot().m_delivery.m_epoch};
   m_starting = true;
   struct Guard {
-    bool &flag;
-    ~Guard() { flag = false; }
+    ~Guard() { m_flag = false; }
+
+    bool &m_flag;
   } guard{m_starting};
   try {
     entry.m_native = std::make_unique<DiscoveryAvahiServiceBrowser>(
@@ -449,6 +507,7 @@ void DiscoveryAvahiRegistrationSessions::startBrowser(BrowserEntry &entry) {
               snapshot.m_delivery.m_state != DiscoveryDeliveryState::kRunning) {
             return DiscoveryResult{};
           }
+
           return onBrowse(entry, std::move(event));
         },
         [&entry](DiscoveryError error) { entry.m_error = std::move(error); });
@@ -488,15 +547,18 @@ DiscoveryResult DiscoveryAvahiRegistrationSessions::onBrowse(
       } else {
         source.m_readd = false;
       }
+
       return {};
     }
   }
+
   if (!event.m_added)
     return {};
   if (entry.m_sources.size() / 2 >= m_options.m_max_instances) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
                                           "browse contribution limit reached"}};
   }
+
   entry.m_sources.push_back({std::move(event.m_key),
                              event.m_contribution,
                              0,
@@ -510,9 +572,12 @@ DiscoveryResult DiscoveryAvahiRegistrationSessions::onBrowse(
       source.m_transport, source.m_provenance)};
   if (!generation) {
     entry.m_sources.pop_back();
+
     return std::unexpected{generation.error()};
   }
+
   source.m_generation = *generation;
+
   return {};
 } catch (const std::bad_alloc &) {
   return std::unexpected{
@@ -541,9 +606,12 @@ DiscoveryAvahiRegistrationSessions::cleanupBrowser(BrowserEntry &entry) {
         first = std::move(result.error());
       }
     }
+
     source.m_native.reset();
   }
+
   entry.m_sources.clear();
+
   return first ? DiscoveryResult{std::unexpected{std::move(*first)}}
                : DiscoveryResult{};
 }
@@ -554,8 +622,10 @@ DiscoveryAvahiRegistrationSessions::cancelBrowser(std::uint64_t id) {
   if (found != m_browsers.end()) {
     auto result{cleanupBrowser(*found->second)};
     m_browsers.erase(found);
+
     return result;
   }
+
   return {};
 }
 
@@ -566,11 +636,14 @@ DiscoveryAvahiRegistrationSessions::resetBrowser(std::uint64_t id) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                           "Avahi browser unavailable"}};
   }
+
   auto &entry{*found->second};
   if (auto cleaned{cleanupBrowser(entry)}; !cleaned) {
     static_cast<void>(entry.m_handle.backendFailed(cleaned.error()));
+
     return cleaned;
   }
+
   entry.m_error.reset();
   if (m_native_client) {
     const auto snapshot{entry.m_handle.snapshot()};
@@ -580,6 +653,7 @@ DiscoveryAvahiRegistrationSessions::resetBrowser(std::uint64_t id) {
       if (!available)
         return available;
     }
+
     startBrowser(entry);
     if (m_loss_pending)
       loseClient();
@@ -588,10 +662,13 @@ DiscoveryAvahiRegistrationSessions::resetBrowser(std::uint64_t id) {
       if (auto cleaned{cleanupBrowser(entry)}; !cleaned) {
         error.m_message += "; cleanup failed: " + cleaned.error().m_message;
       }
+
       static_cast<void>(entry.m_handle.backendFailed(error));
+
       return std::unexpected{std::move(error)};
     }
   }
+
   return {};
 }
 
@@ -599,14 +676,17 @@ std::expected<DiscoveryAvahiPoller::Deadline, DiscoveryError>
 DiscoveryAvahiRegistrationSessions::driveBrowsers() try {
   if (m_loss_pending) {
     loseClient();
+
     return DiscoveryAvahiPoller::Deadline{
         std::chrono::steady_clock::time_point::min()};
   }
+
   DiscoveryAvahiPoller::Deadline next;
   if (m_force_poll_iteration) {
     m_force_poll_iteration = false;
     next = std::chrono::steady_clock::time_point::min();
   }
+
   for (auto it{m_browsers.begin()}; it != m_browsers.end();) {
     auto &entry{*it->second};
     auto snapshot{entry.m_handle.snapshot()};
@@ -615,59 +695,72 @@ DiscoveryAvahiRegistrationSessions::driveBrowsers() try {
       if (auto cleaned{cleanupBrowser(entry)}; !cleaned) {
         return std::unexpected{cleaned.error()};
       }
+
       it = m_browsers.erase(it);
       continue;
     }
+
     if (snapshot.m_delivery.m_state == DiscoveryDeliveryState::kOverflow) {
       if (auto cleaned{cleanupBrowser(entry)}; !cleaned) {
         return std::unexpected{cleaned.error()};
       }
+
       ++it;
       continue;
     }
+
     if (entry.m_native) {
       auto status{entry.m_native->status()};
       if (!status && !entry.m_error)
         entry.m_error = status.error();
     }
+
     if (entry.m_error) {
       auto error{std::move(*entry.m_error)};
       entry.m_error.reset();
       if (auto cleaned{cleanupBrowser(entry)}; !cleaned) {
         error.m_message += "; cleanup failed: " + cleaned.error().m_message;
       }
+
       static_cast<void>(entry.m_handle.backendFailed(std::move(error)));
       ++it;
       continue;
     }
+
     if (!m_native_client || !snapshot.m_backend_available || !entry.m_native) {
       ++it;
       continue;
     }
+
     const auto epoch{snapshot.m_delivery.m_epoch};
     auto timers{entry.m_handle.processTimers(epoch)};
     if (!timers) {
       if (auto cleaned{cleanupBrowser(entry)}; !cleaned) {
         return std::unexpected{cleaned.error()};
       }
+
       static_cast<void>(entry.m_handle.backendFailed(timers.error()));
       ++it;
       continue;
     }
+
     auto due{entry.m_handle.takeDueRetries(epoch)};
     if (!due) {
       if (auto cleaned{cleanupBrowser(entry)}; !cleaned) {
         return std::unexpected{cleaned.error()};
       }
+
       static_cast<void>(entry.m_handle.backendFailed(due.error()));
       ++it;
       continue;
     }
+
     m_starting = true;
     {
       struct Guard {
-        bool &flag;
-        ~Guard() { flag = false; }
+        ~Guard() { m_flag = false; }
+
+        bool &m_flag;
       } guard{m_starting};
       for (auto source{entry.m_sources.begin()};
            source != entry.m_sources.end();) {
@@ -678,16 +771,19 @@ DiscoveryAvahiRegistrationSessions::driveBrowsers() try {
               entry.m_error = cleaned.error();
             }
           }
+
           source->m_native.reset();
           auto removed{entry.m_handle.removeObservation(
               epoch, source->m_key, source->m_transport, source->m_generation)};
           if (!removed && !entry.m_error) {
             entry.m_error = removed.error();
           }
+
           if (!source->m_readd || entry.m_error) {
             source = entry.m_sources.erase(source);
             continue;
           }
+
           auto added{entry.m_handle.observe(
               epoch, source->m_key, source->m_transport, source->m_provenance)};
           if (!added) {
@@ -695,10 +791,12 @@ DiscoveryAvahiRegistrationSessions::driveBrowsers() try {
             source = entry.m_sources.erase(source);
             continue;
           }
+
           source->m_generation = *added;
           source->m_present = true;
           source->m_readd = false;
         }
+
         if (!source->m_native) {
           try {
             source->m_native = std::make_unique<DiscoveryAvahiContribution>(
@@ -710,6 +808,7 @@ DiscoveryAvahiRegistrationSessions::driveBrowsers() try {
                                            "contribution allocation failed"};
             break;
           }
+
           auto started{source->m_native->start()};
           if (!started &&
               (started.error().m_kind != DiscoveryErrorKind::kBackend ||
@@ -717,10 +816,12 @@ DiscoveryAvahiRegistrationSessions::driveBrowsers() try {
             entry.m_error = started.error();
           }
         }
+
         if (m_loss_pending || entry.m_error)
           break;
         ++source;
       }
+
       if (!m_loss_pending && !entry.m_error) {
         for (const auto &retry : *due) {
           for (auto &source : entry.m_sources) {
@@ -731,13 +832,16 @@ DiscoveryAvahiRegistrationSessions::driveBrowsers() try {
                    source.m_native->cleaned())) {
                 entry.m_error = result.error();
               }
+
               break;
             }
           }
+
           if (m_loss_pending || entry.m_error)
             break;
         }
       }
+
       for (int pass = 0; pass < 2 && !m_loss_pending && !entry.m_error;
            ++pass) {
         for (auto &source : entry.m_sources) {
@@ -750,38 +854,47 @@ DiscoveryAvahiRegistrationSessions::driveBrowsers() try {
             entry.m_error = result.error();
             break;
           }
+
           if (m_loss_pending)
             break;
         }
       }
     }
+
     if (m_loss_pending) {
       loseClient();
       m_force_poll_iteration = false;
+
       return DiscoveryAvahiPoller::Deadline{
           std::chrono::steady_clock::time_point::min()};
     }
+
     if (entry.m_error) {
       auto error{std::move(*entry.m_error)};
       entry.m_error.reset();
       if (auto cleaned{cleanupBrowser(entry)}; !cleaned) {
         error.m_message += "; cleanup failed: " + cleaned.error().m_message;
       }
+
       static_cast<void>(entry.m_handle.backendFailed(std::move(error)));
       ++it;
       continue;
     }
+
     auto deadline{entry.m_handle.nextDeadline(epoch)};
     if (!deadline) {
       if (auto cleaned{cleanupBrowser(entry)}; !cleaned) {
         return std::unexpected{cleaned.error()};
       }
+
       static_cast<void>(entry.m_handle.backendFailed(deadline.error()));
     } else if (*deadline && (!next || **deadline < *next)) {
       next = *deadline;
     }
+
     ++it;
   }
+
   return next;
 } catch (const std::bad_alloc &) {
   return std::unexpected{
@@ -794,8 +907,9 @@ DiscoveryAvahiRegistrationSessions::driveBrowsers() try {
 
 void DiscoveryAvahiRegistrationSessions::start(Entry &entry) try {
   struct StartGuard {
-    bool &m_starting;
     ~StartGuard() { m_starting = false; }
+
+    bool &m_starting;
   };
   m_starting = true;
   StartGuard guard{m_starting};
@@ -830,10 +944,12 @@ void DiscoveryAvahiRegistrationSessions::clientEvent(
   if (event.m_state == AVAHI_CLIENT_FAILURE) {
     m_force_poll_iteration = true;
   }
+
   if (event.m_state == AVAHI_CLIENT_S_RUNNING && event.m_client) {
     if (m_native_client == event.m_client || m_starting || m_loss_pending) {
       return;
     }
+
     m_native_client = event.m_client;
     for (auto &[id, entry] : m_entries) {
       static_cast<void>(id);
@@ -847,11 +963,14 @@ void DiscoveryAvahiRegistrationSessions::clientEvent(
           throw std::runtime_error{available.error().m_message};
         }
       }
+
       if (m_loss_pending) {
         loseClient();
+
         return;
       }
     }
+
     for (auto &[id, entry] : m_browsers) {
       static_cast<void>(id);
       auto state{entry->m_handle.snapshot()};
@@ -859,6 +978,7 @@ void DiscoveryAvahiRegistrationSessions::clientEvent(
           state.m_delivery.m_state != DiscoveryDeliveryState::kRunning) {
         continue;
       }
+
       auto available{
           entry->m_handle.backendAvailable(state.m_delivery.m_epoch)};
       if (available) {
@@ -866,18 +986,24 @@ void DiscoveryAvahiRegistrationSessions::clientEvent(
       } else {
         entry->m_error = available.error();
       }
+
       if (m_loss_pending) {
         loseClient();
+
         return;
       }
     }
+
     return;
   }
+
   m_native_client = nullptr;
   if (m_starting) {
     m_loss_pending = true;
+
     return;
   }
+
   loseClient();
 }
 
@@ -886,16 +1012,26 @@ void DiscoveryAvahiRegistrationSessions::loseClient() {
   m_loss_pending = false;
   std::optional<DiscoveryError> cleanupError;
   releaseClientNative();
+#ifdef FIU_ENABLE
+  if (fiu_fail("dmn/discovery/avahi/loss-transition-error") ||
+      fiu_fail("dmn/discovery/avahi/loss-transition-partial-error") ||
+      fiu_fail("dmn/discovery/avahi/loss-transition-report-error")) {
+    throw std::runtime_error{"injected loss transition failure"};
+  }
+#endif
   for (auto &[id, entry] : m_browsers) {
     static_cast<void>(id);
     if (auto result{cleanupBrowser(*entry)}; !result && !cleanupError) {
       cleanupError = std::move(result.error());
     }
+
     entry->m_error.reset();
   }
+
   if (cleanupError) {
     throw std::runtime_error{cleanupError->m_message};
   }
+
   for (auto &[id, entry] : m_entries) {
     static_cast<void>(id);
     auto lost{entry->m_handle.backendLost()};
@@ -907,6 +1043,7 @@ void DiscoveryAvahiRegistrationSessions::loseClient() {
       }
     }
   }
+
   for (auto &[id, entry] : m_browsers) {
     static_cast<void>(id);
     const auto state{entry->m_handle.snapshot()};
@@ -934,15 +1071,18 @@ void DiscoveryAvahiRegistrationSessions::reap() {
                                                   nativeStatus.error()));
           state = entry.m_handle.status().m_state;
         }
+
         entry.m_native.reset();
       }
     }
+
     if (state == DiscoveryRegistrationState::kCollision ||
         state == DiscoveryRegistrationState::kFailed ||
         state == DiscoveryRegistrationState::kOverflow ||
         state == DiscoveryRegistrationState::kStopped) {
       entry.m_native.reset();
     }
+
     if (state == DiscoveryRegistrationState::kStopped) {
       it = m_entries.erase(it);
     } else {
@@ -960,9 +1100,22 @@ void DiscoveryAvahiRegistrationSessions::releaseClientNative() noexcept {
     static_cast<void>(id);
     entry->m_native.reset();
   }
+
   for (auto &[id, entry] : m_browsers) {
     static_cast<void>(id);
     releaseBrowserNative(*entry);
+  }
+}
+
+void DiscoveryAvahiRegistrationSessions::failAllResourceLimit() {
+  for (auto &[id, entry] : m_entries) {
+    static_cast<void>(id);
+    entry->m_handle.failResourceLimit();
+  }
+
+  for (auto &[id, entry] : m_browsers) {
+    static_cast<void>(id);
+    entry->m_handle.failResourceLimit(true);
   }
 }
 
@@ -970,20 +1123,60 @@ void DiscoveryAvahiRegistrationSessions::failBackend(
     const DiscoveryError &error) {
   m_native_client = nullptr;
   releaseClientNative();
-  auto reported{error};
-  for (auto &[id, entry] : m_browsers) {
-    static_cast<void>(id);
-    if (auto result{cleanupBrowser(*entry)}; !result) {
-      reported.m_message += "; cleanup failed: " + result.error().m_message;
+  try {
+#ifdef FIU_ENABLE
+    if (fiu_fail("dmn/discovery/avahi/backend-report-allocation")) {
+      throw std::bad_alloc{};
     }
-  }
-  for (auto &[id, entry] : m_entries) {
-    static_cast<void>(id);
-    static_cast<void>(entry->m_handle.backendFailed(reported));
-  }
-  for (auto &[id, entry] : m_browsers) {
-    static_cast<void>(id);
-    static_cast<void>(entry->m_handle.backendFailed(reported));
+#endif
+    auto reported{error};
+    for (auto &[id, entry] : m_browsers) {
+      static_cast<void>(id);
+      if (auto result{cleanupBrowser(*entry)}; !result) {
+        reported.m_message += "; cleanup failed: " + result.error().m_message;
+      }
+    }
+
+    for (auto &[id, entry] : m_entries) {
+      static_cast<void>(id);
+      auto state{entry->m_handle.status().m_state};
+      if (state == DiscoveryRegistrationState::kStopped ||
+          state == DiscoveryRegistrationState::kOverflow) {
+        continue;
+      }
+
+      auto result{entry->m_handle.backendFailed(reported)};
+      if (!result &&
+          result.error().m_kind == DiscoveryErrorKind::kResourceLimit) {
+        failAllResourceLimit();
+
+        return;
+      }
+#ifdef FIU_ENABLE
+      if (fiu_fail("dmn/discovery/avahi/backend-report-partial-allocation")) {
+        throw std::bad_alloc{};
+      }
+#endif
+    }
+
+    for (auto &[id, entry] : m_browsers) {
+      static_cast<void>(id);
+      const auto state{entry->m_handle.snapshot()};
+      if (state.m_stop_pending ||
+          state.m_delivery.m_state != DiscoveryDeliveryState::kRunning) {
+        continue;
+      }
+
+      auto result{entry->m_handle.backendFailed(reported)};
+      if (!result &&
+          result.error().m_kind == DiscoveryErrorKind::kResourceLimit) {
+        failAllResourceLimit();
+
+        return;
+      }
+    }
+  } catch (const std::bad_alloc &) {
+    failAllResourceLimit();
   }
 }
 
@@ -1002,9 +1195,11 @@ DiscoveryResult DiscoveryAvahiRegistrationSessions::cleanup() {
       cleanupError = std::move(result.error());
     }
   }
+
   if (cleanupError) {
     return std::unexpected{std::move(*cleanupError)};
   }
+
   try {
     for (auto &[id, entry] : m_entries) {
       static_cast<void>(id);
@@ -1017,6 +1212,7 @@ DiscoveryResult DiscoveryAvahiRegistrationSessions::cleanup() {
              "Avahi registration worker stopped"}));
       }
     }
+
     for (auto &[id, entry] : m_browsers) {
       static_cast<void>(id);
       const auto state{entry->m_handle.snapshot()};
@@ -1026,12 +1222,14 @@ DiscoveryResult DiscoveryAvahiRegistrationSessions::cleanup() {
             {DiscoveryErrorKind::kBackend, "Avahi discovery worker stopped"}));
       }
     }
+
     for (auto &[id, entry] : m_entries) {
       static_cast<void>(id);
       if (auto result{entry->m_handle.nativeCleanupComplete()}; !result) {
         return result;
       }
     }
+
     for (auto &[id, entry] : m_browsers) {
       static_cast<void>(id);
       if (auto result{entry->m_handle.nativeCleanupComplete()}; !result) {
@@ -1042,6 +1240,7 @@ DiscoveryResult DiscoveryAvahiRegistrationSessions::cleanup() {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                           "Avahi registration cleanup failed"}};
   }
+
   return {};
 }
 

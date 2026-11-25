@@ -65,8 +65,9 @@ public:
 
 private:
   struct Deleter {
-    std::shared_ptr<DiscoveryAvahiResolverApi> m_api;
     void operator()(AvahiServiceResolver *) const noexcept;
+
+    std::shared_ptr<DiscoveryAvahiResolverApi> m_api;
   };
   static void onResolved(AvahiServiceResolver *, AvahiIfIndex, AvahiProtocol,
                          AvahiResolverEvent, const char *, const char *,

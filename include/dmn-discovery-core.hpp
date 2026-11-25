@@ -4,10 +4,8 @@
  * @file dmn-discovery-core.hpp
  * @brief Private, backend-neutral DNS-SD validation and lifecycle seam.
  *
- * This test-only foundation owns no native discovery implementation. Its
- * backend interface is internal and must not be installed as a public API.
- * The application-visible discovery target is deliberately unavailable until
- * a complete native backend and its lifecycle have been qualified.
+ * This backend-neutral foundation owns no native discovery implementation.
+ * Its interfaces are internal and must not be installed as a public API.
  */
 
 #ifndef DMN_DISCOVERY_CORE_HPP_
@@ -98,12 +96,12 @@ enum class DiscoveryResolution { kUnresolved, kResolving };
  * @brief An owned SRV value with a host-order port.
  */
 struct DiscoverySrv {
+  bool operator==(const DiscoverySrv &) const = default;
+
   std::uint16_t m_priority;
   std::uint16_t m_weight;
   std::uint16_t m_port;
   std::string m_target;
-
-  bool operator==(const DiscoverySrv &) const = default;
 };
 
 /** @brief Address family of an observed endpoint. */
@@ -111,11 +109,11 @@ enum class DiscoveryAddressFamily { kIpv4, kIpv6 };
 
 /** @brief Owned IP address and optional scope interface. */
 struct DiscoveryAddress {
+  auto operator<=>(const DiscoveryAddress &) const = default;
+
   DiscoveryAddressFamily m_family;
   std::vector<std::uint8_t> m_bytes;
   std::optional<std::uint32_t> m_interface;
-
-  auto operator<=>(const DiscoveryAddress &) const = default;
 };
 
 /** @brief Kind of independently monitored DNS-SD record. */
@@ -146,10 +144,10 @@ enum class DiscoveryRefreshState { kPending, kSucceeded, kFailed };
 
 /** @brief Browser-local refresh identifier and its current status. */
 struct DiscoveryRefreshStatus {
+  bool operator==(const DiscoveryRefreshStatus &) const = default;
+
   std::uint64_t m_id;
   DiscoveryRefreshState m_state;
-
-  bool operator==(const DiscoveryRefreshStatus &) const = default;
 };
 
 /** @brief Independent native operation subject to retry. */
@@ -157,38 +155,39 @@ enum class DiscoveryAttempt { kSrv, kTxt, kIpv4, kIpv6 };
 
 /** @brief Live contribution and operation identity. */
 struct DiscoveryAttemptId {
+  auto operator<=>(const DiscoveryAttemptId &) const = default;
+
   std::uint64_t m_source;
   DiscoveryAttempt m_attempt;
-
-  auto operator<=>(const DiscoveryAttemptId &) const = default;
 };
 
 /** @brief Last failure of a retryable or permanent operation. */
 struct DiscoveryAttemptError {
+  bool operator==(const DiscoveryAttemptError &) const = default;
+
   bool m_recoverable;
   std::string m_message;
   std::optional<std::string> m_backend_domain{};
   std::optional<std::int64_t> m_backend_code{};
   std::optional<DiscoveryNativeErrorCategory> m_native_category{};
-
-  bool operator==(const DiscoveryAttemptError &) const = default;
 };
 
 /** @brief An operation's currently visible failure. */
 struct DiscoveryFailure {
+  bool operator==(const DiscoveryFailure &) const = default;
+
   DiscoveryAttemptId m_operation;
   DiscoveryAttemptError m_error;
-
-  bool operator==(const DiscoveryFailure &) const = default;
 };
 
 /** @brief Known provenance of a browse observation; unset means unknown. */
 struct DiscoveryProvenance {
+  bool operator==(const DiscoveryProvenance &) const = default;
+
   std::optional<bool> m_cached;
   std::optional<bool> m_local;
   std::optional<bool> m_wide_area;
   std::optional<bool> m_multicast;
-  bool operator==(const DiscoveryProvenance &) const = default;
 };
 
 /**
@@ -498,12 +497,12 @@ public:
 
 private:
   struct CanonicalKey {
+    auto operator<=>(const CanonicalKey &) const = default;
+
     std::string m_instance;
     std::string m_type;
     std::string m_domain;
     std::optional<std::uint32_t> m_interface;
-
-    auto operator<=>(const CanonicalKey &) const = default;
   };
 
   struct Entry {

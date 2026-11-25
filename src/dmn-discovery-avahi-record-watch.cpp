@@ -30,12 +30,15 @@ public:
     return avahi_record_browser_new(client, interfaceIndex, protocol, name,
                                     clazz, type, flags, callback, context);
   }
+
   void free(AvahiRecordBrowser *browser) noexcept override {
     avahi_record_browser_free(browser);
   }
+
   int clientError(AvahiClient *client) override {
     return avahi_client_errno(client);
   }
+
   const char *errorString(int error) override { return avahi_strerror(error); }
 };
 
@@ -74,11 +77,13 @@ DiscoveryResult DiscoveryAvahiRecordWatch::start() {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "invalid Avahi record watch"}};
   }
+
   auto args{makeAvahiResolverArguments(m_key.m_interface, m_contribution,
                                        DiscoveryAddressFamily::kIpv4)};
   if (!args) {
     return std::unexpected{args.error()};
   }
+
   std::array<char, AVAHI_DOMAIN_NAME_MAX> name{};
   if (avahi_service_name_join(name.data(), name.size(),
                               m_key.m_instance.c_str(), m_key.m_type.c_str(),
@@ -87,6 +92,7 @@ DiscoveryResult DiscoveryAvahiRecordWatch::start() {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "invalid Avahi service name"}};
   }
+
   m_name = name.data();
   m_interface = args->m_interface;
   m_protocol = args->m_query_protocol;
@@ -104,18 +110,23 @@ DiscoveryResult DiscoveryAvahiRecordWatch::start() {
                             static_cast<AvahiLookupFlags>(0), onRecord, this);
   } catch (...) {
     m_starting = false;
+
     throw;
   }
+
   m_starting = false;
   m_browser.reset(browser);
   auto result{status()};
   if (!result) {
     m_browser.reset();
+
     return result;
   }
+
   if (!m_browser) {
     return std::unexpected{nativeError("Avahi record watch creation failed")};
   }
+
   return {};
 }
 
@@ -124,13 +135,16 @@ DiscoveryResult DiscoveryAvahiRecordWatch::status() const {
     return std::unexpected{
         DiscoveryError{DiscoveryErrorKind::kResourceLimit, {}}};
   }
+
   if (m_callback_failed) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                           "Avahi record callback failed"}};
   }
+
   if (m_error) {
     return std::unexpected{*m_error};
   }
+
   return {};
 }
 
@@ -139,13 +153,16 @@ DiscoveryResult DiscoveryAvahiRecordWatch::stop() {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                           "reentrant Avahi record watch stop"}};
   }
+
   m_browser.reset();
+
   return {};
 }
 
 DiscoveryError
 DiscoveryAvahiRecordWatch::nativeError(const char *prefix) const {
   const auto code{m_api->clientError(m_client)};
+
   return discoveryAvahiError(prefix, code, m_api->errorString(code));
 }
 
@@ -168,6 +185,7 @@ void DiscoveryAvahiRecordWatch::onRecord(
                    (!self.m_browser || self.m_browser.get() != browser))) {
     return;
   }
+
   ++self.m_callback_depth;
   try {
     if (!self.m_error && !self.m_callback_failed) {
@@ -215,6 +233,7 @@ void DiscoveryAvahiRecordWatch::onRecord(
               mapped = std::unexpected{txt.error()};
             }
           }
+
           if (!mapped) {
             self.report(mapped.error());
           } else if (self.m_handler) {
@@ -247,6 +266,7 @@ void DiscoveryAvahiRecordWatch::onRecord(
       self.m_callback_failed = true;
     }
   }
+
   --self.m_callback_depth;
 }
 

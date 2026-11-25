@@ -355,12 +355,15 @@ DiscoveryProvenance DiscoveryBrowser::provenance(const Entry &entry) {
       if (value && *value) {
         return true;
       }
+
       if (!value) {
         allFalse = false;
       }
     }
+
     return allFalse ? std::optional<bool>{false} : std::nullopt;
   };
+
   return {merge(&DiscoveryProvenance::m_cached),
           merge(&DiscoveryProvenance::m_local),
           merge(&DiscoveryProvenance::m_wide_area),
@@ -376,10 +379,12 @@ DiscoveryBrowser::findLive(const DiscoveryServiceKey &key,
       (key.m_interface && *key.m_interface == 0)) {
     return nullptr;
   }
+
   const auto entry{m_entries.find(canonicalize(key))};
   if (entry == m_entries.end()) {
     return nullptr;
   }
+
   const auto source{entry->second.m_sources.find(contribution)};
   if (source == entry->second.m_sources.end() ||
       source->second.m_generation != generation) {
@@ -398,10 +403,12 @@ DiscoveryBrowser::findLive(const DiscoveryServiceKey &key,
       (key.m_interface && *key.m_interface == 0)) {
     return nullptr;
   }
+
   const auto entry{m_entries.find(canonicalize(key))};
   if (entry == m_entries.end()) {
     return nullptr;
   }
+
   const auto source{entry->second.m_sources.find(contribution)};
   if (source == entry->second.m_sources.end() ||
       source->second.m_generation != generation) {
@@ -447,6 +454,7 @@ DiscoveryBrowser::addObservation(const DiscoveryServiceKey &key,
         entry->second.m_candidate.m_provenance = std::move(current);
         emit(DiscoveryEventKind::kChanged, entry->second.m_candidate);
       }
+
       return generation;
     }
   } else if (m_entries.size() >= m_max_instances) {
@@ -489,6 +497,7 @@ DiscoveryBrowser::addObservation(const DiscoveryServiceKey &key,
       return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                             "could not add record source"}};
     }
+
     entry->second.m_sources.emplace(contribution,
                                     Entry::Source{generation, observation});
     auto current{entry->second.m_records->snapshot()};
@@ -534,6 +543,7 @@ bool DiscoveryBrowser::removeObservation(const DiscoveryServiceKey &key,
   if (!entry->second.m_records->removeSource(generation)) {
     return false;
   }
+
   m_retries->removeSource(generation);
   const auto previousFailures{entry->second.m_candidate.m_failures.size()};
   std::erase_if(entry->second.m_candidate.m_failures,
@@ -620,6 +630,7 @@ DiscoveryResult DiscoveryBrowser::updateRecords(
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "unknown record source"}};
   }
+
   const auto source{entry->second.m_sources.find(contribution)};
   if (source == entry->second.m_sources.end() ||
       source->second.m_generation != generation) {
@@ -631,13 +642,15 @@ DiscoveryResult DiscoveryBrowser::updateRecords(
   DiscoveryResult result{};
   {
     struct UpdateGuard {
-      bool &m_active;
       ~UpdateGuard() { m_active = false; }
+
+      bool &m_active;
     };
     m_updating_records = true;
     const UpdateGuard guard{m_updating_records};
     result = update(updated, generation);
   }
+
   auto current{updated.snapshot()};
   const bool changed{
       !sameRecordView(entry->second.m_candidate.m_records, current)};
@@ -658,6 +671,7 @@ DiscoveryResult DiscoveryBrowser::updateRecords(
       refreshChanged = true;
     }
   }
+
   if (changed || refreshChanged) {
     auto candidate{entry->second.m_candidate};
     emit(DiscoveryEventKind::kChanged, std::move(candidate));
@@ -686,6 +700,7 @@ DiscoveryBrowser::refresh(const DiscoveryServiceKey &key) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "unknown discovery service"}};
   }
+
   if (m_next_refresh == 0) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
                                           "refresh ID exhausted"}};
@@ -711,6 +726,7 @@ DiscoveryBrowser::refresh(const DiscoveryServiceKey &key) {
   if (!result) {
     auto candidate{entry->second.m_candidate};
     emit(DiscoveryEventKind::kChanged, std::move(candidate));
+
     return std::unexpected{result.error()};
   }
 
@@ -720,6 +736,7 @@ DiscoveryBrowser::refresh(const DiscoveryServiceKey &key) {
     m_retries->cancelTimer({source.m_generation, DiscoveryAttempt::kIpv4});
     m_retries->cancelTimer({source.m_generation, DiscoveryAttempt::kIpv6});
   }
+
   entry->second.m_candidate.m_refresh =
       DiscoveryRefreshStatus{id, DiscoveryRefreshState::kPending};
   entry->second.m_refresh_deadline = deadline;
@@ -796,6 +813,7 @@ DiscoveryResult DiscoveryBrowser::failAttempt(
     return std::unexpected{
         DiscoveryError{DiscoveryErrorKind::kBackend, "invalid retry context"}};
   }
+
   auto entry{findLive(key, contribution, generation)};
   const auto token{attemptGeneration(key, contribution, generation, attempt)};
   const bool addressAttempt{attempt == DiscoveryAttempt::kIpv4 ||
@@ -827,11 +845,13 @@ DiscoveryResult DiscoveryBrowser::failAttempt(
         generation, DiscoveryAddressFamily::kIpv6, operationGeneration);
     break;
   }
+
   if (!invalidated) {
     entry->m_candidate.m_records = updated.snapshot();
     *entry->m_records = std::move(updated);
     auto candidate{entry->m_candidate};
     emit(DiscoveryEventKind::kChanged, std::move(candidate));
+
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
                                           "operation generation exhausted"}};
   }
@@ -849,6 +869,7 @@ DiscoveryResult DiscoveryBrowser::failAttempt(
       error->m_backend_code = native->m_backend_code;
       error->m_native_category = native->m_native_category;
     }
+
     auto &failures{entry->m_candidate.m_failures};
     const auto existing{std::find_if(
         failures.begin(), failures.end(),
@@ -863,6 +884,7 @@ DiscoveryResult DiscoveryBrowser::failAttempt(
 
   auto candidate{entry->m_candidate};
   emit(DiscoveryEventKind::kChanged, std::move(candidate));
+
   return result;
 }
 
@@ -874,6 +896,7 @@ DiscoveryResult DiscoveryBrowser::succeedAttempt(
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                           "reentrant browser update"}};
   }
+
   auto entry{findLive(key, contribution, generation)};
   const auto token{attemptGeneration(key, contribution, generation, attempt)};
   const bool addressAttempt{attempt == DiscoveryAttempt::kIpv4 ||
@@ -917,6 +940,7 @@ DiscoveryBrowser::nextDeadline() const {
       earliest = entry.m_refresh_deadline;
     }
   }
+
   return earliest;
 }
 

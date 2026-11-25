@@ -32,9 +32,11 @@ public:
   explicit DiscoveryDeliveryFailure(DiscoveryError error)
       : m_error{std::move(error)} {}
   [[nodiscard]] const DiscoveryError &error() const noexcept { return m_error; }
+
   [[nodiscard]] DiscoveryError takeError() noexcept {
     return std::move(m_error);
   }
+
   [[nodiscard]] const char *what() const noexcept override {
     return m_error.m_message.c_str();
   }
@@ -129,8 +131,8 @@ public:
   /** @brief Disarm the hook after native cleanup on the state worker. */
   [[nodiscard]] DiscoveryResult nativeCleanupComplete() const;
 
-  /** @brief Mark post-admission allocation failure without allocating. */
-  void failPostAdmissionAllocation() const;
+  /** @brief Mark a resource failure without allocating. */
+  void failResourceLimit() const;
 
 private:
   friend class DiscoverySessionClient;
@@ -159,8 +161,8 @@ public:
   /** @brief Disarm the hooks after native cleanup on the state worker. */
   [[nodiscard]] DiscoveryResult nativeCleanupComplete() const;
 
-  /** @brief Mark post-admission allocation failure without allocating. */
-  void failPostAdmissionAllocation() const;
+  /** @brief Mark a resource failure without allocating. */
+  void failResourceLimit(bool backendUnavailable = false) const;
 
   /**
    * @brief Apply one fake native browse contribution on the state worker.

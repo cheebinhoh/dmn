@@ -77,7 +77,7 @@ add_executable(dmn-avahi-poll-test
   ../../src/dmn-discovery-records.cpp
   ../../src/dmn-discovery-retry.cpp
   ../../src/dmn-discovery-command.cpp)
-target_include_directories(dmn-avahi-poll-test PRIVATE ../../src)
+target_include_directories(dmn-avahi-poll-test PRIVATE ../../src ../../include)
 target_link_libraries(dmn-avahi-poll-test PRIVATE "${DMN_AVAHI_TARGET}" Threads::Threads)
 target_compile_options(dmn-avahi-poll-test PRIVATE -Wall -Wextra -Wpedantic)
 add_test(NAME dmn-avahi-poll-test COMMAND dmn-avahi-poll-test)
@@ -89,7 +89,7 @@ add_executable(dmn-avahi-mapping-test
   ../../src/dmn-discovery-core.cpp
   ../../src/dmn-discovery-records.cpp
   ../../src/dmn-discovery-retry.cpp)
-target_include_directories(dmn-avahi-mapping-test PRIVATE ../../src)
+target_include_directories(dmn-avahi-mapping-test PRIVATE ../../src ../../include)
 target_link_libraries(dmn-avahi-mapping-test PRIVATE "${DMN_AVAHI_TARGET}")
 target_compile_options(dmn-avahi-mapping-test PRIVATE -Wall -Wextra -Wpedantic)
 add_test(NAME dmn-avahi-mapping-test COMMAND dmn-avahi-mapping-test)
@@ -102,7 +102,7 @@ add_executable(dmn-avahi-browser-test
   ../../src/dmn-discovery-core.cpp
   ../../src/dmn-discovery-records.cpp
   ../../src/dmn-discovery-retry.cpp)
-target_include_directories(dmn-avahi-browser-test PRIVATE ../../src)
+target_include_directories(dmn-avahi-browser-test PRIVATE ../../src ../../include)
 target_link_libraries(dmn-avahi-browser-test PRIVATE "${DMN_AVAHI_TARGET}")
 target_compile_options(dmn-avahi-browser-test PRIVATE -Wall -Wextra -Wpedantic)
 add_test(NAME dmn-avahi-browser-test COMMAND dmn-avahi-browser-test)
@@ -122,7 +122,7 @@ add_executable(dmn-avahi-session-integration-test
   ../../src/dmn-discovery-retry.cpp
   ../../src/dmn-discovery-session.cpp
   ../../src/dmn-discovery-slots.cpp)
-target_include_directories(dmn-avahi-session-integration-test PRIVATE ../../src)
+target_include_directories(dmn-avahi-session-integration-test PRIVATE ../../src ../../include)
 target_link_libraries(dmn-avahi-session-integration-test PRIVATE "${DMN_AVAHI_TARGET}" Threads::Threads)
 target_compile_options(dmn-avahi-session-integration-test PRIVATE -Wall -Wextra -Wpedantic)
 add_test(NAME dmn-avahi-session-integration-test COMMAND dmn-avahi-session-integration-test)
@@ -135,7 +135,7 @@ add_executable(dmn-avahi-record-watch-test
   ../../src/dmn-discovery-core.cpp
   ../../src/dmn-discovery-records.cpp
   ../../src/dmn-discovery-retry.cpp)
-target_include_directories(dmn-avahi-record-watch-test PRIVATE ../../src)
+target_include_directories(dmn-avahi-record-watch-test PRIVATE ../../src ../../include)
 target_link_libraries(dmn-avahi-record-watch-test PRIVATE "${DMN_AVAHI_TARGET}")
 target_compile_options(dmn-avahi-record-watch-test PRIVATE -Wall -Wextra -Wpedantic)
 add_test(NAME dmn-avahi-record-watch-test COMMAND dmn-avahi-record-watch-test)
@@ -148,7 +148,7 @@ add_executable(dmn-avahi-resolver-test
   ../../src/dmn-discovery-core.cpp
   ../../src/dmn-discovery-records.cpp
   ../../src/dmn-discovery-retry.cpp)
-target_include_directories(dmn-avahi-resolver-test PRIVATE ../../src)
+target_include_directories(dmn-avahi-resolver-test PRIVATE ../../src ../../include)
 target_link_libraries(dmn-avahi-resolver-test PRIVATE "${DMN_AVAHI_TARGET}")
 target_compile_options(dmn-avahi-resolver-test PRIVATE -Wall -Wextra -Wpedantic)
 add_test(NAME dmn-avahi-resolver-test COMMAND dmn-avahi-resolver-test)
@@ -161,7 +161,7 @@ add_executable(dmn-avahi-registration-test
   ../../src/dmn-discovery-core.cpp
   ../../src/dmn-discovery-records.cpp
   ../../src/dmn-discovery-retry.cpp)
-target_include_directories(dmn-avahi-registration-test PRIVATE ../../src)
+target_include_directories(dmn-avahi-registration-test PRIVATE ../../src ../../include)
 target_link_libraries(dmn-avahi-registration-test PRIVATE "${DMN_AVAHI_TARGET}")
 target_compile_options(dmn-avahi-registration-test PRIVATE -Wall -Wextra -Wpedantic)
 add_test(NAME dmn-avahi-registration-test COMMAND dmn-avahi-registration-test)
@@ -186,7 +186,7 @@ add_executable(dmn-avahi-registration-session-test
   ../../src/dmn-discovery-retry.cpp
   ../../src/dmn-discovery-session.cpp
   ../../src/dmn-discovery-slots.cpp)
-target_include_directories(dmn-avahi-registration-session-test PRIVATE ../../src)
+target_include_directories(dmn-avahi-registration-session-test PRIVATE ../../src ../../include)
 target_link_libraries(dmn-avahi-registration-session-test PRIVATE "${DMN_AVAHI_TARGET}" Threads::Threads)
 target_compile_options(dmn-avahi-registration-session-test PRIVATE -Wall -Wextra -Wpedantic)
 add_test(NAME dmn-avahi-registration-session-test COMMAND dmn-avahi-registration-session-test)
@@ -213,7 +213,7 @@ set(_avahi_unified_sources
 add_executable(dmn-avahi-unified-session-test
   unified-session-test.cpp
   ${_avahi_unified_sources})
-target_include_directories(dmn-avahi-unified-session-test PRIVATE ../../src)
+target_include_directories(dmn-avahi-unified-session-test PRIVATE ../../src ../../include)
 target_link_libraries(dmn-avahi-unified-session-test PRIVATE "${DMN_AVAHI_TARGET}" Threads::Threads)
 if (ENABLE_FAULT_INJECTION AND DMN_LIBFIU_TARGET)
   target_compile_definitions(dmn-avahi-unified-session-test PRIVATE FIU_ENABLE=1)
@@ -241,7 +241,7 @@ add_executable(dmn-avahi-contribution-test
   ../../src/dmn-discovery-retry.cpp
   ../../src/dmn-discovery-session.cpp
   ../../src/dmn-discovery-slots.cpp)
-target_include_directories(dmn-avahi-contribution-test PRIVATE ../../src)
+target_include_directories(dmn-avahi-contribution-test PRIVATE ../../src ../../include)
 target_link_libraries(dmn-avahi-contribution-test PRIVATE "${DMN_AVAHI_TARGET}" Threads::Threads)
 if (ENABLE_FAULT_INJECTION AND DMN_LIBFIU_TARGET)
   target_compile_definitions(dmn-avahi-contribution-test PRIVATE FIU_ENABLE=1)
@@ -256,7 +256,7 @@ set_tests_properties(dmn-avahi-contribution-test PROPERTIES TIMEOUT 20 LABELS "d
 
 if (ENABLE_DMN_DISCOVERY AND TARGET Dmn::dmn)
   add_executable(dmn-avahi-public-allocation-test public-allocation-test.cpp)
-  target_include_directories(dmn-avahi-public-allocation-test PRIVATE ../../src)
+  target_include_directories(dmn-avahi-public-allocation-test PRIVATE ../../src ../../include)
   target_link_libraries(dmn-avahi-public-allocation-test PRIVATE Dmn::dmn)
   target_compile_options(dmn-avahi-public-allocation-test PRIVATE -Wall -Wextra -Wpedantic)
   add_test(NAME dmn-avahi-public-allocation-test COMMAND dmn-avahi-public-allocation-test)
@@ -283,7 +283,7 @@ if (DMN_AVAHI_REAL_DAEMON_TEST)
     ../../src/dmn-discovery-records.cpp
     ../../src/dmn-discovery-registration.cpp
     ../../src/dmn-discovery-retry.cpp)
-  target_include_directories(dmn-avahi-real-daemon-test PRIVATE ../../src)
+  target_include_directories(dmn-avahi-real-daemon-test PRIVATE ../../src ../../include)
   target_link_libraries(dmn-avahi-real-daemon-test PRIVATE "${DMN_AVAHI_TARGET}" Threads::Threads)
   target_compile_options(dmn-avahi-real-daemon-test PRIVATE -Wall -Wextra -Wpedantic)
   add_test(NAME dmn-avahi-real-daemon-test
@@ -295,7 +295,7 @@ if (DMN_AVAHI_REAL_DAEMON_TEST)
 
   add_executable(dmn-avahi-real-unified-test real-unified-test.cpp)
   target_sources(dmn-avahi-real-unified-test PRIVATE ${_avahi_unified_sources})
-  target_include_directories(dmn-avahi-real-unified-test PRIVATE ../../src)
+  target_include_directories(dmn-avahi-real-unified-test PRIVATE ../../src ../../include)
   target_link_libraries(dmn-avahi-real-unified-test PRIVATE "${DMN_AVAHI_TARGET}" Threads::Threads)
   target_compile_options(dmn-avahi-real-unified-test PRIVATE -Wall -Wextra -Wpedantic)
   add_test(NAME dmn-avahi-real-unified-test
@@ -377,7 +377,7 @@ if (DMN_AVAHI_PRIVATE_BUS_TEST)
     private-bus-test.cpp
     ../../src/dmn-discovery-avahi.cpp
     ../../src/dmn-discovery-command.cpp)
-  target_include_directories(dmn-avahi-private-bus-test PRIVATE ../../src)
+  target_include_directories(dmn-avahi-private-bus-test PRIVATE ../../src ../../include)
   target_link_libraries(dmn-avahi-private-bus-test PRIVATE "${DMN_AVAHI_TARGET}" Threads::Threads)
   target_compile_options(dmn-avahi-private-bus-test PRIVATE -Wall -Wextra -Wpedantic)
   add_test(NAME dmn-avahi-private-bus-test

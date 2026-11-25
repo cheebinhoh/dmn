@@ -74,6 +74,7 @@ std::uint16_t readUint16(const std::vector<std::uint8_t> &bytes,
 void appendDnsByte(std::string &name, std::uint8_t value) {
   if (value >= 0x21 && value <= 0x7e && value != '.' && value != '\\') {
     name.push_back(static_cast<char>(value));
+
     return;
   }
 
@@ -249,6 +250,7 @@ bool DiscoveryRecords::setMonitoring(std::uint64_t source,
     } else {
       entry->second.m_txt.clear();
     }
+
     invalidateAddresses();
   } else if (monitor == 0) {
     if (m_next_watch == 0) {
@@ -288,8 +290,10 @@ DiscoveryResult DiscoveryRecords::addSrv(std::uint64_t source,
     return std::unexpected{recordError(DiscoveryErrorKind::kInvalidArgument,
                                        "invalid SRV source or target")};
   }
+
   if (!validateDomain(record.m_target)) {
     static_cast<void>(setMonitoring(source, DiscoveryRecordKind::kSrv, false));
+
     return std::unexpected{recordError(DiscoveryErrorKind::kInvalidArgument,
                                        "invalid SRV source or target")};
   }
@@ -312,6 +316,7 @@ DiscoveryResult DiscoveryRecords::addSrv(std::uint64_t source,
 
   if (!distinct.contains(key) && distinct.size() >= m_max_records) {
     static_cast<void>(setMonitoring(source, DiscoveryRecordKind::kSrv, false));
+
     return std::unexpected{recordError(DiscoveryErrorKind::kResourceLimit,
                                        "SRV record limit exceeded")};
   }
@@ -372,6 +377,7 @@ DiscoveryResult DiscoveryRecords::addTxt(std::uint64_t source,
   if (auto parsed{parseTxtRecord(wire, m_max_txt_entries, m_max_txt_bytes)};
       !parsed) {
     static_cast<void>(setMonitoring(source, DiscoveryRecordKind::kTxt, false));
+
     return std::unexpected{parsed.error()};
   }
 
@@ -393,6 +399,7 @@ DiscoveryResult DiscoveryRecords::addTxt(std::uint64_t source,
   normalizeEmptyTxt(normalized);
   if (!distinct.contains(normalized) && distinct.size() >= m_max_records) {
     static_cast<void>(setMonitoring(source, DiscoveryRecordKind::kTxt, false));
+
     return std::unexpected{recordError(DiscoveryErrorKind::kResourceLimit,
                                        "TXT record limit exceeded")};
   }
@@ -407,12 +414,15 @@ DiscoveryResult DiscoveryRecords::addTxt(std::uint64_t source,
         parsed->size() > m_max_txt_entries - totalEntries) {
       static_cast<void>(
           setMonitoring(source, DiscoveryRecordKind::kTxt, false));
+
       return std::unexpected{recordError(DiscoveryErrorKind::kResourceLimit,
                                          "aggregate TXT limit exceeded")};
     }
+
     totalBytes += item.size();
     totalEntries += parsed->size();
   }
+
   records.push_back(std::move(wire));
   if ((previousCount > 1) != (distinct.size() > 1)) {
     invalidateAddresses();
@@ -481,6 +491,7 @@ bool DiscoveryRecords::removeAddress(std::uint64_t source,
   }
 
   addresses.erase(item);
+
   return true;
 }
 
@@ -570,6 +581,7 @@ DiscoveryRecords::storeAddress(std::uint64_t source, std::uint64_t generation,
       return item.m_family == address.m_family;
     });
   }
+
   if (std::find(updated.begin(), updated.end(), address) == updated.end()) {
     updated.push_back(std::move(address));
   }
@@ -580,10 +592,12 @@ DiscoveryRecords::storeAddress(std::uint64_t source, std::uint64_t generation,
       distinct.insert(value.m_addresses.begin(), value.m_addresses.end());
     }
   }
+
   if (distinct.size() > m_max_addresses) {
     return std::unexpected{recordError(DiscoveryErrorKind::kResourceLimit,
                                        "address limit exceeded")};
   }
+
   entry->second.m_addresses = std::move(updated);
 
   return {};
@@ -620,11 +634,13 @@ DiscoveryRecordSnapshot DiscoveryRecords::snapshot() const {
       normalizeEmptyTxt(item);
       txt.insert(std::move(item));
     }
+
     addresses.insert(source.m_addresses.begin(), source.m_addresses.end());
   }
 
   if (m_generation == 0) {
     result.m_state = DiscoveryRecordState::kGenerationExhausted;
+
     return result;
   }
 
@@ -632,11 +648,13 @@ DiscoveryRecordSnapshot DiscoveryRecords::snapshot() const {
     result.m_state = m_sources.empty()
                          ? DiscoveryRecordState::kUnresolved
                          : DiscoveryRecordState::kMonitorIncomplete;
+
     return result;
   }
 
   if (srv.size() > 1 || txt.size() > 1) {
     result.m_state = DiscoveryRecordState::kMultipleRecordsUnsupported;
+
     return result;
   }
 
@@ -657,6 +675,7 @@ DiscoveryRecordSnapshot DiscoveryRecords::snapshot() const {
   result.m_srv = srv.begin()->second;
   if (result.m_srv->m_target == "." || result.m_srv->m_port == 0) {
     result.m_state = DiscoveryRecordState::kUnavailable;
+
     return result;
   }
 

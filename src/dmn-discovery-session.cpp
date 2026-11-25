@@ -109,7 +109,9 @@ DiscoveryResult stopRegistration(DiscoveryRegistrationSessionState &session) {
   if (auto result{session.m_delivery.beginStop()}; !result) {
     return result;
   }
+
   session.m_native_active = false;
+
   return session.m_registration->stop();
 }
 
@@ -124,9 +126,11 @@ stopRegistrationWorker(DiscoveryRegistrationSessionState &session) {
       cancellation = std::move(session.m_native_cancellation);
     }
   }
+
   if (cancellation) {
     cancellation();
   }
+
   return result;
 }
 
@@ -136,12 +140,15 @@ finishRegistrationMutation(DiscoveryRegistrationSessionState &session,
   if (session.m_registration->overflowed()) {
     session.m_native_active = false;
     session.m_delivery.latchOverflow();
+
     return std::unexpected{
         DiscoveryError{DiscoveryErrorKind::kResourceLimit, {}}};
   }
+
   if (session.m_delivery_error) {
     return std::unexpected{*session.m_delivery_error};
   }
+
   return result;
 }
 
@@ -151,6 +158,7 @@ DiscoveryResult validateRegistrationAdmission(
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kStopped,
                                           "registration stop pending"}};
   }
+
   return {};
 }
 
@@ -161,11 +169,14 @@ installNativeCancellation(DiscoveryRegistrationSessionState &session,
   if (auto result{validateRegistrationAdmission(session)}; !result) {
     return result;
   }
+
   if (session.m_native_cancellation) {
     return std::unexpected{DiscoveryError{
         DiscoveryErrorKind::kBackend, "native cancellation already installed"}};
   }
+
   session.m_native_cancellation = std::move(cancellation);
+
   return {};
 }
 
@@ -189,12 +200,15 @@ DiscoveryResult finishMutation(DiscoverySessionState &session,
   if (!result && result.error().m_kind == DiscoveryErrorKind::kResourceLimit) {
     latchOverflow(session);
   }
+
   if (session.m_overflow) {
     cancelNative(session);
     session.m_browser.reset();
+
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
                                           "discovery session overflow"}};
   }
+
   return result;
 }
 
@@ -206,6 +220,7 @@ DiscoveryResult mutateSession(DiscoverySessionState &session,
   } catch (const std::bad_alloc &) {
     latchOverflow(session);
     session.m_browser.reset();
+
     return std::unexpected{
         DiscoveryError{DiscoveryErrorKind::kResourceLimit, {}}};
   }
@@ -216,9 +231,12 @@ DiscoveryResult startBrowse(DiscoverySessionState &session) {
   auto lease{session.m_slots.reserve()};
   if (!lease) {
     latchOverflow(session);
+
     return std::unexpected{lease.error()};
   }
+
   session.m_browse_slot.emplace(std::move(*lease));
+
   return {};
 }
 
@@ -228,10 +246,12 @@ DiscoveryResult stopSession(DiscoverySessionState &session) {
   if (auto result{session.m_delivery.beginStop()}; !result) {
     return result;
   }
+
   session.m_stopped = true;
   cancelNative(session);
   session.m_browser.reset();
   session.m_cached.m_candidates.clear();
+
   return {};
 }
 
@@ -246,15 +266,18 @@ DiscoveryResult stopSessionWorker(DiscoverySessionState &session) {
       session.m_native_reset.reset();
     }
   }
+
   if (cancellation) {
     auto cancelled{cancellation()};
     if (!cancelled) {
       std::lock_guard lock{session.m_mutex};
       session.m_cleanup_error = cancelled.error();
       session.m_stop_error = cancelled.error();
+
       return cancelled;
     }
   }
+
   return result;
 }
 
@@ -264,6 +287,7 @@ DiscoveryResult stopSessionWorker(DiscoverySessionState &session) {
 std::unique_ptr<DiscoveryBrowser>
 makeBrowser(const std::shared_ptr<DiscoverySessionState> &session) {
   std::weak_ptr<DiscoverySessionState> weak{session};
+
   return std::make_unique<DiscoveryBrowser>(
       session->m_options,
       [weak](DiscoveryEvent event) {
@@ -288,6 +312,7 @@ makeBrowser(const std::shared_ptr<DiscoverySessionState> &session) {
               delivery.m_state == DiscoveryDeliveryState::kOverflow;
           snapshot.m_candidates.clear();
         }
+
         state->m_cached = std::move(snapshot);
       },
       session->m_clock);
@@ -306,15 +331,18 @@ DiscoveryResult validateSession(const DiscoverySessionState &session,
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kStopped,
                                           "discovery session stopped"}};
   }
+
   if (session.m_overflow ||
       delivery.m_state == DiscoveryDeliveryState::kOverflow) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
                                           "discovery session overflow"}};
   }
+
   if (epoch && *epoch != delivery.m_epoch) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "stale discovery epoch"}};
   }
+
   if (requireBackend && !session.m_backend_available) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                           "discovery backend unavailable"}};
@@ -334,12 +362,14 @@ DiscoveryRegistrationHandle::established(std::uint64_t generation) const {
   if (!m_state) {
     return std::unexpected{invalidSession()};
   }
+
   return m_state->m_commands->execute(
       [state = m_state, generation]() -> DiscoveryResult {
         std::lock_guard lock{state->m_mutex};
         if (auto result{validateRegistrationAdmission(*state)}; !result) {
           return result;
         }
+
         return finishRegistrationMutation(
             *state, state->m_registration->established(generation));
       });
@@ -351,6 +381,7 @@ DiscoveryRegistrationHandle::collision(std::uint64_t generation,
   if (!m_state) {
     return std::unexpected{invalidSession()};
   }
+
   return m_state->m_commands->execute(
       [state = m_state, generation,
        message = std::move(message)]() mutable -> DiscoveryResult {
@@ -358,11 +389,13 @@ DiscoveryRegistrationHandle::collision(std::uint64_t generation,
         if (auto result{validateRegistrationAdmission(*state)}; !result) {
           return result;
         }
+
         auto result{
             state->m_registration->collision(generation, std::move(message))};
         if (result) {
           state->m_native_active = false;
         }
+
         return finishRegistrationMutation(*state, std::move(result));
       });
 }
@@ -379,6 +412,7 @@ DiscoveryRegistrationHandle::failed(std::uint64_t generation,
   if (!m_state) {
     return std::unexpected{invalidSession()};
   }
+
   return m_state->m_commands->execute(
       [state = m_state, generation,
        error = std::move(error)]() mutable -> DiscoveryResult {
@@ -386,11 +420,13 @@ DiscoveryRegistrationHandle::failed(std::uint64_t generation,
         if (auto result{validateRegistrationAdmission(*state)}; !result) {
           return result;
         }
+
         auto result{
             state->m_registration->failed(generation, std::move(error))};
         if (result) {
           state->m_native_active = false;
         }
+
         return finishRegistrationMutation(*state, std::move(result));
       });
 }
@@ -399,15 +435,18 @@ DiscoveryResult DiscoveryRegistrationHandle::backendLost() const {
   if (!m_state) {
     return std::unexpected{invalidSession()};
   }
+
   return m_state->m_commands->execute([state = m_state]() -> DiscoveryResult {
     std::lock_guard lock{state->m_mutex};
     if (auto result{validateRegistrationAdmission(*state)}; !result) {
       return result;
     }
+
     auto result{state->m_registration->backendLost()};
     if (result) {
       state->m_native_active = false;
     }
+
     return finishRegistrationMutation(*state, std::move(result));
   });
 }
@@ -416,16 +455,19 @@ DiscoveryResult DiscoveryRegistrationHandle::backendAvailable() const {
   if (!m_state) {
     return std::unexpected{invalidSession()};
   }
+
   return m_state->m_commands->execute([state = m_state]() -> DiscoveryResult {
     std::lock_guard lock{state->m_mutex};
     if (auto result{validateRegistrationAdmission(*state)}; !result) {
       return result;
     }
+
     auto result{state->m_registration->backendAvailable()};
     if (result && state->m_registration->status().m_state ==
                       DiscoveryRegistrationState::kRegistering) {
       state->m_native_active = true;
     }
+
     return finishRegistrationMutation(*state, std::move(result));
   });
 }
@@ -435,23 +477,27 @@ DiscoveryRegistrationHandle::backendFailed(DiscoveryError error) const {
   if (!m_state) {
     return std::unexpected{invalidSession()};
   }
+
   return m_state->m_commands->execute(
       [state = m_state, error = std::move(error)]() mutable -> DiscoveryResult {
         std::lock_guard lock{state->m_mutex};
         if (auto result{validateRegistrationAdmission(*state)}; !result) {
           return result;
         }
+
         state->m_native_active = false;
+
         return finishRegistrationMutation(
             *state, state->m_registration->backendFailed(std::move(error)));
       });
 }
 
-void DiscoveryRegistrationHandle::failPostAdmissionAllocation() const {
+void DiscoveryRegistrationHandle::failResourceLimit() const {
   std::lock_guard lock{m_state->m_mutex};
   if (m_state->m_stop_requested.load(std::memory_order_acquire)) {
     return;
   }
+
   m_state->m_native_active = false;
   m_state->m_registration->markOverflow();
   m_state->m_delivery.latchOverflow();
@@ -461,6 +507,7 @@ DiscoveryResult DiscoveryRegistrationHandle::stop() const {
   if (!m_state) {
     return std::unexpected{invalidSession()};
   }
+
   if (m_state->m_delivery.inCallbackContext() ||
       m_state->m_commands->inWorkerContext()) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kReentrantCall,
@@ -477,6 +524,7 @@ DiscoveryResult DiscoveryRegistrationHandle::stop() const {
                   DiscoveryRegistrationState::kStopped &&
               !m_state->m_native_cancellation;
   }
+
   if (!stopped) {
     auto submitted{m_state->m_commands->submitControl(
         m_state->m_id, DiscoveryCommandControl::kStop,
@@ -491,25 +539,31 @@ DiscoveryResult DiscoveryRegistrationHandle::stop() const {
       if (!joined) {
         return std::unexpected{joined.error()};
       }
+
       if (!*joined) {
         return result;
       }
+
       std::lock_guard lock{m_state->m_mutex};
       if (m_state->m_native_cancellation) {
         return result;
       }
+
       if (auto finalized{stopRegistration(*m_state)}; !finalized) {
         return finalized;
       }
     }
   }
+
   if (auto result{m_state->m_delivery.awaitStop()}; !result) {
     return result;
   }
+
   {
     std::lock_guard lock{m_state->m_mutex};
     m_state->m_released = true;
   }
+
   return {};
 }
 
@@ -517,6 +571,7 @@ DiscoveryRegistrationStatus DiscoveryRegistrationHandle::status() const {
   if (!m_state) {
     return {DiscoveryRegistrationState::kStopped, invalidSession()};
   }
+
   std::lock_guard lock{m_state->m_mutex};
   auto result{m_state->m_registration->status()};
   result.m_callback_failed = m_state->m_callback_error.has_value();
@@ -527,6 +582,7 @@ DiscoveryRegistrationStatus DiscoveryRegistrationHandle::status() const {
        result.m_error->m_kind != DiscoveryErrorKind::kResourceLimit)) {
     result.m_error = m_state->m_callback_error;
   }
+
   return result;
 }
 
@@ -534,7 +590,9 @@ std::uint64_t DiscoveryRegistrationHandle::generation() const {
   if (!m_state) {
     return 0;
   }
+
   std::lock_guard lock{m_state->m_mutex};
+
   return m_state->m_registration->generation();
 }
 
@@ -542,7 +600,9 @@ bool DiscoveryRegistrationHandle::nativeActive() const {
   if (!m_state) {
     return false;
   }
+
   std::lock_guard lock{m_state->m_mutex};
+
   return m_state->m_native_active;
 }
 
@@ -551,9 +611,11 @@ DiscoveryResult DiscoveryRegistrationHandle::setNativeCancellation(
   if (!m_state || !cancellation) {
     return std::unexpected{invalidSession()};
   }
+
   if (m_state->m_commands->inWorkerContext()) {
     return installNativeCancellation(*m_state, std::move(cancellation));
   }
+
   return m_state->m_commands->execute(
       [state = m_state,
        cancellation = std::move(cancellation)]() mutable -> DiscoveryResult {
@@ -566,9 +628,11 @@ DiscoveryResult DiscoveryRegistrationHandle::nativeCleanupComplete() const {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                           "native cleanup requires worker"}};
   }
+
   std::lock_guard lock{m_state->m_mutex};
   m_state->m_native_cancellation = {};
   m_state->m_native_active = false;
+
   return {};
 }
 
@@ -581,10 +645,12 @@ DiscoveryResult DiscoverySessionHandle::nativeCleanupComplete() const {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                           "native cleanup requires worker"}};
   }
+
   std::lock_guard lock{m_state->m_mutex};
   m_state->m_native_cancellation = {};
   m_state->m_native_reset.reset();
   cancelNative(*m_state);
+
   return {};
 }
 
@@ -609,8 +675,10 @@ DiscoverySessionHandle::observe(std::uint64_t epoch, DiscoveryServiceKey key,
         return mutateSession(*state, [&]() -> DiscoveryResult {
           *output =
               state->m_browser->addObservation(key, contribution, provenance);
+
           return **output
                      ? DiscoveryResult{}
+
                      : DiscoveryResult{std::unexpected{(*output)->error()}};
         });
       })};
@@ -627,6 +695,7 @@ DiscoveryResult DiscoverySessionHandle::removeObservation(
   if (!m_state) {
     return std::unexpected{invalidSession()};
   }
+
   return m_state->m_commands->execute([state = m_state, epoch,
                                        key = std::move(key), contribution,
                                        generation]() -> DiscoveryResult {
@@ -634,11 +703,13 @@ DiscoveryResult DiscoverySessionHandle::removeObservation(
     if (auto result{validateSession(*state, epoch)}; !result) {
       return result;
     }
+
     return mutateSession(*state, [&]() -> DiscoveryResult {
       if (!state->m_browser->removeObservation(key, contribution, generation)) {
         return std::unexpected{DiscoveryError{
             DiscoveryErrorKind::kInvalidArgument, "stale browse contribution"}};
       }
+
       return {};
     });
   });
@@ -652,10 +723,12 @@ DiscoveryResult DiscoverySessionHandle::updateRecords(
   if (!m_state) {
     return std::unexpected{invalidSession()};
   }
+
   if (!update) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "empty record update"}};
   }
+
   return m_state->m_commands->execute(
       [state = m_state, epoch, key = std::move(key), contribution, generation,
        update = std::move(update)]() -> DiscoveryResult {
@@ -663,6 +736,7 @@ DiscoveryResult DiscoverySessionHandle::updateRecords(
         if (auto result{validateSession(*state, epoch)}; !result) {
           return result;
         }
+
         return mutateSession(*state, [&] {
           return state->m_browser->updateRecords(key, contribution, generation,
                                                  update);
@@ -687,8 +761,10 @@ DiscoverySessionHandle::refresh(DiscoveryServiceKey key) const {
 
         return mutateSession(*state, [&]() -> DiscoveryResult {
           *output = state->m_browser->refresh(key);
+
           return **output
                      ? DiscoveryResult{}
+
                      : DiscoveryResult{std::unexpected{(*output)->error()}};
         });
       })};
@@ -704,12 +780,14 @@ DiscoverySessionHandle::processTimers(std::uint64_t epoch) const {
   if (!m_state) {
     return std::unexpected{invalidSession()};
   }
+
   return m_state->m_commands->execute(
       [state = m_state, epoch]() -> DiscoveryResult {
         std::lock_guard lock{state->m_mutex};
         if (auto result{validateSession(*state, epoch)}; !result) {
           return result;
         }
+
         return mutateSession(*state, [&] {
           return state->m_browser->processRefreshDeadlines();
         });
@@ -725,6 +803,7 @@ DiscoveryResult DiscoverySessionHandle::failAttempt(
   if (!m_state) {
     return std::unexpected{invalidSession()};
   }
+
   return m_state->m_commands->execute(
       [state = m_state, epoch, key = std::move(key), contribution, generation,
        attempt, operationGeneration, resolutionGeneration, recoverable,
@@ -734,6 +813,7 @@ DiscoveryResult DiscoverySessionHandle::failAttempt(
         if (auto result{validateSession(*state, epoch)}; !result) {
           return result;
         }
+
         return mutateSession(*state, [&] {
           return state->m_browser->failAttempt(
               key, contribution, generation, attempt, operationGeneration,
@@ -751,6 +831,7 @@ DiscoveryResult DiscoverySessionHandle::succeedAttempt(
   if (!m_state) {
     return std::unexpected{invalidSession()};
   }
+
   return m_state->m_commands->execute(
       [state = m_state, epoch, key = std::move(key), contribution, generation,
        attempt, operationGeneration,
@@ -759,6 +840,7 @@ DiscoveryResult DiscoverySessionHandle::succeedAttempt(
         if (auto result{validateSession(*state, epoch)}; !result) {
           return result;
         }
+
         return mutateSession(*state, [&] {
           return state->m_browser->succeedAttempt(key, contribution, generation,
                                                   attempt, operationGeneration,
@@ -772,6 +854,7 @@ DiscoverySessionHandle::takeDueRetries(std::uint64_t epoch) const {
   if (!m_state) {
     return std::unexpected{invalidSession()};
   }
+
   using Output = std::expected<std::vector<DiscoveryAttemptId>, DiscoveryError>;
   auto output{std::make_shared<std::optional<Output>>()};
   auto result{m_state->m_commands->execute(
@@ -781,11 +864,13 @@ DiscoverySessionHandle::takeDueRetries(std::uint64_t epoch) const {
           return valid;
         }
         *output = state->m_browser->takeDueRetries();
+
         return {};
       })};
   if (!result) {
     return std::unexpected{result.error()};
   }
+
   return std::move(**output);
 }
 
@@ -794,6 +879,7 @@ DiscoverySessionHandle::nextDeadline(std::uint64_t epoch) const {
   if (!m_state) {
     return std::unexpected{invalidSession()};
   }
+
   auto output{std::make_shared<std::optional<DiscoveryBrowser::TimePoint>>()};
   auto result{m_state->m_commands->execute(
       [state = m_state, epoch, output]() -> DiscoveryResult {
@@ -802,11 +888,13 @@ DiscoverySessionHandle::nextDeadline(std::uint64_t epoch) const {
           return valid;
         }
         *output = state->m_browser->nextDeadline();
+
         return {};
       })};
   if (!result) {
     return std::unexpected{result.error()};
   }
+
   return *output;
 }
 
@@ -815,20 +903,24 @@ DiscoverySessionHandle::backendFailed(DiscoveryError error) const {
   if (!m_state) {
     return std::unexpected{invalidSession()};
   }
+
   return m_state->m_commands->execute(
       [state = m_state, error = std::move(error)]() mutable -> DiscoveryResult {
         std::lock_guard lock{state->m_mutex};
         if (auto valid{validateSession(*state, {}, false)}; !valid) {
           return valid;
         }
+
         return mutateSession(*state, [&]() -> DiscoveryResult {
           state->m_cleanup_error = error;
           if (error.m_kind == DiscoveryErrorKind::kResourceLimit) {
             return std::unexpected{std::move(error)};
           }
+
           if (!state->m_backend_available) {
             return {};
           }
+
           auto replacement{makeBrowser(state)};
           auto result{state->m_delivery.backendLost(
               state->m_delivery.snapshot().m_epoch)};
@@ -836,18 +928,24 @@ DiscoverySessionHandle::backendFailed(DiscoveryError error) const {
           state->m_browser = std::move(replacement);
           state->m_cached = state->m_browser->snapshot();
           state->m_backend_available = false;
+
           return result;
         });
       });
 }
 
-void DiscoverySessionHandle::failPostAdmissionAllocation() const {
+void DiscoverySessionHandle::failResourceLimit(bool backendUnavailable) const {
   std::lock_guard lock{m_state->m_mutex};
   if (m_state->m_stop_requested.load(std::memory_order_acquire)) {
     return;
   }
+
   m_state->m_cleanup_error =
       DiscoveryError{DiscoveryErrorKind::kResourceLimit, {}};
+  if (backendUnavailable) {
+    m_state->m_backend_available = false;
+  }
+
   latchOverflow(*m_state);
   m_state->m_browser.reset();
 }
@@ -857,6 +955,7 @@ DiscoverySessionHandle::beginNative(std::uint64_t epoch) const {
   if (!m_state) {
     return std::unexpected{invalidSession()};
   }
+
   auto output{std::make_shared<std::optional<std::uint64_t>>()};
   auto result{m_state->m_commands->execute(
       [state = m_state, epoch, output]() -> DiscoveryResult {
@@ -864,25 +963,30 @@ DiscoverySessionHandle::beginNative(std::uint64_t epoch) const {
         if (auto result{validateSession(*state, epoch)}; !result) {
           return result;
         }
+
         return mutateSession(*state, [&]() -> DiscoveryResult {
           if (state->m_next_operation == 0) {
             return std::unexpected{
                 DiscoveryError{DiscoveryErrorKind::kResourceLimit,
                                "native operation ID exhausted"}};
           }
+
           auto lease{state->m_slots.reserve()};
           if (!lease) {
             return std::unexpected{lease.error()};
           }
+
           const auto id{state->m_next_operation++};
           state->m_native_operations.emplace(id, std::move(*lease));
           *output = id;
+
           return {};
         });
       })};
   if (!result) {
     return std::unexpected{result.error()};
   }
+
   return **output;
 }
 
@@ -892,16 +996,19 @@ DiscoverySessionHandle::finishNative(std::uint64_t epoch,
   if (!m_state) {
     return std::unexpected{invalidSession()};
   }
+
   return m_state->m_commands->execute([state = m_state, epoch,
                                        operation]() -> DiscoveryResult {
     std::lock_guard lock{state->m_mutex};
     if (auto result{validateSession(*state, epoch)}; !result) {
       return result;
     }
+
     if (state->m_native_operations.erase(operation) == 0) {
       return std::unexpected{DiscoveryError{
           DiscoveryErrorKind::kInvalidArgument, "unknown native operation"}};
     }
+
     return {};
   });
 }
@@ -910,22 +1017,26 @@ DiscoveryResult DiscoverySessionHandle::backendLost(std::uint64_t epoch) const {
   if (!m_state) {
     return std::unexpected{invalidSession()};
   }
+
   return m_state->m_commands->execute(
       [state = m_state, epoch]() -> DiscoveryResult {
         std::lock_guard lock{state->m_mutex};
         if (auto result{validateSession(*state, epoch, false)}; !result) {
           return result;
         }
+
         return mutateSession(*state, [&]() -> DiscoveryResult {
           if (!state->m_backend_available) {
             return {};
           }
+
           auto replacement{makeBrowser(state)};
           auto result{state->m_delivery.backendLost(epoch)};
           cancelNative(*state);
           state->m_browser = std::move(replacement);
           state->m_cached = state->m_browser->snapshot();
           state->m_backend_available = false;
+
           return result;
         });
       });
@@ -936,25 +1047,32 @@ DiscoverySessionHandle::backendAvailable(std::uint64_t epoch) const {
   if (!m_state) {
     return std::unexpected{invalidSession()};
   }
+
   return m_state->m_commands->execute(
       [state = m_state, epoch]() -> DiscoveryResult {
         std::lock_guard lock{state->m_mutex};
         if (auto result{validateSession(*state, epoch, false)}; !result) {
           return result;
         }
+
         return mutateSession(*state, [&]() -> DiscoveryResult {
           if (state->m_backend_available) {
             return {};
           }
+
           if (auto result{startBrowse(*state)}; !result) {
             return result;
           }
+
           auto result{state->m_delivery.backendAvailable(epoch)};
           if (!result) {
             cancelNative(*state);
+
             return result;
           }
+
           state->m_backend_available = true;
+
           return {};
         });
       });
@@ -964,6 +1082,7 @@ DiscoveryResult DiscoverySessionHandle::clearCache() const {
   if (!m_state) {
     return std::unexpected{invalidSession()};
   }
+
   if (m_state->m_delivery.inCallbackContext() ||
       m_state->m_commands->inWorkerContext()) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kReentrantCall,
@@ -978,6 +1097,7 @@ DiscoveryResult DiscoverySessionHandle::clearCache() const {
       return std::unexpected{
           DiscoveryError{DiscoveryErrorKind::kStopped, "session stop pending"}};
     }
+
     if (m_state->m_reset_operation) {
       operation = m_state->m_reset_operation;
       ++operation->m_joined;
@@ -987,6 +1107,7 @@ DiscoveryResult DiscoverySessionHandle::clearCache() const {
       leader = true;
     }
   }
+
   if (!leader) {
     return operation->m_completion.get();
   }
@@ -997,6 +1118,7 @@ DiscoveryResult DiscoverySessionHandle::clearCache() const {
     if (fiu_fail("dmn/discovery/reset-barrier/leader-allocation")) {
       throw std::bad_alloc{};
     }
+
     if (fiu_fail("dmn/discovery/reset-barrier/leader-failure")) {
       throw 1;
     }
@@ -1032,14 +1154,18 @@ DiscoveryResult DiscoverySessionHandle::clearCache() const {
                   return started;
                 }
               }
+
               reset = state->m_native_reset;
+
               return {};
             })};
             if (!mutation) {
               *epoch = state->m_delivery.snapshot().m_epoch;
+
               return mutation;
             }
           }
+
           if (reset) {
             auto result{(*reset)()};
             *epoch = state->m_delivery.snapshot().m_epoch;
@@ -1047,8 +1173,10 @@ DiscoveryResult DiscoverySessionHandle::clearCache() const {
               return result;
             }
           }
+
           std::lock_guard lock{state->m_mutex};
           state->m_cleanup_error.reset();
+
           return {};
         })};
     if (!submitted) {
@@ -1064,9 +1192,11 @@ DiscoveryResult DiscoverySessionHandle::clearCache() const {
             target = current;
             continue;
           }
+
           if (result && !drained) {
             result = std::move(drained);
           }
+
           break;
         }
       }
@@ -1076,6 +1206,7 @@ DiscoveryResult DiscoverySessionHandle::clearCache() const {
     std::lock_guard lock{m_state->m_barrier};
     operation->m_promise.set_value(std::move(operation->m_cancelled));
     m_state->m_reset_operation.reset();
+
     throw;
 #endif
   } catch (const std::bad_alloc &) {
@@ -1083,12 +1214,14 @@ DiscoveryResult DiscoverySessionHandle::clearCache() const {
   } catch (...) {
     result = std::move(operation->m_failure);
   }
+
   {
     std::lock_guard lock{m_state->m_barrier};
     // Publish without copying an error string while callers share the barrier.
     operation->m_promise.set_value(std::move(result));
     m_state->m_reset_operation.reset();
   }
+
   return operation->m_completion.get();
 }
 
@@ -1096,6 +1229,7 @@ DiscoveryResult DiscoverySessionHandle::stop() const {
   if (!m_state) {
     return std::unexpected{invalidSession()};
   }
+
   if (m_state->m_delivery.inCallbackContext() ||
       m_state->m_commands->inWorkerContext()) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kReentrantCall,
@@ -1118,6 +1252,7 @@ DiscoveryResult DiscoverySessionHandle::stop() const {
       leader = true;
     }
   }
+
   if (!leader) {
     return operation->m_completion.get();
   }
@@ -1128,6 +1263,7 @@ DiscoveryResult DiscoverySessionHandle::stop() const {
     if (fiu_fail("dmn/discovery/stop-barrier/leader-allocation")) {
       throw std::bad_alloc{};
     }
+
     if (fiu_fail("dmn/discovery/stop-barrier/leader-failure")) {
       throw 1;
     }
@@ -1135,6 +1271,7 @@ DiscoveryResult DiscoverySessionHandle::stop() const {
     if (reset) {
       reset->m_completion.wait();
     }
+
     bool stopped{false};
     {
       std::lock_guard lock{m_state->m_mutex};
@@ -1143,6 +1280,7 @@ DiscoveryResult DiscoverySessionHandle::stop() const {
         result = std::unexpected{*m_state->m_stop_error};
       }
     }
+
     if (!stopped) {
       auto submitted{m_state->m_commands->submitControl(
           m_state->m_id, DiscoveryCommandControl::kStop,
@@ -1163,17 +1301,20 @@ DiscoveryResult DiscoverySessionHandle::stop() const {
         }
       }
     }
+
     bool finalized{false};
     {
       std::lock_guard lock{m_state->m_mutex};
       finalized = m_state->m_stopped && !m_state->m_native_cancellation;
     }
+
     if (finalized) {
       auto drained{m_state->m_delivery.awaitStop()};
       if (drained) {
         std::lock_guard lock{m_state->m_mutex};
         m_state->m_released = true;
       }
+
       if (result && !drained) {
         result = std::move(drained);
       }
@@ -1183,6 +1324,7 @@ DiscoveryResult DiscoverySessionHandle::stop() const {
     std::lock_guard lock{m_state->m_barrier};
     operation->m_promise.set_value(std::move(operation->m_cancelled));
     m_state->m_stop_operation.reset();
+
     throw;
 #endif
   } catch (const std::bad_alloc &) {
@@ -1190,11 +1332,13 @@ DiscoveryResult DiscoverySessionHandle::stop() const {
   } catch (...) {
     result = std::move(operation->m_failure);
   }
+
   {
     std::lock_guard lock{m_state->m_barrier};
     operation->m_promise.set_value(std::move(result));
     m_state->m_stop_operation.reset();
   }
+
   return operation->m_completion.get();
 }
 
@@ -1216,6 +1360,7 @@ DiscoverySessionSnapshot DiscoverySessionHandle::snapshot() const {
       joined = m_state->m_reset_operation->m_joined;
     }
   }
+
   std::lock_guard lock{m_state->m_mutex};
   auto browser{m_state->m_cached};
   const auto delivery{m_state->m_delivery.snapshot()};
@@ -1250,6 +1395,7 @@ DiscoveryResult DiscoverySessionClient::ensureWorkers() {
   if (m_commands) {
     return {};
   }
+
   if (m_options.m_max_browsers >
       std::numeric_limits<std::size_t>::max() - m_options.m_max_registrations) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
@@ -1273,6 +1419,7 @@ DiscoveryResult DiscoverySessionClient::ensureWorkers() {
         DiscoveryError{DiscoveryErrorKind::kResourceLimit,
                        "discovery worker allocation failed"}};
   }
+
   return {};
 }
 
@@ -1291,9 +1438,11 @@ void DiscoverySessionClient::handleDispatcherFailure() {
       if (it == m_sessions.end()) {
         break;
       }
+
       session = *it;
       lastId = session->m_id;
     }
+
     const auto fallback = [&](DiscoveryError error) {
       {
         std::lock_guard lock{session->m_mutex};
@@ -1304,6 +1453,7 @@ void DiscoverySessionClient::handleDispatcherFailure() {
         session->m_browser.reset();
         session->m_cached.m_candidates.clear();
       }
+
       session->m_commands->wakePoller();
     };
     try {
@@ -1332,6 +1482,7 @@ void DiscoverySessionClient::handleDispatcherFailure() {
       fallback(std::move(session->m_cleanup_allocation_failure));
     }
   }
+
   lastId = 0;
   while (true) {
     std::shared_ptr<DiscoveryRegistrationSessionState> session;
@@ -1344,9 +1495,11 @@ void DiscoverySessionClient::handleDispatcherFailure() {
       if (it == m_registrations.end()) {
         break;
       }
+
       session = *it;
       lastId = session->m_id;
     }
+
     const auto fallback = [&](DiscoveryError error) {
       {
         std::lock_guard lock{session->m_mutex};
@@ -1355,6 +1508,7 @@ void DiscoverySessionClient::handleDispatcherFailure() {
         session->m_native_active = false;
         static_cast<void>(session->m_registration->stop());
       }
+
       session->m_commands->wakePoller();
     };
     try {
@@ -1394,8 +1548,10 @@ DiscoveryResult DiscoverySessionClient::dispatchNative(
       return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                             "discovery worker unavailable"}};
     }
+
     commands = m_commands;
   }
+
   return commands->execute(std::move(callback));
 }
 
@@ -1405,13 +1561,16 @@ DiscoveryResult DiscoverySessionClient::attachPoller(
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "empty discovery poller"}};
   }
+
   if (auto result{validateOptions(m_options)}; !result) {
     return result;
   }
+
   if (!m_clock) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "empty discovery clock"}};
   }
+
   std::shared_ptr<DiscoveryCommandWorker> commands;
   {
     std::lock_guard lock{m_mutex};
@@ -1419,11 +1578,14 @@ DiscoveryResult DiscoverySessionClient::attachPoller(
       return std::unexpected{DiscoveryError{DiscoveryErrorKind::kStopped,
                                             "discovery client stopped"}};
     }
+
     if (auto result{ensureWorkers()}; !result) {
       return result;
     }
+
     commands = m_commands;
   }
+
   return commands->attachPoller(std::move(poller));
 }
 
@@ -1432,15 +1594,18 @@ DiscoverySessionClient::browse(Handler handler, BrowserLifecycle lifecycle) {
   if (auto result{validateOptions(m_options)}; !result) {
     return std::unexpected{result.error()};
   }
+
   if (!m_clock) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "empty discovery clock"}};
   }
+
   std::unique_lock lock{m_mutex};
   if (m_closing) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kStopped,
                                           "discovery client stopped"}};
   }
+
   if (m_next_session == 0) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
                                           "discovery session ID exhausted"}};
@@ -1449,14 +1614,17 @@ DiscoverySessionClient::browse(Handler handler, BrowserLifecycle lifecycle) {
   if (auto result{ensureWorkers()}; !result) {
     return std::unexpected{result.error()};
   }
+
   std::erase_if(m_sessions, [](const auto &session) {
     std::lock_guard sessionLock{session->m_mutex};
+
     return session->m_released;
   });
   if (m_sessions.size() >= m_options.m_max_browsers) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
                                           "browser limit reached"}};
   }
+
   auto session{std::make_shared<DiscoverySessionState>(m_options)};
   session->m_id = m_next_session++;
   session->m_commands = m_commands;
@@ -1488,6 +1656,7 @@ DiscoverySessionClient::browse(Handler handler, BrowserLifecycle lifecycle) {
                 std::lock_guard lock{state->m_mutex};
                 state->m_cleanup_error = failure.takeError();
               }
+
               throw;
             }
           }
@@ -1504,6 +1673,7 @@ DiscoverySessionClient::browse(Handler handler, BrowserLifecycle lifecycle) {
                 state->m_browser.reset();
                 state->m_cached.m_candidates.clear();
               }
+
               state->m_commands->wakePoller();
             };
             try {
@@ -1523,12 +1693,14 @@ DiscoverySessionClient::browse(Handler handler, BrowserLifecycle lifecycle) {
               fallback(std::move(state->m_cleanup_allocation_failure));
             }
           }
+
           throw;
         }
       })};
   if (!delivery) {
     return std::unexpected{delivery.error()};
   }
+
   session->m_delivery = std::move(*delivery);
   m_sessions.push_back(session);
   if (session->m_backend_available) {
@@ -1536,6 +1708,7 @@ DiscoverySessionClient::browse(Handler handler, BrowserLifecycle lifecycle) {
       return std::unexpected{result.error()};
     }
   }
+
   if (!session->m_backend_available) {
     DiscoveryResult result;
     try {
@@ -1554,10 +1727,12 @@ DiscoverySessionClient::browse(Handler handler, BrowserLifecycle lifecycle) {
       if (!abandoned) {
         return std::unexpected{abandoned.error()};
       }
+
       return std::unexpected{
           DiscoveryError{DiscoveryErrorKind::kResourceLimit,
                          "initial delivery allocation failed"}};
     }
+
     if (!result) {
       m_sessions.pop_back();
       lock.unlock();
@@ -1565,6 +1740,7 @@ DiscoverySessionClient::browse(Handler handler, BrowserLifecycle lifecycle) {
       if (!abandoned) {
         return std::unexpected{abandoned.error()};
       }
+
       return std::unexpected{result.error()};
     }
   }
@@ -1581,27 +1757,33 @@ DiscoverySessionClient::advertise(
   if (!registration) {
     return std::unexpected{registration.error()};
   }
+
   if (!m_clock) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "empty discovery clock"}};
   }
+
   std::lock_guard lock{m_mutex};
   if (m_closing) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kStopped,
                                           "discovery client stopped"}};
   }
+
   if (m_next_session == 0) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
                                           "discovery session ID exhausted"}};
   }
+
   std::erase_if(m_registrations, [](const auto &session) {
     std::lock_guard sessionLock{session->m_mutex};
+
     return session->m_released;
   });
   if (m_registrations.size() >= m_options.m_max_registrations) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
                                           "registration limit reached"}};
   }
+
   if (auto result{ensureWorkers()}; !result) {
     return std::unexpected{result.error()};
   }
@@ -1620,6 +1802,7 @@ DiscoverySessionClient::advertise(
             state->m_fault(
                 DiscoveryRegistrationFaultPoint::kTransitionDelivery);
           }
+
           const bool control{
               status.m_state == DiscoveryRegistrationState::kUnavailable ||
               status.m_state == DiscoveryRegistrationState::kRegistering};
@@ -1644,6 +1827,7 @@ DiscoverySessionClient::advertise(
   if (m_registration_fault) {
     m_registration_fault(DiscoveryRegistrationFaultPoint::kAdmission);
   }
+
   auto delivery{m_dispatcher->create(
       m_options.m_max_registration_events, m_options.m_max_control_events,
       [weak, handler = std::move(handler)](DiscoveryDelivery event) {
@@ -1659,6 +1843,7 @@ DiscoverySessionClient::advertise(
                   std::lock_guard stateLock{state->m_mutex};
                   status = state->m_registration->status();
                 }
+
                 handler(std::move(status));
               }
             }
@@ -1667,6 +1852,7 @@ DiscoverySessionClient::advertise(
               std::lock_guard stateLock{state->m_mutex};
               state->m_callback_error = failure.takeError();
             }
+
             throw;
           }
         } catch (...) {
@@ -1677,6 +1863,7 @@ DiscoverySessionClient::advertise(
                 state->m_callback_error = std::move(state->m_callback_failure);
               }
             }
+
             const auto markCallbackCleanupFailure = [&state](
                                                         DiscoveryError error) {
               std::lock_guard stateLock{state->m_mutex};
@@ -1694,6 +1881,7 @@ DiscoverySessionClient::advertise(
                 state->m_fault(
                     DiscoveryRegistrationFaultPoint::kCallbackCleanup);
               }
+
               auto submitted{state->m_commands->submitControl(
                   state->m_id, DiscoveryCommandControl::kStop,
                   [state]() -> DiscoveryResult {
@@ -1711,12 +1899,14 @@ DiscoverySessionClient::advertise(
                   std::move(state->m_cleanup_allocation_failure));
             }
           }
+
           throw;
         }
       })};
   if (!delivery) {
     return std::unexpected{delivery.error()};
   }
+
   session->m_delivery = std::move(*delivery);
   session->m_native_active = m_initial_backend_available;
   m_registrations.push_back(session);
@@ -1727,6 +1917,7 @@ DiscoverySessionClient::advertise(
       if (session->m_fault) {
         session->m_fault(DiscoveryRegistrationFaultPoint::kInitialDelivery);
       }
+
       if (auto result{session->m_delivery.postRegistration(
               epoch, session->m_registration->status())};
           !result) {
@@ -1746,6 +1937,7 @@ DiscoverySessionClient::advertise(
       session->m_delivery.latchOverflow();
     }
   }
+
   return DiscoveryRegistrationHandle{std::move(session)};
 } catch (const std::bad_alloc &) {
   return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
@@ -1765,15 +1957,19 @@ DiscoveryResult DiscoverySessionClient::shutdown() {
       return std::unexpected{DiscoveryError{DiscoveryErrorKind::kReentrantCall,
                                             "reentrant shutdown barrier"}};
     }
+
     while (m_closing && !m_closed) {
       m_changed.wait(lock, [&] { return m_closed || !m_closing; });
     }
+
     if (m_closed) {
       if (m_shutdown_error) {
         return std::unexpected{*m_shutdown_error};
       }
+
       return {};
     }
+
     sessions = m_sessions;
     registrations = m_registrations;
     commands = m_commands;
@@ -1794,28 +1990,33 @@ DiscoveryResult DiscoverySessionClient::shutdown() {
         error = result.error();
       }
     }
+
     for (const auto &session : registrations) {
       auto result{DiscoveryRegistrationHandle{session}.stop()};
       if (!result && !error) {
         error = result.error();
       }
     }
+
     if (commands) {
       if (auto result{commands->shutdown()}; !result && !error) {
         error = result.error();
       }
     }
+
     if (dispatcher) {
       if (auto result{dispatcher->shutdown()}; !result && !error) {
         error = result.error();
       }
     }
+
     {
       std::lock_guard lock{m_mutex};
       m_shutdown_error = error;
       m_closed = true;
       m_changed.notify_all();
     }
+
     if (error) {
       return std::unexpected{*error};
     }
@@ -1825,6 +2026,7 @@ DiscoveryResult DiscoverySessionClient::shutdown() {
     std::lock_guard lock{m_mutex};
     m_closing = false;
     m_changed.notify_all();
+
     throw;
   }
 }

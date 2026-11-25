@@ -61,11 +61,13 @@ DiscoveryNativeSlots::reserve() {
   }
 
   ++m_state->m_used;
+
   return Lease{m_state};
 }
 
 std::size_t DiscoveryNativeSlots::inUse() const {
   std::lock_guard lock{m_state->m_mutex};
+
   return m_state->m_used;
 }
 

@@ -69,8 +69,9 @@ public:
 
 private:
   struct Deleter {
-    std::shared_ptr<DiscoveryAvahiRegistrationApi> m_api;
     void operator()(AvahiEntryGroup *) const noexcept;
+
+    std::shared_ptr<DiscoveryAvahiRegistrationApi> m_api;
   };
   static void onGroup(AvahiEntryGroup *, AvahiEntryGroupState, void *) noexcept;
   void report(DiscoveryError error);

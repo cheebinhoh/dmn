@@ -45,6 +45,7 @@ inline DiscoveryError discoveryAvahiError(const char *prefix, int code,
   default:
     break;
   }
+
   return result;
 }
 

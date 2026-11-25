@@ -46,7 +46,26 @@ if (ENABLE_DMN_DISCOVERY)
     dmn-discovery-avahi-record-watch.cpp
     dmn-discovery-avahi-registration.cpp
     dmn-discovery-avahi-registration-session.cpp
-    dmn-discovery-avahi-resolver.cpp)
+    dmn-discovery-avahi-resolver.cpp
+    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-browser.hpp
+    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-contribution.hpp
+    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-error.hpp
+    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-mapping.hpp
+    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-record-watch.hpp
+    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-registration-session.hpp
+    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-registration.hpp
+    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-resolver.hpp
+    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi.hpp
+    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-command.hpp
+    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-core.hpp
+    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-delivery.hpp
+    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-dispatcher.hpp
+    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-public-conversion.hpp
+    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-records.hpp
+    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-registration.hpp
+    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-retry.hpp
+    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-session.hpp
+    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-slots.hpp)
   target_link_libraries(dmn PRIVATE
     "${DMN_AVAHI_TARGET}" Threads::Threads)
   target_compile_definitions(dmn PUBLIC DMN_ENABLE_DMN_DISCOVERY=1)
@@ -413,6 +432,7 @@ set(DMN_EXCLUDED_PUBLIC_HEADER_PATTERNS)
 
 list(APPEND DMN_EXCLUDED_PUBLIC_HEADER_PATTERNS
        PATTERN "dmn-dbus-runtime.hpp" EXCLUDE
+       PATTERN "dmn-discovery-*.hpp" EXCLUDE
 )
 
 if (NOT ENABLE_DMN_DMESGNET)

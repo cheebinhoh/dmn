@@ -24,9 +24,11 @@ mapInterface(AvahiIfIndex value) {
   if (value == AVAHI_IF_UNSPEC) {
     return std::optional<std::uint32_t>{};
   }
+
   if (value <= 0) {
     return std::unexpected{invalid("invalid Avahi interface")};
   }
+
   return static_cast<std::uint32_t>(value);
 }
 
@@ -35,10 +37,12 @@ boundedString(const char *value, std::size_t maximum) {
   if (!value) {
     return std::unexpected{invalid("missing Avahi string")};
   }
+
   const auto size{strnlen(value, maximum + 1)};
   if (size > maximum) {
     return std::unexpected{invalid("Avahi string exceeds its limit")};
   }
+
   return std::string_view{value, size};
 }
 
@@ -48,13 +52,17 @@ copyRecord(const void *data, std::size_t size, std::size_t maximum) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
                                           "Avahi record exceeds its limit"}};
   }
+
   if (size && !data) {
     return std::unexpected{invalid("missing Avahi record data")};
   }
+
   if (size == 0) {
     return std::vector<std::uint8_t>{};
   }
+
   const auto *bytes{static_cast<const std::uint8_t *>(data)};
+
   return std::vector<std::uint8_t>{bytes, bytes + size};
 }
 
@@ -65,6 +73,7 @@ DiscoveryProvenance mapAvahiBrowseProvenance(AvahiLookupResultFlags flags) {
       [flags](AvahiLookupResultFlags flag) -> std::optional<bool> {
     return (flags & flag) ? std::optional<bool>{true} : std::nullopt;
   };
+
   return {known(AVAHI_LOOKUP_RESULT_CACHED), known(AVAHI_LOOKUP_RESULT_LOCAL),
           known(AVAHI_LOOKUP_RESULT_WIDE_AREA),
           known(AVAHI_LOOKUP_RESULT_MULTICAST)};
@@ -78,13 +87,16 @@ mapAvahiBrowseEvent(AvahiBrowserEvent event, AvahiIfIndex interfaceIndex,
       event == AVAHI_BROWSER_ALL_FOR_NOW) {
     return std::optional<DiscoveryAvahiBrowseEvent>{};
   }
+
   if (event == AVAHI_BROWSER_FAILURE) {
     return std::unexpected{
         DiscoveryError{DiscoveryErrorKind::kBackend, "Avahi browser failed"}};
   }
+
   if (event != AVAHI_BROWSER_NEW && event != AVAHI_BROWSER_REMOVE) {
     return std::unexpected{invalid("unknown Avahi browse event")};
   }
+
   auto interface{mapInterface(interfaceIndex)};
   auto instance{boundedString(name, 63)};
   auto serviceType{boundedString(type, 21)};
@@ -92,10 +104,12 @@ mapAvahiBrowseEvent(AvahiBrowserEvent event, AvahiIfIndex interfaceIndex,
   if (!interface || !instance || !serviceType || !serviceDomain) {
     return std::unexpected{invalid("invalid Avahi service identity")};
   }
+
   if (!validateInstanceName(*instance) || !validateServiceType(*serviceType) ||
       !validateDomain(*serviceDomain)) {
     return std::unexpected{invalid("invalid Avahi service identity")};
   }
+
   DiscoveryContribution contribution;
   if (protocol == AVAHI_PROTO_INET) {
     contribution = DiscoveryContribution::kIpv4;
@@ -104,6 +118,7 @@ mapAvahiBrowseEvent(AvahiBrowserEvent event, AvahiIfIndex interfaceIndex,
   } else {
     return std::unexpected{invalid("invalid Avahi browse transport")};
   }
+
   return DiscoveryAvahiBrowseEvent{event == AVAHI_BROWSER_NEW,
                                    {std::string{*instance},
                                     std::string{*serviceType},
@@ -122,6 +137,7 @@ makeAvahiResolverArguments(std::optional<std::uint32_t> interfaceIndex,
                              std::numeric_limits<AvahiIfIndex>::max()))) {
     return std::unexpected{invalid("invalid resolver interface")};
   }
+
   AvahiProtocol queryProtocol;
   if (contribution == DiscoveryContribution::kIpv4) {
     queryProtocol = AVAHI_PROTO_INET;
@@ -130,6 +146,7 @@ makeAvahiResolverArguments(std::optional<std::uint32_t> interfaceIndex,
   } else {
     return std::unexpected{invalid("invalid resolver transport")};
   }
+
   AvahiProtocol addressProtocol;
   if (family == DiscoveryAddressFamily::kIpv4) {
     addressProtocol = AVAHI_PROTO_INET;
@@ -138,6 +155,7 @@ makeAvahiResolverArguments(std::optional<std::uint32_t> interfaceIndex,
   } else {
     return std::unexpected{invalid("invalid resolver address family")};
   }
+
   return DiscoveryAvahiResolverArguments{
       interfaceIndex ? static_cast<AvahiIfIndex>(*interfaceIndex)
                      : AVAHI_IF_UNSPEC,
@@ -150,6 +168,7 @@ mapAvahiSrvRecord(const void *data, std::size_t size) {
   if (!bytes) {
     return std::unexpected{bytes.error()};
   }
+
   return parseSrvRecord(*bytes);
 }
 
@@ -160,9 +179,11 @@ mapAvahiTxtRecord(const void *data, std::size_t size, std::size_t maxEntries,
   if (!bytes) {
     return std::unexpected{bytes.error()};
   }
+
   if (auto parsed{parseTxtRecord(*bytes, maxEntries, maxBytes)}; !parsed) {
     return std::unexpected{parsed.error()};
   }
+
   return bytes;
 }
 
@@ -172,17 +193,22 @@ mapAvahiAddress(const AvahiAddress *address, AvahiIfIndex interfaceIndex) {
   if (!address || !interface) {
     return std::unexpected{invalid("invalid Avahi address")};
   }
+
   if (address->proto == AVAHI_PROTO_INET) {
     const auto *bytes{
         reinterpret_cast<const std::uint8_t *>(&address->data.ipv4.address)};
+
     return DiscoveryAddress{
         DiscoveryAddressFamily::kIpv4, {bytes, bytes + 4}, *interface};
   }
+
   if (address->proto == AVAHI_PROTO_INET6) {
     const auto *bytes{address->data.ipv6.address};
+
     return DiscoveryAddress{
         DiscoveryAddressFamily::kIpv6, {bytes, bytes + 16}, *interface};
   }
+
   return std::unexpected{invalid("invalid Avahi address protocol")};
 }
 

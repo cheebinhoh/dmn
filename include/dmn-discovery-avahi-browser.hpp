@@ -66,8 +66,9 @@ public:
 
 private:
   struct Deleter {
-    std::shared_ptr<DiscoveryAvahiBrowserApi> m_api;
     void operator()(AvahiServiceBrowser *browser) const noexcept;
+
+    std::shared_ptr<DiscoveryAvahiBrowserApi> m_api;
   };
   static void onBrowse(AvahiServiceBrowser *, AvahiIfIndex, AvahiProtocol,
                        AvahiBrowserEvent, const char *, const char *,

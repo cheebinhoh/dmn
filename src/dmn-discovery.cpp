@@ -24,64 +24,66 @@ Dmn_DiscoveryResult publicResult(detail::DiscoveryResult result) {
     return std::unexpected{detail::discoveryPublicError(
         result.error(), Dmn_DiscoveryErrorKind::Internal)};
   }
+
   return {};
 }
 
 } // namespace
 
 struct Dmn_DiscoveryBrowser::Impl {
-  detail::DiscoverySessionHandle handle;
-  detail::DiscoveryOptions options;
-  bool initialized{false};
+  detail::DiscoverySessionHandle m_handle;
+  detail::DiscoveryOptions m_options;
+  bool m_initialized{false};
 };
 
 struct Dmn_DiscoveryRegistration::Impl {
-  detail::DiscoveryRegistrationHandle handle;
-  bool initialized{false};
+  detail::DiscoveryRegistrationHandle m_handle;
+  bool m_initialized{false};
 };
 
 struct Dmn_DiscoveryClient::Impl {
-  detail::DiscoveryOptions options;
-  std::shared_ptr<detail::DiscoveryAvahiRegistrationSessions> backend;
+  detail::DiscoveryOptions m_options;
+  std::shared_ptr<detail::DiscoveryAvahiRegistrationSessions> m_backend;
 };
 
 Dmn_DiscoveryBrowser::Dmn_DiscoveryBrowser(std::shared_ptr<Impl> impl)
     : m_impl{std::move(impl)} {}
 
 Dmn_DiscoveryBrowser::~Dmn_DiscoveryBrowser() {
-  if (m_impl->initialized) {
+  if (m_impl->m_initialized) {
     static_cast<void>(stop());
   }
 }
 
 Dmn_DiscoveryValueResult<Dmn_DiscoverySnapshot>
 Dmn_DiscoveryBrowser::snapshot() const try {
-  return detail::discoveryPublicSnapshot(m_impl->handle.snapshot(),
-                                         m_impl->options);
+  return detail::discoveryPublicSnapshot(m_impl->m_handle.snapshot(),
+                                         m_impl->m_options);
 } catch (const std::bad_alloc &) {
   return std::unexpected{allocationError()};
 }
 
 Dmn_DiscoveryValueResult<std::uint64_t>
 Dmn_DiscoveryBrowser::refresh(const Dmn_DiscoveryServiceKey &key) try {
-  auto result{m_impl->handle.refresh(detail::discoveryKey(key))};
+  auto result{m_impl->m_handle.refresh(detail::discoveryKey(key))};
   if (!result) {
     return std::unexpected{detail::discoveryPublicError(
         result.error(), Dmn_DiscoveryErrorKind::Internal)};
   }
+
   return *result;
 } catch (const std::bad_alloc &) {
   return std::unexpected{allocationError()};
 }
 
 Dmn_DiscoveryResult Dmn_DiscoveryBrowser::clearCache() try {
-  return publicResult(m_impl->handle.clearCache());
+  return publicResult(m_impl->m_handle.clearCache());
 } catch (const std::bad_alloc &) {
   return std::unexpected{allocationError()};
 }
 
 Dmn_DiscoveryResult Dmn_DiscoveryBrowser::stop() try {
-  return publicResult(m_impl->handle.stop());
+  return publicResult(m_impl->m_handle.stop());
 } catch (const std::bad_alloc &) {
   return std::unexpected{allocationError()};
 }
@@ -90,20 +92,20 @@ Dmn_DiscoveryRegistration::Dmn_DiscoveryRegistration(std::shared_ptr<Impl> impl)
     : m_impl{std::move(impl)} {}
 
 Dmn_DiscoveryRegistration::~Dmn_DiscoveryRegistration() {
-  if (m_impl->initialized) {
+  if (m_impl->m_initialized) {
     static_cast<void>(stop());
   }
 }
 
 Dmn_DiscoveryValueResult<Dmn_DiscoveryRegistrationStatus>
 Dmn_DiscoveryRegistration::status() const try {
-  return detail::discoveryPublicRegistrationStatus(m_impl->handle.status());
+  return detail::discoveryPublicRegistrationStatus(m_impl->m_handle.status());
 } catch (const std::bad_alloc &) {
   return std::unexpected{allocationError()};
 }
 
 Dmn_DiscoveryResult Dmn_DiscoveryRegistration::stop() try {
-  return publicResult(m_impl->handle.stop());
+  return publicResult(m_impl->m_handle.stop());
 } catch (const std::bad_alloc &) {
   return std::unexpected{allocationError()};
 }
@@ -120,6 +122,7 @@ Dmn_DiscoveryClient::create(Dmn_DiscoveryOptions options) try {
     return std::unexpected{detail::discoveryPublicError(
         validated.error(), Dmn_DiscoveryErrorKind::Internal)};
   }
+
   auto backend{detail::DiscoveryAvahiRegistrationSessions::create(
       nativeOptions, detail::makeDiscoveryAvahiApi(),
       detail::makeDiscoveryAvahiRegistrationApi(),
@@ -130,7 +133,9 @@ Dmn_DiscoveryClient::create(Dmn_DiscoveryOptions options) try {
     return std::unexpected{detail::discoveryPublicError(
         backend.error(), Dmn_DiscoveryErrorKind::BackendUnavailable)};
   }
+
   auto impl{std::make_shared<Impl>(Impl{nativeOptions, std::move(*backend)})};
+
   return std::unique_ptr<Dmn_DiscoveryClient>{
       new Dmn_DiscoveryClient{std::move(impl)}};
 } catch (const std::bad_alloc &) {
@@ -145,6 +150,7 @@ Dmn_DiscoveryClient::browse(Dmn_DiscoveryQuery query,
     return std::unexpected{detail::discoveryPublicError(
         families.error(), Dmn_DiscoveryErrorKind::Internal)};
   }
+
   if (!handler) {
     return std::unexpected{
         Dmn_DiscoveryError{Dmn_DiscoveryErrorKind::InvalidArgument,
@@ -152,15 +158,16 @@ Dmn_DiscoveryClient::browse(Dmn_DiscoveryQuery query,
                            {},
                            {}}};
   }
+
   auto impl{std::make_shared<Dmn_DiscoveryBrowser::Impl>()};
-  impl->options = m_impl->options;
+  impl->m_options = m_impl->m_options;
   auto browser{
       std::unique_ptr<Dmn_DiscoveryBrowser>{new Dmn_DiscoveryBrowser{impl}}};
-  auto handle{m_impl->backend->browse(
+  auto handle{m_impl->m_backend->browse(
       {std::move(query.service_type), std::move(query.domain),
        query.interface_index},
       [handler = std::move(handler),
-       options = m_impl->options](detail::DiscoveryDelivery delivery) {
+       options = m_impl->m_options](detail::DiscoveryDelivery delivery) {
         auto event{[&]() -> Dmn_DiscoveryValueResult<Dmn_DiscoveryEvent> {
           try {
             return detail::discoveryPublicEvent(delivery, options);
@@ -176,6 +183,7 @@ Dmn_DiscoveryClient::browse(Dmn_DiscoveryQuery query,
                    : detail::DiscoveryErrorKind::kBackend,
                event.error().detail}};
         }
+
         handler(std::move(*event));
       },
       *families)};
@@ -183,8 +191,10 @@ Dmn_DiscoveryClient::browse(Dmn_DiscoveryQuery query,
     return std::unexpected{detail::discoveryPublicError(
         handle.error(), Dmn_DiscoveryErrorKind::BackendUnavailable)};
   }
-  impl->handle = std::move(*handle);
-  impl->initialized = true;
+
+  impl->m_handle = std::move(*handle);
+  impl->m_initialized = true;
+
   return browser;
 } catch (const std::bad_alloc &) {
   return std::unexpected{allocationError()};
@@ -200,10 +210,11 @@ Dmn_DiscoveryClient::advertise(Dmn_DiscoveryAdvertisement advertisement,
                            {},
                            {}}};
   }
+
   auto impl{std::make_shared<Dmn_DiscoveryRegistration::Impl>()};
   auto registration{std::unique_ptr<Dmn_DiscoveryRegistration>{
       new Dmn_DiscoveryRegistration{impl}}};
-  auto handle{m_impl->backend->advertise(
+  auto handle{m_impl->m_backend->advertise(
       detail::discoveryAdvertisement(advertisement),
       [handler =
            std::move(handler)](detail::DiscoveryRegistrationStatus status) {
@@ -221,15 +232,17 @@ Dmn_DiscoveryClient::advertise(Dmn_DiscoveryAdvertisement advertisement,
     return std::unexpected{detail::discoveryPublicError(
         handle.error(), Dmn_DiscoveryErrorKind::BackendUnavailable)};
   }
-  impl->handle = std::move(*handle);
-  impl->initialized = true;
+
+  impl->m_handle = std::move(*handle);
+  impl->m_initialized = true;
+
   return registration;
 } catch (const std::bad_alloc &) {
   return std::unexpected{allocationError()};
 }
 
 Dmn_DiscoveryResult Dmn_DiscoveryClient::shutdown() try {
-  return publicResult(m_impl->backend->shutdown());
+  return publicResult(m_impl->m_backend->shutdown());
 } catch (const std::bad_alloc &) {
   return std::unexpected{allocationError()};
 }

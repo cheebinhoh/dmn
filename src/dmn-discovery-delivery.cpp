@@ -25,10 +25,12 @@ DiscoveryResult DiscoveryDeliveryQueue::admit() {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kStopped,
                                           "discovery delivery stopped"}};
   }
+
   if (m_state == DiscoveryDeliveryState::kOverflow) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
                                           "discovery delivery overflow"}};
   }
+
   if (m_sequence == std::numeric_limits<std::uint64_t>::max()) {
     return overflow();
   }
@@ -38,6 +40,7 @@ DiscoveryResult DiscoveryDeliveryQueue::admit() {
 
 DiscoveryResult DiscoveryDeliveryQueue::overflow() {
   latchOverflow();
+
   return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
                                         "discovery delivery overflow"}};
 }
@@ -46,6 +49,7 @@ void DiscoveryDeliveryQueue::latchOverflow() noexcept {
   if (m_state != DiscoveryDeliveryState::kRunning) {
     return;
   }
+
   m_state = DiscoveryDeliveryState::kOverflow;
   m_overflowed = true;
   m_data.clear();
@@ -54,6 +58,7 @@ void DiscoveryDeliveryQueue::latchOverflow() noexcept {
   if (m_epoch != std::numeric_limits<std::uint64_t>::max()) {
     ++m_epoch;
   }
+
   if (m_sequence != std::numeric_limits<std::uint64_t>::max()) {
     m_emergency = DiscoveryDelivery{
         m_epoch, ++m_sequence, {}, DiscoveryControl::kOverflow};
@@ -64,6 +69,7 @@ DiscoveryResult DiscoveryDeliveryQueue::pushData(DiscoveryEvent event) {
   if (auto result{admit()}; !result) {
     return result;
   }
+
   if (m_data.size() >= m_max_data) {
     return overflow();
   }
@@ -82,6 +88,7 @@ DiscoveryDeliveryQueue::pushRegistration(DiscoveryRegistrationStatus status) {
   if (auto result{admit()}; !result) {
     return result;
   }
+
   if (m_data.size() >= m_max_data) {
     return overflow();
   }
@@ -89,6 +96,7 @@ DiscoveryDeliveryQueue::pushRegistration(DiscoveryRegistrationStatus status) {
   m_data.push_back(
       DiscoveryDelivery{m_epoch, m_sequence + 1, {}, {}, std::move(status)});
   ++m_sequence;
+
   return {};
 }
 
@@ -97,10 +105,12 @@ DiscoveryResult DiscoveryDeliveryQueue::registrationBackendChange(
   if (auto result{admit()}; !result) {
     return result;
   }
+
   if (m_epoch == std::numeric_limits<std::uint64_t>::max() ||
       m_control.size() >= m_max_control) {
     return overflow();
   }
+
   const bool unavailable{status.m_state ==
                          DiscoveryRegistrationState::kUnavailable};
   m_control.push_back(DiscoveryDelivery{
@@ -108,8 +118,10 @@ DiscoveryResult DiscoveryDeliveryQueue::registrationBackendChange(
   if (unavailable) {
     m_data.clear();
   }
+
   ++m_epoch;
   ++m_sequence;
+
   return {};
 }
 
@@ -117,10 +129,12 @@ DiscoveryResult DiscoveryDeliveryQueue::pushControl(DiscoveryControl control) {
   if (auto result{admit()}; !result) {
     return result;
   }
+
   if (control == DiscoveryControl::kOverflow) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "reserved overflow control"}};
   }
+
   if (m_control.size() >= m_max_control) {
     return overflow();
   }
@@ -136,6 +150,7 @@ DiscoveryResult DiscoveryDeliveryQueue::reset() {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kStopped,
                                           "discovery delivery stopped"}};
   }
+
   if (m_epoch == std::numeric_limits<std::uint64_t>::max()) {
     return overflow();
   }
@@ -158,6 +173,7 @@ DiscoveryResult DiscoveryDeliveryQueue::backendLost() {
   if (auto result{admit()}; !result) {
     return result;
   }
+
   if (m_epoch == std::numeric_limits<std::uint64_t>::max()) {
     return overflow();
   }
@@ -182,10 +198,13 @@ DiscoveryResult DiscoveryDeliveryQueue::backendAvailable() {
   if (auto result{admit()}; !result) {
     return result;
   }
+
   if (m_epoch == std::numeric_limits<std::uint64_t>::max()) {
     return overflow();
   }
+
   ++m_epoch;
+
   return pushControl(DiscoveryControl::kBackendAvailable);
 }
 
@@ -202,6 +221,7 @@ void DiscoveryDeliveryQueue::stop() {
       m_epoch != std::numeric_limits<std::uint64_t>::max()) {
     ++m_epoch;
   }
+
   m_state = DiscoveryDeliveryState::kStopped;
   m_data.clear();
   m_control.clear();
@@ -212,8 +232,10 @@ std::optional<DiscoveryDelivery> DiscoveryDeliveryQueue::pop() {
   if (m_emergency) {
     auto result{std::move(m_emergency)};
     m_emergency.reset();
+
     return result;
   }
+
   if (m_data.empty() && m_control.empty()) {
     return std::nullopt;
   }

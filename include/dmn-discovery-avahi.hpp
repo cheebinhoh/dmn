@@ -83,12 +83,14 @@ public:
 
 private:
   struct PollDeleter {
-    std::shared_ptr<DiscoveryAvahiApi> m_api;
     void operator()(AvahiSimplePoll *poll) const noexcept;
+
+    std::shared_ptr<DiscoveryAvahiApi> m_api;
   };
   struct ClientDeleter {
-    std::shared_ptr<DiscoveryAvahiApi> m_api;
     void operator()(AvahiClient *client) const noexcept;
+
+    std::shared_ptr<DiscoveryAvahiApi> m_api;
   };
   static void onClient(AvahiClient *, AvahiClientState, void *) noexcept;
   [[nodiscard]] DiscoveryResult callbackStatus() const;

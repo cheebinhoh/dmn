@@ -103,8 +103,8 @@ such as `#include "proto/dmn-dmesg.pb.h"` remain valid.
    consumers must not need to copy Dmn's global CMake language-standard
    settings.
 7. Generated protobuf headers are installed only when DMesgNet is enabled.
-   Internal D-Bus implementation headers and feature-disabled public headers
-   remain excluded.
+   Internal D-Bus and discovery implementation headers and feature-disabled
+   public headers remain excluded.
 8. Static libraries and public headers are installed as Development
    components; runtime components retain their existing install behavior.
 

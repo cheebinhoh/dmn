@@ -26,6 +26,7 @@ Dmn_DiscoveryOperation publicOperation(DiscoveryAttempt attempt) {
   case DiscoveryAttempt::kIpv6:
     return Dmn_DiscoveryOperation::IPv6Address;
   }
+
   std::terminate();
 }
 
@@ -65,6 +66,7 @@ discoveryQueryFamilies(const Dmn_DiscoveryQuery &query) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "invalid discovery query"}};
   }
+
   std::array<bool, 2> families{false, false};
   for (const auto family : query.address_families) {
     std::size_t index;
@@ -79,16 +81,20 @@ discoveryQueryFamilies(const Dmn_DiscoveryQuery &query) {
       return std::unexpected{DiscoveryError{
           DiscoveryErrorKind::kInvalidArgument, "invalid address family"}};
     }
+
     if (families[index]) {
       return std::unexpected{DiscoveryError{
           DiscoveryErrorKind::kInvalidArgument, "duplicate address family"}};
     }
+
     families[index] = true;
   }
+
   if (!families[0] && !families[1]) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "no address family requested"}};
   }
+
   return families;
 }
 
@@ -120,6 +126,7 @@ Dmn_DiscoveryError discoveryPublicError(const DiscoveryError &error,
     kind = Dmn_DiscoveryErrorKind::CallbackFailure;
     break;
   }
+
   if (error.m_kind == DiscoveryErrorKind::kBackend && error.m_native_category) {
     switch (*error.m_native_category) {
     case DiscoveryNativeErrorCategory::kUnavailable:
@@ -139,6 +146,7 @@ Dmn_DiscoveryError discoveryPublicError(const DiscoveryError &error,
       break;
     }
   }
+
   return {kind, error.m_message, error.m_backend_domain, error.m_backend_code};
 }
 
@@ -178,12 +186,14 @@ discoveryPublicCandidate(const DiscoveryCandidate &candidate,
                            {},
                            {}}};
   }
+
   if (candidate.m_records.m_srv) {
     const auto &srv{*candidate.m_records.m_srv};
     result.srv = Dmn_DiscoverySrvRecord{srv.m_priority, srv.m_weight,
                                         srv.m_port, srv.m_target};
     result.hostname = srv.m_target;
   }
+
   result.addresses.reserve(candidate.m_records.m_addresses.size());
   for (const auto &address : candidate.m_records.m_addresses) {
     result.addresses.push_back(
@@ -192,6 +202,7 @@ discoveryPublicCandidate(const DiscoveryCandidate &candidate,
              : Dmn_DiscoveryAddressFamily::IPv6,
          address.m_bytes, address.m_interface});
   }
+
   if (candidate.m_records.m_txt_wire) {
     auto parsed{parseTxtRecord(*candidate.m_records.m_txt_wire,
                                options.m_max_txt_entries,
@@ -200,9 +211,11 @@ discoveryPublicCandidate(const DiscoveryCandidate &candidate,
       return std::unexpected{discoveryPublicError(
           parsed.error(), Dmn_DiscoveryErrorKind::Internal)};
     }
+
     result.txt_state = Dmn_DiscoveryTxtState::Present;
     result.txt = std::move(*parsed);
   }
+
   if (candidate.m_refresh) {
     Dmn_DiscoveryRefreshState state{Dmn_DiscoveryRefreshState::Pending};
     if (candidate.m_refresh->m_state == DiscoveryRefreshState::kSucceeded) {
@@ -210,9 +223,11 @@ discoveryPublicCandidate(const DiscoveryCandidate &candidate,
     } else if (candidate.m_refresh->m_state == DiscoveryRefreshState::kFailed) {
       state = Dmn_DiscoveryRefreshState::Failed;
     }
+
     result.refresh =
         Dmn_DiscoveryRefreshStatus{candidate.m_refresh->m_id, state};
   }
+
   result.failures.reserve(candidate.m_failures.size());
   for (const auto &failure : candidate.m_failures) {
     const DiscoveryError error{
@@ -224,6 +239,7 @@ discoveryPublicCandidate(const DiscoveryCandidate &candidate,
          discoveryPublicError(error, Dmn_DiscoveryErrorKind::Resolution),
          failure.m_error.m_recoverable});
   }
+
   return result;
 }
 
@@ -247,6 +263,7 @@ discoveryPublicSnapshot(const DiscoverySessionSnapshot &snapshot,
   } else if (!snapshot.m_backend_available) {
     result.state = Dmn_DiscoveryBrowserState::BackendUnavailable;
   }
+
   if (snapshot.m_cleanup_error) {
     result.error = discoveryPublicError(*snapshot.m_cleanup_error,
                                         Dmn_DiscoveryErrorKind::Internal);
@@ -261,14 +278,17 @@ discoveryPublicSnapshot(const DiscoverySessionSnapshot &snapshot,
                                       {},
                                       {}};
   }
+
   result.candidates.reserve(snapshot.m_browser.m_candidates.size());
   for (const auto &candidate : snapshot.m_browser.m_candidates) {
     auto converted{discoveryPublicCandidate(candidate, options)};
     if (!converted) {
       return std::unexpected{converted.error()};
     }
+
     result.candidates.push_back(std::move(*converted));
   }
+
   return result;
 }
 
@@ -290,21 +310,26 @@ discoveryPublicEvent(const DiscoveryDelivery &delivery,
       result.kind = Dmn_DiscoveryEventKind::Removed;
       break;
     }
+
     auto candidate{
         discoveryPublicCandidate(delivery.m_data->m_candidate, options)};
     if (!candidate) {
       return std::unexpected{candidate.error()};
     }
+
     result.key = candidate->key;
     result.candidate = std::move(*candidate);
+
     return result;
   }
+
   if (!delivery.m_control) {
     return std::unexpected{Dmn_DiscoveryError{Dmn_DiscoveryErrorKind::Internal,
                                               "invalid discovery delivery",
                                               {},
                                               {}}};
   }
+
   switch (*delivery.m_control) {
   case DiscoveryControl::kReset:
     result.kind = Dmn_DiscoveryEventKind::Reset;
@@ -325,6 +350,7 @@ discoveryPublicEvent(const DiscoveryDelivery &delivery,
                                       {}};
     break;
   }
+
   return result;
 }
 
@@ -354,12 +380,14 @@ discoveryPublicRegistrationStatus(const DiscoveryRegistrationStatus &status) {
     result.state = Dmn_DiscoveryRegistrationState::Stopped;
     break;
   }
+
   if (status.m_callback_failed && !status.m_explicit_stop) {
     result.state = status.m_error && status.m_error->m_kind ==
                                          DiscoveryErrorKind::kCallbackFailure
                        ? Dmn_DiscoveryRegistrationState::CallbackFailure
                        : Dmn_DiscoveryRegistrationState::Failed;
   }
+
   if (status.m_error) {
     const auto fallback{status.m_state == DiscoveryRegistrationState::kCollision
                             ? Dmn_DiscoveryErrorKind::Collision
@@ -369,6 +397,7 @@ discoveryPublicRegistrationStatus(const DiscoveryRegistrationStatus &status) {
                             : Dmn_DiscoveryErrorKind::Internal};
     result.error = discoveryPublicError(*status.m_error, fallback);
   }
+
   return result;
 }
 

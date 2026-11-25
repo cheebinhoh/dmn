@@ -74,6 +74,7 @@ private:
   void startBrowser(BrowserEntry &entry);
   void releaseBrowserNative(BrowserEntry &entry) noexcept;
   void releaseClientNative() noexcept;
+  void failAllResourceLimit();
   [[nodiscard]] DiscoveryResult cleanupBrowser(BrowserEntry &entry);
   [[nodiscard]] DiscoveryResult onBrowse(BrowserEntry &entry,
                                          DiscoveryAvahiBrowseEvent event);

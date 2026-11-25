@@ -94,6 +94,21 @@ bool conversionErrorSurvivesAllocationFailure(bool registration) {
   }
   return false;
 }
+
+bool commandAllocationFailurePreservesWorker() {
+  DiscoveryCommandWorker worker{2, 2};
+  auto failed{worker.execute([]() -> DiscoveryResult {
+    failAllocation = true;
+    throw std::bad_alloc{};
+  })};
+  auto next{worker.execute([]() -> DiscoveryResult {
+    failAllocation = false;
+    return {};
+  })};
+  return !failed &&
+         failed.error().m_kind == DiscoveryErrorKind::kResourceLimit &&
+         next.has_value() && worker.shutdown().has_value();
+}
 } // namespace
 
 int main() {
@@ -115,9 +130,11 @@ int main() {
   }
   const bool browser{conversionErrorSurvivesAllocationFailure(false)};
   const bool registration{conversionErrorSurvivesAllocationFailure(true)};
-  if (!browser || !registration) {
-    std::cerr << "conversion error was lost: browser=" << browser
-              << ", registration=" << registration << '\n';
+  const bool command{commandAllocationFailurePreservesWorker()};
+  if (!browser || !registration || !command) {
+    std::cerr << "allocation failure handling failed: browser=" << browser
+              << ", registration=" << registration << ", command=" << command
+              << '\n';
     return 1;
   }
   return 0;

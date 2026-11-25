@@ -31,14 +31,15 @@ class NativeAvahiApi final : public DiscoveryAvahiApi {
   // Avahi clears its own wake pipe during prepare(), so commands need a
   // separate pipe whose readiness survives until the actual poll.
   struct PollContext {
-    int m_pipe[2]{-1, -1};
-    std::atomic<int> m_error{0};
     ~PollContext() {
       if (m_pipe[0] >= 0)
         close(m_pipe[0]);
       if (m_pipe[1] >= 0)
         close(m_pipe[1]);
     }
+
+    int m_pipe[2]{-1, -1};
+    std::atomic<int> m_error{0};
   };
 
   static int pollWithWakeup(struct pollfd *fds, unsigned int count, int timeout,
@@ -53,14 +54,18 @@ class NativeAvahiApi final : public DiscoveryAvahiApi {
       const auto result{::poll(all.data(), all.size(), wait)};
       if (context.m_error.load(std::memory_order_acquire)) {
         errno = context.m_error.load(std::memory_order_relaxed);
+
         return -1;
       }
+
       if (result <= 0) {
         return result;
       }
+
       for (unsigned int i{0}; i < count; ++i) {
         fds[i].revents = all[i].revents;
       }
+
       if (all.back().revents & POLLIN) {
         char buffer[128];
         ssize_t size;
@@ -71,13 +76,17 @@ class NativeAvahiApi final : public DiscoveryAvahiApi {
           return -1;
         }
       }
+
       if (all.back().revents & (POLLERR | POLLHUP | POLLNVAL)) {
         errno = EIO;
+
         return -1;
       }
+
       return result;
     } catch (const std::bad_alloc &) {
       errno = ENOMEM;
+
       return -1;
     }
   }
@@ -91,40 +100,51 @@ public:
     if (!poll) {
       return nullptr;
     }
+
     try {
       auto context{std::make_unique<PollContext>()};
       if (pipe2(context->m_pipe, O_NONBLOCK | O_CLOEXEC) != 0) {
         avahi_simple_poll_free(poll);
+
         return nullptr;
       }
+
       avahi_simple_poll_set_func(poll, pollWithWakeup, context.get());
       std::lock_guard lock{m_mutex};
       m_polls.emplace(poll, std::move(context));
     } catch (const std::bad_alloc &) {
       avahi_simple_poll_free(poll);
+
       return nullptr;
     }
+
     return poll;
   }
+
   void freePoll(AvahiSimplePoll *poll) noexcept override {
     std::lock_guard lock{m_mutex};
     avahi_simple_poll_free(poll);
     m_polls.erase(poll);
   }
+
   const AvahiPoll *pollApi(AvahiSimplePoll *poll) override {
     return avahi_simple_poll_get(poll);
   }
+
   int iterate(AvahiSimplePoll *poll, int timeoutMs) override {
     PollContext *context;
     {
       std::lock_guard lock{m_mutex};
       context = m_polls.at(poll).get();
     }
+
     if (context->m_error.load(std::memory_order_acquire)) {
       return -1;
     }
+
     return avahi_simple_poll_iterate(poll, timeoutMs);
   }
+
   void wake(AvahiSimplePoll *poll) noexcept override {
     std::lock_guard lock{m_mutex};
     auto &context{*m_polls.at(poll)};
@@ -138,17 +158,21 @@ public:
       context.m_error.store(errno, std::memory_order_release);
     }
   }
+
   AvahiClient *newClient(const AvahiPoll *poll, AvahiClientCallback callback,
                          void *context, int *error) override {
     return avahi_client_new(poll, AVAHI_CLIENT_NO_FAIL, callback, context,
                             error);
   }
+
   void freeClient(AvahiClient *client) noexcept override {
     avahi_client_free(client);
   }
+
   int clientError(AvahiClient *client) override {
     return avahi_client_errno(client);
   }
+
   const char *errorString(int error) override { return avahi_strerror(error); }
 
 private:
@@ -191,6 +215,7 @@ DiscoveryResult DiscoveryAvahiPoller::start() {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "invalid Avahi poller state"}};
   }
+
   m_callback_failed = false;
   m_callback_allocation_failed = false;
   m_client_error.reset();
@@ -201,6 +226,7 @@ DiscoveryResult DiscoveryAvahiPoller::start() {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
                                           "Avahi poll allocation failed"}};
   }
+
   return createClient();
 }
 
@@ -210,15 +236,18 @@ DiscoveryResult DiscoveryAvahiPoller::createClient() {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                           "Avahi poll API unavailable"}};
   }
+
   int error{0};
   m_client.reset(m_api->newClient(pollApi, onClient, this, &error));
   if (!m_client) {
     if (m_callback_failed) {
       return callbackStatus();
     }
+
     if (m_client_error) {
       return handleClientFailure();
     }
+
     if (error == AVAHI_ERR_DISCONNECTED || error == AVAHI_ERR_NO_DAEMON) {
       m_client_error = error;
       try {
@@ -231,11 +260,14 @@ DiscoveryResult DiscoveryAvahiPoller::createClient() {
       } catch (...) {
         m_callback_failed = true;
       }
+
       return handleClientFailure();
     }
+
     return std::unexpected{discoveryAvahiError(
         "Avahi client creation failed", error, m_api->errorString(error))};
   }
+
   return handleClientFailure();
 }
 
@@ -243,13 +275,16 @@ DiscoveryResult DiscoveryAvahiPoller::handleClientFailure() {
   if (m_callback_failed) {
     return callbackStatus();
   }
+
   if (!m_client_error) {
     return {};
   }
+
   if (*m_client_error != AVAHI_ERR_DISCONNECTED &&
       *m_client_error != AVAHI_ERR_NO_DAEMON) {
     return callbackStatus();
   }
+
   m_client.reset();
   m_client_error.reset();
   const auto now{m_clock()};
@@ -258,6 +293,7 @@ DiscoveryResult DiscoveryAvahiPoller::handleClientFailure() {
                     ? std::chrono::steady_clock::time_point::max()
                     : now + delay;
   m_next_delay_seconds = std::min(m_next_delay_seconds * 2, 30u);
+
   return {};
 }
 
@@ -266,6 +302,7 @@ DiscoveryResult DiscoveryAvahiPoller::wait(bool block) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                           "Avahi poll is not started"}};
   }
+
   if (m_retry_due && m_clock() >= *m_retry_due) {
     m_retry_due.reset();
     auto result{createClient()};
@@ -273,16 +310,19 @@ DiscoveryResult DiscoveryAvahiPoller::wait(bool block) {
       return result;
     }
   }
+
   Deadline deadline{m_retry_due};
   if (m_drive) {
     auto next{m_drive()};
     if (!next) {
       return std::unexpected{next.error()};
     }
+
     if (*next && (!deadline || **next < *deadline)) {
       deadline = *next;
     }
   }
+
   int timeout{block ? -1 : 0};
   if (block && deadline) {
     const auto now{m_clock()};
@@ -301,10 +341,12 @@ DiscoveryResult DiscoveryAvahiPoller::wait(bool block) {
       }
     }
   }
+
   if (m_api->iterate(m_poll.get(), timeout) != 0) {
     return std::unexpected{
         DiscoveryError{DiscoveryErrorKind::kBackend, "Avahi poll failed"}};
   }
+
   return handleClientFailure();
 }
 
@@ -327,9 +369,11 @@ DiscoveryResult DiscoveryAvahiPoller::stop() {
                                               "Avahi cleanup callback failed"}};
     }
   }
+
   m_client.reset();
   m_poll.reset();
   m_retry_due.reset();
+
   return result;
 }
 
@@ -338,15 +382,18 @@ DiscoveryResult DiscoveryAvahiPoller::callbackStatus() const {
     return std::unexpected{
         DiscoveryError{DiscoveryErrorKind::kResourceLimit, {}}};
   }
+
   if (m_callback_failed) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                           "Avahi state callback failed"}};
   }
+
   if (m_client_error) {
     return std::unexpected{
         discoveryAvahiError("Avahi client failed", *m_client_error,
                             m_api->errorString(*m_client_error))};
   }
+
   return {};
 }
 
@@ -361,6 +408,7 @@ void DiscoveryAvahiPoller::onClient(AvahiClient *client, AvahiClientState state,
     } else if (state == AVAHI_CLIENT_S_RUNNING) {
       self->m_next_delay_seconds = 1;
     }
+
     if (self->m_handler) {
       self->m_handler({state, error, client});
     }

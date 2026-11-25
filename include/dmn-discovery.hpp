@@ -75,7 +75,11 @@ struct Dmn_DiscoveryError {
 /** @brief Result of an operation that has no success value. */
 using Dmn_DiscoveryResult = std::expected<void, Dmn_DiscoveryError>;
 
-/** @brief Result of an operation that returns an owned value. */
+/**
+ * @brief Result of an operation that returns an owned value.
+ *
+ * @tparam T Type of the success value.
+ */
 template <typename T>
 using Dmn_DiscoveryValueResult = std::expected<T, Dmn_DiscoveryError>;
 
@@ -362,13 +366,18 @@ class Dmn_DiscoveryClient;
  */
 class Dmn_DiscoveryBrowser {
 public:
+  /** @brief Attempt to stop an initialized browser and release its handle. */
   ~Dmn_DiscoveryBrowser();
   Dmn_DiscoveryBrowser(const Dmn_DiscoveryBrowser &) = delete;
   Dmn_DiscoveryBrowser &operator=(const Dmn_DiscoveryBrowser &) = delete;
   Dmn_DiscoveryBrowser(Dmn_DiscoveryBrowser &&) = delete;
   Dmn_DiscoveryBrowser &operator=(Dmn_DiscoveryBrowser &&) = delete;
 
-  /** @brief Copy the current owned browser view and lifecycle status. */
+  /**
+   * @brief Copy the current owned browser view and lifecycle status.
+   *
+   * @return The snapshot or an error.
+   */
   [[nodiscard]] Dmn_DiscoveryValueResult<Dmn_DiscoverySnapshot>
   snapshot() const;
 
@@ -377,6 +386,9 @@ public:
    *
    * The returned identifier means the request was accepted locally, not that
    * an address or successful network query is guaranteed.
+   *
+   * @param key Service to refresh.
+   * @return The accepted attempt identifier or an error.
    */
   [[nodiscard]] Dmn_DiscoveryValueResult<std::uint64_t>
   refresh(const Dmn_DiscoveryServiceKey &key);
@@ -387,6 +399,8 @@ public:
    * Returns after local invalidation and restart submission, not after
    * network responses or callback delivery. Not permitted from this
    * browser's callback context.
+   *
+   * @return Success or an error.
    */
   [[nodiscard]] Dmn_DiscoveryResult clearCache();
 
@@ -395,6 +409,8 @@ public:
    *
    * Repeated calls are safe. Not permitted from this browser's callback
    * context.
+   *
+   * @return Success or an error.
    */
   [[nodiscard]] Dmn_DiscoveryResult stop();
 
@@ -416,6 +432,8 @@ private:
  */
 class Dmn_DiscoveryRegistration {
 public:
+  /** @brief Attempt to stop an initialized registration and release its handle.
+   */
   ~Dmn_DiscoveryRegistration();
   Dmn_DiscoveryRegistration(const Dmn_DiscoveryRegistration &) = delete;
   Dmn_DiscoveryRegistration &
@@ -423,11 +441,19 @@ public:
   Dmn_DiscoveryRegistration(Dmn_DiscoveryRegistration &&) = delete;
   Dmn_DiscoveryRegistration &operator=(Dmn_DiscoveryRegistration &&) = delete;
 
-  /** @brief Copy the current owned registration state and last error. */
+  /**
+   * @brief Copy the current owned registration state and last error.
+   *
+   * @return The registration status or an error.
+   */
   [[nodiscard]]
   Dmn_DiscoveryValueResult<Dmn_DiscoveryRegistrationStatus> status() const;
 
-  /** @brief Withdraw this registration and drain started callbacks. */
+  /**
+   * @brief Withdraw this registration and drain started callbacks.
+   *
+   * @return Success or an error.
+   */
   [[nodiscard]] Dmn_DiscoveryResult stop();
 
 private:
@@ -452,11 +478,15 @@ public:
    * @brief Create a client with finite, validated resource limits.
    *
    * No browse or registration is started by this factory.
+   *
+   * @param options Resource limits and refresh deadline.
+   * @return The client or an error.
    */
   [[nodiscard]] static Dmn_DiscoveryValueResult<
       std::unique_ptr<Dmn_DiscoveryClient>>
   create(Dmn_DiscoveryOptions options = {});
 
+  /** @brief Attempt to shut down the client and release its workers. */
   ~Dmn_DiscoveryClient();
   Dmn_DiscoveryClient(const Dmn_DiscoveryClient &) = delete;
   Dmn_DiscoveryClient &operator=(const Dmn_DiscoveryClient &) = delete;
@@ -469,6 +499,10 @@ public:
    * Acceptance is local submission, not a promise of backend availability
    * or discovered services. The handler may be called before this function
    * returns and is serialized with this client's other callbacks.
+   *
+   * @param query Service query to submit.
+   * @param handler Callback receiving owned events.
+   * @return The browser or an error.
    */
   [[nodiscard]] Dmn_DiscoveryValueResult<std::unique_ptr<Dmn_DiscoveryBrowser>>
   browse(Dmn_DiscoveryQuery query, Dmn_DiscoveryEventHandler handler);
@@ -478,6 +512,10 @@ public:
    *
    * Acceptance is not registration completion. A name collision is reported
    * and the instance is not silently renamed.
+   *
+   * @param advertisement Service to advertise.
+   * @param handler Callback receiving registration status.
+   * @return The registration or an error.
    */
   [[nodiscard]] Dmn_DiscoveryValueResult<
       std::unique_ptr<Dmn_DiscoveryRegistration>>
@@ -489,6 +527,8 @@ public:
    *
    * Repeated calls are safe. Not permitted from this client's callback
    * context.
+   *
+   * @return Success or an error.
    */
   [[nodiscard]] Dmn_DiscoveryResult shutdown();
 

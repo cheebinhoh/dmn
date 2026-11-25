@@ -51,6 +51,7 @@ public:
   [[nodiscard]] DiscoveryResult retry(DiscoveryAttemptId id);
   /** @brief Ignore further native callbacks until deferred cleanup. */
   void invalidate() noexcept { m_invalidated = true; }
+
   void releaseNative() noexcept;
   [[nodiscard]] DiscoveryResult cleanup();
   /** @brief Whether an unrecoverable exception or cleanup ended this owner. */

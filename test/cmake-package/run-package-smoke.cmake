@@ -109,6 +109,12 @@ elseif (NOT DMN_EXPECT_DISCOVERY AND EXISTS "${_discovery_header}")
   package_test_error("Discovery-disabled package installed its public header")
 endif()
 
+file(GLOB _private_discovery_headers
+     "${_relocated}/${DMN_INSTALL_INCLUDEDIR}/dmn/dmn-discovery-*.hpp")
+if (_private_discovery_headers)
+  package_test_error("Package installed private discovery headers: ${_private_discovery_headers}")
+endif()
+
 if (DMN_EXPECT_DISCOVERY AND DMN_EXPECT_AVAHI_PROVIDER STREQUAL "SOURCE")
   foreach(_file IN ITEMS
           "${DMN_INSTALL_DATADIR}/licenses/dmn/avahi/LICENSE"

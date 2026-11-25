@@ -90,6 +90,7 @@ std::vector<DiscoveryAttemptId> DiscoveryRetrySchedule::takeDue(TimePoint now) {
   for (const auto &id : result) {
     m_entries.find(id)->second.m_due.reset();
   }
+
   return result;
 }
 
@@ -102,6 +103,7 @@ DiscoveryRetrySchedule::nextDeadline() const {
       earliest = entry.m_due;
     }
   }
+
   return earliest;
 }
 

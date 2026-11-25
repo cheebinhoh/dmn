@@ -30,12 +30,15 @@ public:
                                       type, domain, addressProtocol, flags,
                                       callback, context);
   }
+
   void free(AvahiServiceResolver *resolver) noexcept override {
     avahi_service_resolver_free(resolver);
   }
+
   int clientError(AvahiClient *client) override {
     return avahi_client_errno(client);
   }
+
   const char *errorString(int error) override { return avahi_strerror(error); }
 };
 
@@ -43,6 +46,7 @@ bool sameInstance(std::string_view left, std::string_view right) {
   if (left.size() != right.size()) {
     return false;
   }
+
   const auto fold = [](char value) {
     return value >= 'A' && value <= 'Z' ? value + ('a' - 'A') : value;
   };
@@ -51,12 +55,14 @@ bool sameInstance(std::string_view left, std::string_view right) {
       return false;
     }
   }
+
   return true;
 }
 
 bool sameDomain(const std::string &left, const std::string &right) {
   const auto first{canonicalizeDomain(left)};
   const auto second{canonicalizeDomain(right)};
+
   return first && second && *first == *second;
 }
 
@@ -93,11 +99,13 @@ DiscoveryResult DiscoveryAvahiServiceResolver::start() {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "invalid Avahi resolver"}};
   }
+
   auto args{
       makeAvahiResolverArguments(m_key.m_interface, m_contribution, m_family)};
   if (!args) {
     return std::unexpected{args.error()};
   }
+
   m_arguments = *args;
   m_error.reset();
   m_callback_failed = false;
@@ -111,18 +119,23 @@ DiscoveryResult DiscoveryAvahiServiceResolver::start() {
         args->m_address_protocol, args->m_flags, onResolved, this);
   } catch (...) {
     m_starting = false;
+
     throw;
   }
+
   m_starting = false;
   m_resolver.reset(resolver);
   auto result{status()};
   if (!result) {
     m_resolver.reset();
+
     return result;
   }
+
   if (!m_resolver) {
     return std::unexpected{nativeError("Avahi resolver creation failed")};
   }
+
   return {};
 }
 
@@ -131,13 +144,16 @@ DiscoveryResult DiscoveryAvahiServiceResolver::status() const {
     return std::unexpected{
         DiscoveryError{DiscoveryErrorKind::kResourceLimit, {}}};
   }
+
   if (m_callback_failed) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                           "Avahi resolver callback failed"}};
   }
+
   if (m_error) {
     return std::unexpected{*m_error};
   }
+
   return {};
 }
 
@@ -146,13 +162,16 @@ DiscoveryResult DiscoveryAvahiServiceResolver::stop() {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                           "reentrant Avahi resolver stop"}};
   }
+
   m_resolver.reset();
+
   return {};
 }
 
 DiscoveryError
 DiscoveryAvahiServiceResolver::nativeError(const char *prefix) const {
   const auto code{m_api->clientError(m_client)};
+
   return discoveryAvahiError(prefix, code, m_api->errorString(code));
 }
 
@@ -176,6 +195,7 @@ void DiscoveryAvahiServiceResolver::onResolved(
                     (!self.m_resolver || self.m_resolver.get() != resolver))) {
     return;
   }
+
   ++self.m_callback_depth;
   try {
     if (!self.m_error && !self.m_callback_failed) {
@@ -228,6 +248,7 @@ void DiscoveryAvahiServiceResolver::onResolved(
       self.m_callback_failed = true;
     }
   }
+
   --self.m_callback_depth;
 }
 

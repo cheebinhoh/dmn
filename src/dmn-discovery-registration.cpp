@@ -27,6 +27,7 @@ validateAdvertisement(const DiscoveryOptions &options,
   if (auto result{validateOptions(options)}; !result) {
     return std::unexpected{result.error()};
   }
+
   const auto &key{advertisement.m_key};
   if (!validateInstanceName(key.m_instance) ||
       !validateServiceType(key.m_type) || !validateDomain(key.m_domain) ||
@@ -36,6 +37,7 @@ validateAdvertisement(const DiscoveryOptions &options,
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "invalid discovery advertisement"}};
   }
+
   return {};
 }
 
@@ -63,6 +65,7 @@ DiscoveryRegistration::validateGeneration(std::uint64_t generation) const {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                           "stale registration callback"}};
   }
+
   return {};
 }
 
@@ -76,9 +79,11 @@ DiscoveryRegistration::transition(DiscoveryRegistrationState state,
     }
   } catch (const std::bad_alloc &) {
     markOverflow();
+
     return std::unexpected{
         DiscoveryError{DiscoveryErrorKind::kResourceLimit, {}}};
   }
+
   return {};
 }
 
@@ -86,9 +91,11 @@ DiscoveryResult DiscoveryRegistration::established(std::uint64_t generation) {
   if (auto result{validateGeneration(generation)}; !result) {
     return result;
   }
+
   if (m_status.m_state != DiscoveryRegistrationState::kEstablished) {
     return transition(DiscoveryRegistrationState::kEstablished);
   }
+
   return {};
 }
 
@@ -97,6 +104,7 @@ DiscoveryResult DiscoveryRegistration::collision(std::uint64_t generation,
   if (auto result{validateGeneration(generation)}; !result) {
     return result;
   }
+
   return transition(
       DiscoveryRegistrationState::kCollision,
       DiscoveryError{DiscoveryErrorKind::kBackend, std::move(message)});
@@ -113,6 +121,7 @@ DiscoveryResult DiscoveryRegistration::failed(std::uint64_t generation,
   if (auto result{validateGeneration(generation)}; !result) {
     return result;
   }
+
   return transition(DiscoveryRegistrationState::kFailed, std::move(error));
 }
 
@@ -122,14 +131,18 @@ DiscoveryResult DiscoveryRegistration::backendLost() {
     return std::unexpected{
         DiscoveryError{DiscoveryErrorKind::kBackend, "registration stopped"}};
   }
+
   if (m_status.m_state == DiscoveryRegistrationState::kUnavailable) {
     return {};
   }
+
   if (m_generation == std::numeric_limits<std::uint64_t>::max()) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
                                           "registration generation exhausted"}};
   }
+
   ++m_generation;
+
   return transition(DiscoveryRegistrationState::kUnavailable);
 }
 
@@ -139,9 +152,11 @@ DiscoveryResult DiscoveryRegistration::backendAvailable() {
     return std::unexpected{
         DiscoveryError{DiscoveryErrorKind::kBackend, "registration stopped"}};
   }
+
   if (m_status.m_state != DiscoveryRegistrationState::kUnavailable) {
     return {};
   }
+
   return transition(DiscoveryRegistrationState::kRegistering);
 }
 
@@ -151,11 +166,13 @@ DiscoveryResult DiscoveryRegistration::backendFailed(DiscoveryError error) {
     return std::unexpected{
         DiscoveryError{DiscoveryErrorKind::kBackend, "registration stopped"}};
   }
+
   return transition(DiscoveryRegistrationState::kFailed, std::move(error));
 }
 
 DiscoveryResult DiscoveryRegistration::stop() {
   m_status.m_state = DiscoveryRegistrationState::kStopped;
+
   return {};
 }
 

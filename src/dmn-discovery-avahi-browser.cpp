@@ -26,12 +26,15 @@ public:
     return avahi_service_browser_new(client, interfaceIndex, protocol, type,
                                      domain, flags, callback, context);
   }
+
   void free(AvahiServiceBrowser *browser) noexcept override {
     avahi_service_browser_free(browser);
   }
+
   int clientError(AvahiClient *client) override {
     return avahi_client_errno(client);
   }
+
   const char *errorString(int error) override { return avahi_strerror(error); }
 };
 
@@ -71,6 +74,7 @@ DiscoveryResult DiscoveryAvahiServiceBrowser::start() {
         DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                        "invalid Avahi browser query or state"}};
   }
+
   m_error.reset();
   m_callback_failed = false;
   m_callback_allocation_failed = false;
@@ -85,18 +89,23 @@ DiscoveryResult DiscoveryAvahiServiceBrowser::start() {
                             static_cast<AvahiLookupFlags>(0), onBrowse, this);
   } catch (...) {
     m_starting = false;
+
     throw;
   }
+
   m_starting = false;
   m_browser.reset(browser);
   auto result{status()};
   if (!result) {
     m_browser.reset();
+
     return result;
   }
+
   if (!m_browser) {
     return std::unexpected{nativeError("Avahi browser creation failed")};
   }
+
   return {};
 }
 
@@ -105,13 +114,16 @@ DiscoveryResult DiscoveryAvahiServiceBrowser::status() const {
     return std::unexpected{
         DiscoveryError{DiscoveryErrorKind::kResourceLimit, {}}};
   }
+
   if (m_callback_failed) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                           "Avahi browser callback failed"}};
   }
+
   if (m_error) {
     return std::unexpected{*m_error};
   }
+
   return {};
 }
 
@@ -120,13 +132,16 @@ DiscoveryResult DiscoveryAvahiServiceBrowser::stop() {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                           "reentrant Avahi browser stop"}};
   }
+
   m_browser.reset();
+
   return {};
 }
 
 DiscoveryError
 DiscoveryAvahiServiceBrowser::nativeError(const char *prefix) const {
   const auto code{m_api->clientError(m_client)};
+
   return discoveryAvahiError(prefix, code, m_api->errorString(code));
 }
 
@@ -149,6 +164,7 @@ void DiscoveryAvahiServiceBrowser::onBrowse(
                    (!self.m_browser || self.m_browser.get() != browser))) {
     return;
   }
+
   ++self.m_callback_depth;
   try {
     if (!self.m_error && !self.m_callback_failed) {
@@ -201,6 +217,7 @@ void DiscoveryAvahiServiceBrowser::onBrowse(
       self.m_callback_failed = true;
     }
   }
+
   --self.m_callback_depth;
 }
 

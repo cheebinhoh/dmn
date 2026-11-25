@@ -137,8 +137,11 @@ inventing it when the native API does not expose it.
 
 ## 3. Targets and API boundary
 
-Proposed public headers are `include/dmn-discovery.hpp` and, if separation
-improves clarity, `include/dmn-discovery-types.hpp`. Discovery is an optional
+The public header is `include/dmn-discovery.hpp`. Internal discovery headers
+also live in `include/`, are private implementation/test seams, and are not
+installed or part of the supported API. Build-tree consumers can technically
+include them because the source include directory is public; they must not
+depend on them. Discovery is an optional
 feature of `dmn`, exported as `Dmn::dmn`, with a build option
 `ENABLE_DMN_DISCOVERY` defaulting to `OFF`. The Dmn-owned types are
 platform-neutral. No Avahi, libdbus, DNSService, protobuf or GUI types appear
@@ -1041,6 +1044,10 @@ retains that allocation error rather than reporting success. On worker
 teardown, backend failure or daemon loss, all browsers' native objects are
 released before potentially allocating contribution cleanup and before the
 Avahi client is freed.
+If allocation fails during global backend-failure reporting, every live browser
+and registration latches resource overflow, including sessions already visited
+by the partial report. Command execution reports allocation failure without
+allocating diagnostic text, so that failure alone does not kill the worker.
 
 **6c — Advertisement and install.** First test entry-group creation,
 immediate callbacks, binary TXT, collision, withdrawal and recovery, then
