@@ -72,7 +72,7 @@ struct DiscoverySessionState {
   std::optional<DiscoveryError> m_stop_error;
   DiscoveryError m_cleanup_allocation_failure{
       DiscoveryErrorKind::kResourceLimit, "callback cleanup allocation failed"};
-  std::function<DiscoveryResult()> m_native_cancellation;
+  std::unique_ptr<std::function<DiscoveryResult()>> m_native_cancellation;
   std::shared_ptr<std::function<DiscoveryResult()>> m_native_reset;
 };
 
@@ -94,7 +94,7 @@ struct DiscoveryRegistrationSessionState {
       DiscoveryErrorKind::kResourceLimit, "callback cleanup allocation failed"};
   std::optional<DiscoveryError> m_delivery_error;
   DiscoverySessionClient::RegistrationFault m_fault;
-  std::function<void()> m_native_cancellation;
+  std::unique_ptr<std::function<void()>> m_native_cancellation;
 };
 
 namespace {
@@ -117,7 +117,7 @@ DiscoveryResult stopRegistration(DiscoveryRegistrationSessionState &session) {
 
 DiscoveryResult
 stopRegistrationWorker(DiscoveryRegistrationSessionState &session) {
-  std::function<void()> cancellation;
+  std::unique_ptr<std::function<void()>> cancellation;
   DiscoveryResult result;
   {
     std::lock_guard lock{session.m_mutex};
@@ -128,7 +128,7 @@ stopRegistrationWorker(DiscoveryRegistrationSessionState &session) {
   }
 
   if (cancellation) {
-    cancellation();
+    (*cancellation)();
   }
 
   return result;
@@ -175,7 +175,8 @@ installNativeCancellation(DiscoveryRegistrationSessionState &session,
         DiscoveryErrorKind::kBackend, "native cancellation already installed"}};
   }
 
-  session.m_native_cancellation = std::move(cancellation);
+  session.m_native_cancellation =
+      std::make_unique<std::function<void()>>(std::move(cancellation));
 
   return {};
 }
@@ -256,19 +257,21 @@ DiscoveryResult stopSession(DiscoverySessionState &session) {
 }
 
 DiscoveryResult stopSessionWorker(DiscoverySessionState &session) {
-  std::function<DiscoveryResult()> cancellation;
+  std::unique_ptr<std::function<DiscoveryResult()>> cancellation;
+  std::shared_ptr<std::function<DiscoveryResult()>> reset;
   DiscoveryResult result;
   {
     std::lock_guard lock{session.m_mutex};
     result = stopSession(session);
     if (result) {
       cancellation = std::move(session.m_native_cancellation);
-      session.m_native_reset.reset();
+      reset = std::move(session.m_native_reset);
     }
   }
 
+  reset.reset();
   if (cancellation) {
-    auto cancelled{cancellation()};
+    auto cancelled{(*cancellation)()};
     if (!cancelled) {
       std::lock_guard lock{session.m_mutex};
       session.m_cleanup_error = cancelled.error();
@@ -629,9 +632,12 @@ DiscoveryResult DiscoveryRegistrationHandle::nativeCleanupComplete() const {
                                           "native cleanup requires worker"}};
   }
 
-  std::lock_guard lock{m_state->m_mutex};
-  m_state->m_native_cancellation = {};
-  m_state->m_native_active = false;
+  std::unique_ptr<std::function<void()>> cancellation;
+  {
+    std::lock_guard lock{m_state->m_mutex};
+    cancellation = std::move(m_state->m_native_cancellation);
+    m_state->m_native_active = false;
+  }
 
   return {};
 }
@@ -646,10 +652,14 @@ DiscoveryResult DiscoverySessionHandle::nativeCleanupComplete() const {
                                           "native cleanup requires worker"}};
   }
 
-  std::lock_guard lock{m_state->m_mutex};
-  m_state->m_native_cancellation = {};
-  m_state->m_native_reset.reset();
-  cancelNative(*m_state);
+  std::unique_ptr<std::function<DiscoveryResult()>> cancellation;
+  std::shared_ptr<std::function<DiscoveryResult()>> reset;
+  {
+    std::lock_guard lock{m_state->m_mutex};
+    cancellation = std::move(m_state->m_native_cancellation);
+    reset = std::move(m_state->m_native_reset);
+    cancelNative(*m_state);
+  }
 
   return {};
 }
@@ -1630,7 +1640,11 @@ DiscoverySessionClient::browse(Handler handler, BrowserLifecycle lifecycle) {
   session->m_commands = m_commands;
   session->m_clock = m_clock;
   session->m_backend_available = m_initial_backend_available;
-  session->m_native_cancellation = std::move(lifecycle.m_cancel);
+  if (lifecycle.m_cancel) {
+    session->m_native_cancellation =
+        std::make_unique<std::function<DiscoveryResult()>>(
+            std::move(lifecycle.m_cancel));
+  }
   if (lifecycle.m_reset) {
     session->m_native_reset =
         std::make_shared<std::function<DiscoveryResult()>>(
@@ -1792,7 +1806,10 @@ DiscoverySessionClient::advertise(
   session->m_id = m_next_session++;
   session->m_commands = m_commands;
   session->m_fault = m_registration_fault;
-  session->m_native_cancellation = std::move(nativeCancellation);
+  if (nativeCancellation) {
+    session->m_native_cancellation =
+        std::make_unique<std::function<void()>>(std::move(nativeCancellation));
+  }
   std::weak_ptr<DiscoveryRegistrationSessionState> weak{session};
   session->m_registration = std::move(*registration);
   session->m_registration->setHandler(

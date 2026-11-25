@@ -99,6 +99,18 @@ TEST(DmnDiscoveryRegistrationTest, LossRecoveryRejectsLateNativeCallbacks) {
   ASSERT_TRUE((*registration)->established((*registration)->generation()));
 }
 
+TEST(DmnDiscoveryRegistrationTest, NativeCancellationRunsOnlyOnce) {
+  DiscoverySessionClient client{{}};
+  std::atomic<unsigned> cancellations{0};
+  auto registration{
+      client.advertise(advertisement(), {}, [&] { ++cancellations; })};
+  ASSERT_TRUE(registration);
+  ASSERT_TRUE(registration->stop());
+  ASSERT_TRUE(registration->stop());
+  EXPECT_EQ(cancellations.load(), 1);
+  ASSERT_TRUE(client.shutdown());
+}
+
 TEST(DmnDiscoveryRegistrationTest, NotificationAllocationFailureIsTerminal) {
   auto registration{DiscoveryRegistration::create(
       {}, advertisement(), true,

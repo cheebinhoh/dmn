@@ -31,11 +31,13 @@ struct DiscoveryDeliverySession {
   DiscoveryDeliverySession(std::uint64_t id, std::size_t maxData,
                            std::size_t maxControl,
                            DiscoveryDispatcher::Handler handler)
-      : m_id{id}, m_queue{maxData, maxControl}, m_handler{std::move(handler)} {}
+      : m_id{id}, m_queue{maxData, maxControl},
+        m_handler{std::make_unique<DiscoveryDispatcher::Handler>(
+            std::move(handler))} {}
 
   std::uint64_t m_id;
   DiscoveryDeliveryQueue m_queue;
-  DiscoveryDispatcher::Handler m_handler;
+  std::unique_ptr<DiscoveryDispatcher::Handler> m_handler;
   std::mutex m_barrier;
   bool m_active{false};
   bool m_callback_failed{false};
@@ -74,11 +76,11 @@ thread_local const DiscoveryDispatcherState *activeDispatcher{nullptr};
  * User-owned capture destructors may call back into discovery; treating their
  * retirement as callback context prevents a barrier from waiting on itself.
  */
-void retireHandler(DiscoveryDispatcher::Handler &handler,
+void retireHandler(std::unique_ptr<DiscoveryDispatcher::Handler> &handler,
                    const DiscoveryDispatcherState *state) {
   const auto previous{activeDispatcher};
   activeDispatcher = state;
-  handler = nullptr;
+  handler.reset();
   activeDispatcher = previous;
 }
 
@@ -125,8 +127,8 @@ void runDispatcher(const std::shared_ptr<DiscoveryDispatcherState> &state) {
     bool failed{false};
     activeDispatcher = state.get();
     try {
-      if (session->m_handler) {
-        session->m_handler(std::move(*event));
+      if (session->m_handler && *session->m_handler) {
+        (*session->m_handler)(std::move(*event));
       }
 #if defined(__GLIBCXX__)
     } catch (const __cxxabiv1::__forced_unwind &) {
@@ -460,7 +462,7 @@ DiscoveryResult DiscoveryDeliveryHandle::abandonUnpublished() const {
 
   m_session->m_queue.stop();
   m_state->m_sessions.erase(m_session->m_id);
-  DiscoveryDispatcher::Handler retired{std::move(m_session->m_handler)};
+  auto retired{std::move(m_session->m_handler)};
   lock.unlock();
   retireHandler(retired, m_state.get());
 
@@ -485,7 +487,7 @@ DiscoveryResult DiscoveryDeliveryHandle::awaitStop() const {
 
   m_state->m_changed.wait(lock, [&] { return !m_session->m_active; });
   m_state->m_sessions.erase(m_session->m_id);
-  DiscoveryDispatcher::Handler retired{std::move(m_session->m_handler)};
+  auto retired{std::move(m_session->m_handler)};
   lock.unlock();
   retireHandler(retired, m_state.get());
 
@@ -653,7 +655,7 @@ DiscoveryResult DiscoveryDispatcher::shutdown() {
   }
 
   while (true) {
-    Handler retired{};
+    std::unique_ptr<Handler> retired{};
     {
       std::lock_guard lock{m_state->m_mutex};
       if (m_state->m_sessions.empty()) {

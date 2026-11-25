@@ -133,6 +133,27 @@ TEST(DmnDiscoverySessionTest, NativeCleanupFailureStillDrainsCallback) {
   EXPECT_FALSE(client.shutdown());
 }
 
+TEST(DmnDiscoverySessionTest, NativeCleanupReleasesCapturesOutsideSessionLock) {
+  struct Cleanup {
+    std::function<void()> m_on_destroy;
+    ~Cleanup() { m_on_destroy(); }
+  };
+  DiscoverySessionClient client{{}};
+  DiscoverySessionHandle handle;
+  bool destroyed{false};
+  auto owned{std::make_shared<Cleanup>([&] {
+    static_cast<void>(handle.snapshot());
+    destroyed = true;
+  })};
+  auto session{client.browse({}, {[owned] { return DiscoveryResult{}; }, {}})};
+  ASSERT_TRUE(session);
+  handle = *session;
+  owned.reset();
+  ASSERT_TRUE(handle.stop());
+  EXPECT_TRUE(destroyed);
+  ASSERT_TRUE(client.shutdown());
+}
+
 #if defined(__GLIBCXX__)
 TEST(DmnDiscoverySessionTest, CancelledStopCallerDoesNotStrandBarrier) {
   DiscoverySessionClient client{{}};
