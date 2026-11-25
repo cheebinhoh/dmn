@@ -36,9 +36,9 @@ public:
 makeDiscoveryAvahiRegistrationApi();
 
 /** @brief Check Avahi-specific capabilities without invoking native calls. */
-[[nodiscard]] DiscoveryResult
-validateDiscoveryAvahiAdvertisement(const DiscoveryOptions &options,
-                                    const DiscoveryAdvertisement &advertisement);
+[[nodiscard]] DiscoveryResult validateDiscoveryAvahiAdvertisement(
+    const DiscoveryOptions &options,
+    const DiscoveryAdvertisement &advertisement);
 
 enum class DiscoveryAvahiRegistrationEvent { kEstablished, kCollision };
 

@@ -66,18 +66,16 @@ TEST(DmnProc, CapturesNonStandardTaskExceptionForJoiner) {
 TEST(DmnProc, StartsWithEnabledDeferredCancellation) {
   std::promise<std::array<int, 4>> result;
   auto future{result.get_future()};
-  dmn::Dmn_Proc proc{"cancellation-defaults", [&] {
-                       int previousState{};
-                       int previousType{};
-                       const int stateError{
-                           pthread_setcancelstate(PTHREAD_CANCEL_DISABLE,
-                                                  &previousState)};
-                       const int typeError{
-                           pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED,
-                                                 &previousType)};
-                       result.set_value(
-                           {stateError, previousState, typeError, previousType});
-                     }};
+  dmn::Dmn_Proc proc{
+      "cancellation-defaults", [&] {
+        int previousState{};
+        int previousType{};
+        const int stateError{
+            pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &previousState)};
+        const int typeError{
+            pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, &previousType)};
+        result.set_value({stateError, previousState, typeError, previousType});
+      }};
   ASSERT_TRUE(proc.exec());
   const auto values{future.get()};
   EXPECT_EQ(values[0], 0);

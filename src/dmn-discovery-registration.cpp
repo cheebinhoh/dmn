@@ -76,8 +76,8 @@ DiscoveryRegistration::transition(DiscoveryRegistrationState state,
     }
   } catch (const std::bad_alloc &) {
     markOverflow();
-    return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
-                                          {}}};
+    return std::unexpected{
+        DiscoveryError{DiscoveryErrorKind::kResourceLimit, {}}};
   }
   return {};
 }
@@ -104,8 +104,8 @@ DiscoveryResult DiscoveryRegistration::collision(std::uint64_t generation,
 
 DiscoveryResult DiscoveryRegistration::failed(std::uint64_t generation,
                                               std::string message) {
-  return failed(generation,
-                DiscoveryError{DiscoveryErrorKind::kBackend, std::move(message)});
+  return failed(generation, DiscoveryError{DiscoveryErrorKind::kBackend,
+                                           std::move(message)});
 }
 
 DiscoveryResult DiscoveryRegistration::failed(std::uint64_t generation,

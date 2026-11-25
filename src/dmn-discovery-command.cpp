@@ -194,9 +194,10 @@ void runCommandsSafely(const std::shared_ptr<DiscoveryCommandState> &state) {
   try {
     // Native callbacks cannot propagate pthread cancellation through C APIs.
 #ifdef FIU_ENABLE
-    const int error{fiu_fail("dmn/discovery/state-worker/cancel-setup")
-                        ? EINVAL
-                        : pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, nullptr)};
+    const int error{
+        fiu_fail("dmn/discovery/state-worker/cancel-setup")
+            ? EINVAL
+            : pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, nullptr)};
 #else
     const int error{pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, nullptr)};
 #endif
@@ -272,7 +273,8 @@ DiscoveryCommandWorker::DiscoveryCommandWorker(std::size_t maxCommands,
   }
   {
     std::unique_lock lock{m_state->m_mutex};
-    m_state->m_changed.wait(lock, [this] { return m_state->m_startup_complete; });
+    m_state->m_changed.wait(lock,
+                            [this] { return m_state->m_startup_complete; });
     const int error{m_state->m_startup_error};
     if (error != 0) {
       lock.unlock();
