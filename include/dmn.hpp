@@ -49,6 +49,10 @@
 #include "dmn-timer.hpp"
 #include "dmn-util.hpp"
 
+#if defined(DMN_ENABLE_DMN_DISCOVERY)
+#include "dmn-discovery.hpp"
+#endif
+
 #if defined(DMN_ENABLE_DMN_DMESGNET)
 #include "dmn-dlock.hpp"
 #include "dmn-dmesg-pb-util.hpp"

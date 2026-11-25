@@ -1,0 +1,6 @@
+This package contains Avahi 0.8 client and common libraries.
+Copyright and license notices are in the accompanying source archive.
+These libraries are licensed under LGPL-2.1-or-later; see LICENSE.
+The unmodified corresponding upstream source is in avahi-0.8.tar.gz.
+The libraries are provided as separate archives to permit relinking.
+Distributors of binaries linked with them must meet the applicable LGPL terms.

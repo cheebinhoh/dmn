@@ -101,6 +101,33 @@ run_checked(${_install_command})
 
 file(RENAME "${_stage}" "${_relocated}")
 
+set(_discovery_header
+    "${_relocated}/${DMN_INSTALL_INCLUDEDIR}/dmn/dmn-discovery.hpp")
+if (DMN_EXPECT_DISCOVERY AND NOT EXISTS "${_discovery_header}")
+  package_test_error("Discovery-enabled package did not install its public header")
+elseif (NOT DMN_EXPECT_DISCOVERY AND EXISTS "${_discovery_header}")
+  package_test_error("Discovery-disabled package installed its public header")
+endif()
+
+file(GLOB _private_discovery_headers
+     "${_relocated}/${DMN_INSTALL_INCLUDEDIR}/dmn/dmn-discovery-*.hpp")
+if (_private_discovery_headers)
+  package_test_error("Package installed private discovery headers: ${_private_discovery_headers}")
+endif()
+
+if (DMN_EXPECT_DISCOVERY AND DMN_EXPECT_AVAHI_PROVIDER STREQUAL "SOURCE")
+  foreach(_file IN ITEMS
+          "${DMN_INSTALL_DATADIR}/licenses/dmn/avahi/LICENSE"
+          "${DMN_INSTALL_DATADIR}/licenses/dmn/avahi/NOTICE"
+          "${DMN_INSTALL_DATADIR}/licenses/dmn/avahi/avahi-0.8.tar.gz"
+          "${DMN_INSTALL_LIBDIR}/dmn/avahi/libavahi-client.a"
+          "${DMN_INSTALL_LIBDIR}/dmn/avahi/libavahi-common.a")
+    if (NOT EXISTS "${_relocated}/${_file}")
+      package_test_error("Source Avahi package is missing ${_file}")
+    endif()
+  endforeach()
+endif()
+
 if (DMN_EXPECT_DMESGNET)
   foreach(_header IN ITEMS
           dmn-dmesg.hpp
@@ -177,6 +204,7 @@ set(_configure_command "${CMAKE_COMMAND}"
                        -DCMAKE_FIND_USE_PACKAGE_REGISTRY=OFF
                        -DCMAKE_FIND_PACKAGE_PREFER_CONFIG=ON
                        -DDMN_EXPECT_DMESGNET=${DMN_EXPECT_DMESGNET}
+                       -DDMN_EXPECT_DISCOVERY=${DMN_EXPECT_DISCOVERY}
                        -DDMN_EXPECT_ANCS=${DMN_EXPECT_ANCS}
                        -DDMN_EXPECT_DBUS=${DMN_EXPECT_DBUS}
                        -DDMN_EXPECT_BLUEZ=${DMN_EXPECT_BLUEZ}

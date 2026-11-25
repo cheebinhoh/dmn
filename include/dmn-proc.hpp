@@ -96,13 +96,13 @@ void cleanupFuncToUnlockPthreadMutex(void *arg);
  *   task from the constructor). Returns true on successful start.
  * - wait(): join the thread, blocking until it completes. Returns true if
  *   the join succeeded; throws if no thread is running or joining fails.
- *   By default, an uncaught task/setup exception terminates the process.
+ *   By default, an uncaught task exception terminates the process.
  *   The optional capture policy stores it and rethrows it from wait().
  * - stopExec(): attempt to cancel the running thread and join it. The
  *   destructor uses this to clean up a running thread, which requires the
  *   task to be responsive to pthread cancellation.
  * - ExceptionPolicy defaults to kTerminate to retain legacy behavior. With
- *   kCaptureAndRethrowFromWait, task/setup exceptions are delivered to the
+ *   kCaptureAndRethrowFromWait, task exceptions are delivered to the
  *   caller of wait() after the thread has been joined.
  *
  * Cancellation warning:
@@ -190,13 +190,20 @@ public:
    * @brief Wait (join) for the asynchronous thread to finish.
    *
    * If configured with @c ExceptionPolicy::kCaptureAndRethrowFromWait, an
-   * exception captured from thread setup or the task is rethrown after the
+   * exception captured from the task is rethrown after the
    * thread is joined and the process returns to the ready state.
    *
    * @return True if the thread was joined successfully.
-   * @throws The captured task/setup exception when using the capture policy.
+   * @throws The captured task exception when using the capture policy.
    */
   auto wait() -> bool;
+
+  /**
+   * @brief Whether an execution still requires joining.
+   *
+   * Lifecycle operations and this query must be externally serialized.
+   */
+  [[nodiscard]] auto isJoinable() const -> bool;
 
   /**
    * @brief Return the current or most recently started worker's identifier.
@@ -270,7 +277,7 @@ protected:
    *
    * @return @c true if the thread was stopped (or was not running).
    * @throws std::runtime_error if cancellation or joining fails.
-   * @throws The captured task/setup exception when using
+   * @throws The captured task exception when using
    * @c ExceptionPolicy::kCaptureAndRethrowFromWait.
    */
   auto stopExec() -> bool;
@@ -278,8 +285,7 @@ protected:
   /**
    * @brief Static thread-entry trampoline passed to pthread_create.
    *
-   * Sets up deferred cancellation for the new thread and then invokes the
-   * stored task.
+   * Invokes the stored task with POSIX's default deferred cancellation.
    *
    * @param context Pointer to the owning @c Dmn_Proc instance.
    * @return Always @c nullptr.

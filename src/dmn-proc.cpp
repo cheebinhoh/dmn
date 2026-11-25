@@ -115,6 +115,8 @@ auto Dmn_Proc::getThreadId() const -> Dmn_Proc::ThreadId {
   return m_thread_id.load(std::memory_order_acquire);
 }
 
+auto Dmn_Proc::isJoinable() const -> bool { return m_state == State::kRunning; }
+
 /**
  * @brief Sets a new state and returns the previous state.
  *
@@ -276,10 +278,9 @@ auto Dmn_Proc::runExec() -> bool {
 /**
  * @brief Helper function executed in the new thread context.
  *
- * Sets up thread-level cancellation policy (enabled with deferred type),
- * then executes the assigned task function. Captures task/setup failures
- * according to the configured policy, while allowing stopExec() cancellation
- * to continue unwinding through the pthread entry point.
+ * Executes the assigned task with POSIX's default enabled, deferred
+ * cancellation. Captures task failures according to the configured policy,
+ * while allowing stopExec() cancellation to continue unwinding.
  *
  * @param context Pointer to the Dmn_Proc instance managing this thread
  *
@@ -287,25 +288,11 @@ auto Dmn_Proc::runExec() -> bool {
  */
 auto Dmn_Proc::runFnInThreadHelper(void *context) -> void * {
   auto *proc = static_cast<Dmn_Proc *>(context);
-  int old_state{};
-  int err{};
 
   proc->m_thread_id.store(std::this_thread::get_id(),
                           std::memory_order_release);
 
   try {
-    // Enable thread cancellation with deferred cancellation type
-    // (cancellation only occurs at cancellation points, not asynchronously)
-    err = pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &old_state);
-    if (0 != err) {
-      throw std::runtime_error(std::system_category().message(err));
-    }
-
-    err = pthread_setcanceltype(PTHREAD_CANCEL_DEFERRED, &old_state);
-    if (0 != err) {
-      throw std::runtime_error(std::system_category().message(err));
-    }
-
     proc->m_fnc();
   }
 #if defined(__GLIBCXX__)

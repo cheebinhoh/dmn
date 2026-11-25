@@ -23,6 +23,11 @@ if (@ENABLE_FAULT_INJECTION@)
   pkg_check_modules(LIBFIU REQUIRED IMPORTED_TARGET libfiu)
 endif()
 
+if (@ENABLE_DMN_DISCOVERY@)
+  find_dependency(Threads)
+  include("${CMAKE_CURRENT_LIST_DIR}/DmnAvahiInstalled.cmake")
+endif()
+
 include("${CMAKE_CURRENT_LIST_DIR}/DmnTargets.cmake")
 
 check_required_components(Dmn)

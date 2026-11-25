@@ -411,9 +411,15 @@ without an acknowledgement protocol); docs continue to state that there is no
 authentication, durable history, consensus, or exactly-once delivery. Do not
 make network DLock the acceptance test for this phase.
 
-### Phase 3 — LAN discovery as an optional library (M)
+### Phase 3 — LAN discovery as an optional Dmn feature (M)
 
-Add a small optional `dmn-discovery` target and a discovery interface,
+The proposed [discovery specification and test-driven implementation
+plan](specs/dmn-mdns-discovery-spec.md) refines this opportunity. Its ordered
+fake-first phases, Linux Avahi/macOS Bonjour backend gates, and explicit
+cross-platform qualification take precedence over the illustrative slices
+below. The Linux implementation is in progress.
+
+Add optional discovery to `dmn` and a discovery interface,
 initially independent of DMesgNet. The interface should represent browse,
 resolve, add/remove, daemon-unavailable, cancellation, and shutdown outcomes
 without exposing Avahi types to callers. Keep the existing manual endpoint
