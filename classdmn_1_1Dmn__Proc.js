@@ -11,6 +11,7 @@ var classdmn_1_1Dmn__Proc =
     [ "exec", "classdmn_1_1Dmn__Proc.html#aa68e0b42ef052f6a66bf4d9be1af0542", null ],
     [ "getState", "classdmn_1_1Dmn__Proc.html#a33feebb676ecff239fd5ddba024f5e32", null ],
     [ "getThreadId", "classdmn_1_1Dmn__Proc.html#ab15571667457353d4250e3642670ddb2", null ],
+    [ "isJoinable", "classdmn_1_1Dmn__Proc.html#ae7c5f057b7d07029079c64d7276f13a5", null ],
     [ "runExec", "classdmn_1_1Dmn__Proc.html#ad7593c5dbccaf13f394c0f2892b14498", null ],
     [ "setState", "classdmn_1_1Dmn__Proc.html#ae0b709f1b9dc82d20b3a1f1b43d2f974", null ],
     [ "setTask", "classdmn_1_1Dmn__Proc.html#a935d3058daf7f46ff4ee23d142afec9d", null ],

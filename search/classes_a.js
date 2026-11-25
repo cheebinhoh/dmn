@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['ticket_0',['Ticket',['../classdmn_1_1Dmn__Inflight__Guard_1_1Ticket.html',1,'dmn::Dmn_Inflight_Guard']]],
-  ['timedjobcomparator_1',['TimedJobComparator',['../structdmn_1_1TimedJobComparator.html',1,'dmn']]]
+  ['objectpath_0',['ObjectPath',['../structdmn_1_1Dmn__DbusValue_1_1ObjectPath.html',1,'dmn::Dmn_DbusValue']]],
+  ['options_1',['Options',['../structdmn_1_1Dmn__DMesgNet_1_1Options.html',1,'dmn::Dmn_DMesgNet']]]
 ];

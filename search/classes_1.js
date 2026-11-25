@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['callbackfailure_0',['CallbackFailure',['../structdmn_1_1Dmn__Pub_1_1CallbackFailure.html',1,'dmn::Dmn_Pub']]],
-  ['callrequest_1',['CallRequest',['../structdmn_1_1Dmn__DbusClient_1_1Impl_1_1CallRequest.html',1,'dmn::Dmn_DbusClient::Impl']]]
+  ['browserentry_0',['BrowserEntry',['../structdmn_1_1detail_1_1DiscoveryAvahiRegistrationSessions_1_1BrowserEntry.html',1,'dmn::detail::DiscoveryAvahiRegistrationSessions']]],
+  ['browserlifecycle_1',['BrowserLifecycle',['../structdmn_1_1detail_1_1DiscoverySessionClient_1_1BrowserLifecycle.html',1,'dmn::detail::DiscoverySessionClient']]]
 ];

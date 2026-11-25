@@ -140,6 +140,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:aa68e0b42ef052f6a66bf4d9be1af0542"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execute the provided task in a new asynchronous thread.  <br /></td></tr>
 <tr class="memitem:a1372ff6e753f214b128883327d44a30b" id="r_a1372ff6e753f214b128883327d44a30b"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a1372ff6e753f214b128883327d44a30b">wait</a> () -&gt; bool</td></tr>
 <tr class="memdesc:a1372ff6e753f214b128883327d44a30b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Wait (join) for the asynchronous thread to finish.  <br /></td></tr>
+<tr class="memitem:ae7c5f057b7d07029079c64d7276f13a5" id="r_ae7c5f057b7d07029079c64d7276f13a5"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae7c5f057b7d07029079c64d7276f13a5">isJoinable</a> () const -&gt; bool</td></tr>
+<tr class="memdesc:ae7c5f057b7d07029079c64d7276f13a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Whether an execution still requires joining.  <br /></td></tr>
 <tr class="memitem:ab15571667457353d4250e3642670ddb2" id="r_ab15571667457353d4250e3642670ddb2"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ab15571667457353d4250e3642670ddb2">getThreadId</a> () const -&gt; <a class="el" href="#aef72c9dc7a5bc8bc96643c5ba655bdb2">ThreadId</a></td></tr>
 <tr class="memdesc:ab15571667457353d4250e3642670ddb2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the current or most recently started worker's identifier.  <br /></td></tr>
 </table><table class="memberdecls">
@@ -197,9 +199,9 @@ std::atomic&lt; <a class="el" href="#aef72c9dc7a5bc8bc96643c5ba655bdb2">ThreadId
 <p>Behaviour details:</p><ul>
 <li>Construct with an optional name and/or task. The name is stored for diagnostic purposes (no threading name APIs are invoked here).</li>
 <li><a class="el" href="#aa68e0b42ef052f6a66bf4d9be1af0542" title="Execute the provided task in a new asynchronous thread.">exec()</a>: start the thread and run the given task (or the previously-set task from the constructor). Returns true on successful start.</li>
-<li><a class="el" href="#a1372ff6e753f214b128883327d44a30b" title="Wait (join) for the asynchronous thread to finish.">wait()</a>: join the thread, blocking until it completes. Returns true if the join succeeded; throws if no thread is running or joining fails. By default, an uncaught task/setup exception terminates the process. The optional capture policy stores it and rethrows it from <a class="el" href="#a1372ff6e753f214b128883327d44a30b" title="Wait (join) for the asynchronous thread to finish.">wait()</a>.</li>
+<li><a class="el" href="#a1372ff6e753f214b128883327d44a30b" title="Wait (join) for the asynchronous thread to finish.">wait()</a>: join the thread, blocking until it completes. Returns true if the join succeeded; throws if no thread is running or joining fails. By default, an uncaught task exception terminates the process. The optional capture policy stores it and rethrows it from <a class="el" href="#a1372ff6e753f214b128883327d44a30b" title="Wait (join) for the asynchronous thread to finish.">wait()</a>.</li>
 <li><a class="el" href="#a07ccda9cd84f912b6af92b94fa875fba" title="Cancel the running thread and wait for it to terminate.">stopExec()</a>: attempt to cancel the running thread and join it. The destructor uses this to clean up a running thread, which requires the task to be responsive to pthread cancellation.</li>
-<li><a class="el" href="#aba0dd1b62e444a8e60bfa9b8d4ae60bc" title="Policy for reporting exceptions thrown by the worker task.">ExceptionPolicy</a> defaults to kTerminate to retain legacy behavior. With kCaptureAndRethrowFromWait, task/setup exceptions are delivered to the caller of <a class="el" href="#a1372ff6e753f214b128883327d44a30b" title="Wait (join) for the asynchronous thread to finish.">wait()</a> after the thread has been joined.</li>
+<li><a class="el" href="#aba0dd1b62e444a8e60bfa9b8d4ae60bc" title="Policy for reporting exceptions thrown by the worker task.">ExceptionPolicy</a> defaults to kTerminate to retain legacy behavior. With kCaptureAndRethrowFromWait, task exceptions are delivered to the caller of <a class="el" href="#a1372ff6e753f214b128883327d44a30b" title="Wait (join) for the asynchronous thread to finish.">wait()</a> after the thread has been joined.</li>
 </ul>
 <p>Cancellation warning:</p><ul>
 <li>pthread cancellation is cooperative. If the task never reaches a cancellation point (or explicitly enables deferred cancellation without checking), cancellation will be delayed indefinitely. For loops that may run for a long time, call <a class="el" href="#a45fd201e765bae2c57ad30417ba1eb8c" title="Voluntarily yield execution to allow other threads to run and to create a cooperative cancellation po...">Dmn_Proc::yield()</a> periodically to create cancellation points (or otherwise ensure the task calls functions that are cancellation points).</li>
@@ -416,6 +418,34 @@ Current State enum value (kNew, kReady, kRunning, kUnknown) </dd></dl>
 
 </div>
 </div>
+<a id="ae7c5f057b7d07029079c64d7276f13a5" name="ae7c5f057b7d07029079c64d7276f13a5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae7c5f057b7d07029079c64d7276f13a5">&#9670;&#160;</a></span>isJoinable()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto dmn::Dmn_Proc::isJoinable </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const-&gt;bool</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel nodiscard">nodiscard</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Whether an execution still requires joining. </p>
+<p>Lifecycle operations and this query must be externally serialized. </p>
+
+</div>
+</div>
 <a id="ad7593c5dbccaf13f394c0f2892b14498" name="ad7593c5dbccaf13f394c0f2892b14498"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad7593c5dbccaf13f394c0f2892b14498">&#9670;&#160;</a></span>runExec()</h2>
 
@@ -484,7 +514,7 @@ Current State enum value (kNew, kReady, kRunning, kUnknown) </dd></dl>
 
 <p>Static thread-entry trampoline passed to pthread_create. </p>
 <p>Helper function executed in the new thread context.</p>
-<p>Sets up deferred cancellation for the new thread and then invokes the stored task.</p>
+<p>Invokes the stored task with POSIX's default deferred cancellation.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">context</td><td>Pointer to the owning <code><a class="el" href="classdmn_1_1Dmn__Proc.html" title="A small RAII-style wrapper around pthreads that runs a user-provided task (std::function&lt;void()&gt;) in ...">Dmn_Proc</a></code> instance. </td></tr>
@@ -492,7 +522,7 @@ Current State enum value (kNew, kReady, kRunning, kUnknown) </dd></dl>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>Always <code>nullptr</code>.</dd></dl>
-<p>Sets up thread-level cancellation policy (enabled with deferred type), then executes the assigned task function. Captures task/setup failures according to the configured policy, while allowing <a class="el" href="#a07ccda9cd84f912b6af92b94fa875fba" title="Cancel the running thread and wait for it to terminate.">stopExec()</a> cancellation to continue unwinding through the pthread entry point.</p>
+<p>Executes the assigned task with POSIX's default enabled, deferred cancellation. Captures task failures according to the configured policy, while allowing <a class="el" href="#a07ccda9cd84f912b6af92b94fa875fba" title="Cancel the running thread and wait for it to terminate.">stopExec()</a> cancellation to continue unwinding.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">context</td><td>Pointer to the <a class="el" href="classdmn_1_1Dmn__Proc.html" title="A small RAII-style wrapper around pthreads that runs a user-provided task (std::function&lt;void()&gt;) in ...">Dmn_Proc</a> instance managing this thread</td></tr>
@@ -619,7 +649,7 @@ Current State enum value (kNew, kReady, kRunning, kUnknown) </dd></dl>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
     <tr><td class="paramname">std::runtime_error</td><td>if cancellation or joining fails. </td></tr>
-    <tr><td class="paramname">The</td><td>captured task/setup exception when using <code><a class="el" href="#aba0dd1b62e444a8e60bfa9b8d4ae60bca21fd5719dc490acab6309268020e8099" title="Store the exception and rethrow from wait().">ExceptionPolicy::kCaptureAndRethrowFromWait</a></code>.</td></tr>
+    <tr><td class="paramname">The</td><td>captured task exception when using <code><a class="el" href="#aba0dd1b62e444a8e60bfa9b8d4ae60bca21fd5719dc490acab6309268020e8099" title="Store the exception and rethrow from wait().">ExceptionPolicy::kCaptureAndRethrowFromWait</a></code>.</td></tr>
   </table>
   </dd>
 </dl>
@@ -681,11 +711,11 @@ Current State enum value (kNew, kReady, kRunning, kUnknown) </dd></dl>
 
 <p>Wait (join) for the asynchronous thread to finish. </p>
 <p>Waits for the running thread to complete execution.</p>
-<p>If configured with <code><a class="el" href="#aba0dd1b62e444a8e60bfa9b8d4ae60bca21fd5719dc490acab6309268020e8099" title="Store the exception and rethrow from wait().">ExceptionPolicy::kCaptureAndRethrowFromWait</a></code>, an exception captured from thread setup or the task is rethrown after the thread is joined and the process returns to the ready state.</p>
+<p>If configured with <code><a class="el" href="#aba0dd1b62e444a8e60bfa9b8d4ae60bca21fd5719dc490acab6309268020e8099" title="Store the exception and rethrow from wait().">ExceptionPolicy::kCaptureAndRethrowFromWait</a></code>, an exception captured from the task is rethrown after the thread is joined and the process returns to the ready state.</p>
 <dl class="section return"><dt>Returns</dt><dd>True if the thread was joined successfully. </dd></dl>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
-    <tr><td class="paramname">The</td><td>captured task/setup exception when using the capture policy.</td></tr>
+    <tr><td class="paramname">The</td><td>captured task exception when using the capture policy.</td></tr>
   </table>
   </dd>
 </dl>

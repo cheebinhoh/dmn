@@ -1,10 +1,13 @@
 var searchData=
 [
-  ['value_0',['value',['../structdmn_1_1Dmn__DbusValue_1_1ObjectPath.html#a8d5ca5d80125a0067f4fc5ebe7e94618',1,'dmn::Dmn_DbusValue::ObjectPath::value'],['../structdmn_1_1Dmn__DbusValue_1_1SignatureValue.html#aa4c269ee19b0b834b0eca1ada56c1c0a',1,'dmn::Dmn_DbusValue::SignatureValue::value'],['../structdmn_1_1Dmn__DbusValue_1_1VariantData.html#a5754c9b3d2a6ff94e809aa2d98c1de7b',1,'dmn::Dmn_DbusValue::VariantData::value'],['../structdmn_1_1Dmn__GattEvent.html#a357a6faa5219d95221da1c24815cd7cb',1,'dmn::Dmn_GattEvent::value']]],
-  ['value_5fsignature_1',['value_signature',['../structdmn_1_1Dmn__DbusValue_1_1DictionaryData.html#a60c164f2466423e61bc91884e2410b5a',1,'dmn::Dmn_DbusValue::DictionaryData']]],
-  ['value_5ftype_2',['value_type',['../classdmn_1_1Dmn__IntervalBTree.html#af903b9e288c4e95f0a21d628e085ef8d',1,'dmn::Dmn_IntervalBTree']]],
-  ['valuechanged_3',['ValueChanged',['../structdmn_1_1Dmn__GattEvent.html#ae36149c938f4191ee09276e211ec68dbaa72ca94385e8f515adeac34b9e23d32c',1,'dmn::Dmn_GattEvent']]],
-  ['values_4',['values',['../structdmn_1_1Dmn__DbusValue_1_1ArrayData.html#a55379aef620ed5020c5e9b3fab9d9dd1',1,'dmn::Dmn_DbusValue::ArrayData']]],
-  ['variant_5',['variant',['../classdmn_1_1Dmn__DbusValue.html#a95b3bd21abf4787d405757d95129f37f',1,'dmn::Dmn_DbusValue']]],
-  ['variantdata_6',['VariantData',['../structdmn_1_1Dmn__DbusValue_1_1VariantData.html',1,'dmn::Dmn_DbusValue']]]
+  ['unhandled_5fexception_0',['unhandled_exception',['../structdmn_1_1Dmn__Runtime__Task_1_1promise__type.html#a5cbef2514804377925a4755cfa1b0c0b',1,'dmn::Dmn_Runtime_Task::promise_type']]],
+  ['unicodecasefoldnfd_1',['unicodeCaseFoldNfd',['../dmn-util_8hpp.html#a1b5c2260f4d5ffd67429f76df004b17b',1,'dmn::detail']]],
+  ['unregisterstatecallback_2',['unregisterStateCallback',['../classdmn_1_1Dmn__IntervalBTree.html#ad4c20d5abf1a6db8abe7561e942a8699',1,'dmn::Dmn_IntervalBTree']]],
+  ['unregistersubscriber_3',['unregisterSubscriber',['../classdmn_1_1Dmn__Pub.html#a9bbf3609dbd2726eccee295b5b6604da',1,'dmn::Dmn_Pub']]],
+  ['updaterecords_4',['updateRecords',['../classdmn_1_1detail_1_1DiscoveryBrowser.html#a9f5263bfd626262711817fff9d08dd1c',1,'dmn::detail::DiscoveryBrowser::updateRecords()'],['../classdmn_1_1detail_1_1DiscoverySessionHandle.html#a3100740c08be96ab0f52a953cd9d374d',1,'dmn::detail::DiscoverySessionHandle::updateRecords()']]],
+  ['updateresolution_5',['updateResolution',['../classdmn_1_1detail_1_1DiscoveryBrowser.html#abeb4084973ce89e1d7194e14dccaf2dc',1,'dmn::detail::DiscoveryBrowser']]],
+  ['usage_20guidelines_6',['Usage guidelines',['../dmn-inflight-guard_8hpp.html#autotoc_md34',1,'']]],
+  ['usage_20summary_7',['Usage Summary',['../dmn-runtime_8hpp.html#autotoc_md64',1,'']]],
+  ['usage_20summary_8',['Usage summary',['../dmn-async_8hpp.html#autotoc_md5',1,'Usage summary'],['../dmn-pub-sub_8hpp.html#autotoc_md56',1,'Usage summary']]],
+  ['uuid_9',['uuid',['../structdmn_1_1Dmn__GattCharacteristic.html#a31d62b4cac542401708c168fa0fcee6b',1,'dmn::Dmn_GattCharacteristic::uuid'],['../structdmn_1_1Dmn__GattService.html#aafed2e6e09f2e5b2d3a61123bd365f97',1,'dmn::Dmn_GattService::uuid']]]
 ];

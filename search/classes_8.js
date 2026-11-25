@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['promise_5ftype_0',['promise_type',['../structdmn_1_1Dmn__Runtime__Task_1_1promise__type.html',1,'dmn::Dmn_Runtime_Task']]]
+  ['lease_0',['Lease',['../classdmn_1_1detail_1_1DiscoveryNativeSlots_1_1Lease.html',1,'dmn::detail::DiscoveryNativeSlots']]]
 ];
