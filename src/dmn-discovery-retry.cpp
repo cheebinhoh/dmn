@@ -7,6 +7,10 @@
 
 #include "dmn-discovery-retry.hpp"
 
+#ifdef FIU_ENABLE
+#include "dmn-fault-injection.hpp"
+#endif
+
 #include <algorithm>
 #include <chrono>
 #include <utility>
@@ -72,14 +76,33 @@ void DiscoveryRetrySchedule::removeSource(std::uint64_t source) {
 
 std::vector<DiscoveryAttemptId> DiscoveryRetrySchedule::takeDue(TimePoint now) {
   std::vector<DiscoveryAttemptId> result{};
-  for (auto &[id, entry] : m_entries) {
+  for (const auto &[id, entry] : m_entries) {
     if (entry.m_due && *entry.m_due <= now) {
       result.push_back(id);
-      entry.m_due.reset();
+#ifdef FIU_ENABLE
+      if (fiu_fail("dmn/discovery/retry/collect-allocation")) {
+        throw std::bad_alloc{};
+      }
+#endif
     }
   }
 
+  for (const auto &id : result) {
+    m_entries.find(id)->second.m_due.reset();
+  }
   return result;
+}
+
+std::optional<DiscoveryRetrySchedule::TimePoint>
+DiscoveryRetrySchedule::nextDeadline() const {
+  std::optional<TimePoint> earliest;
+  for (const auto &[id, entry] : m_entries) {
+    static_cast<void>(id);
+    if (entry.m_due && (!earliest || *entry.m_due < *earliest)) {
+      earliest = entry.m_due;
+    }
+  }
+  return earliest;
 }
 
 std::optional<DiscoveryAttemptError>

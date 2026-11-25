@@ -346,6 +346,27 @@ DiscoveryBrowser::canonicalize(const DiscoveryServiceKey &key) {
   return result;
 }
 
+DiscoveryProvenance DiscoveryBrowser::provenance(const Entry &entry) {
+  const auto merge = [&](auto member) -> std::optional<bool> {
+    bool allFalse{!entry.m_sources.empty()};
+    for (const auto &[contribution, source] : entry.m_sources) {
+      static_cast<void>(contribution);
+      const auto value{source.m_provenance.*member};
+      if (value && *value) {
+        return true;
+      }
+      if (!value) {
+        allFalse = false;
+      }
+    }
+    return allFalse ? std::optional<bool>{false} : std::nullopt;
+  };
+  return {merge(&DiscoveryProvenance::m_cached),
+          merge(&DiscoveryProvenance::m_local),
+          merge(&DiscoveryProvenance::m_wide_area),
+          merge(&DiscoveryProvenance::m_multicast)};
+}
+
 DiscoveryBrowser::Entry *
 DiscoveryBrowser::findLive(const DiscoveryServiceKey &key,
                            DiscoveryContribution contribution,
@@ -360,7 +381,8 @@ DiscoveryBrowser::findLive(const DiscoveryServiceKey &key,
     return nullptr;
   }
   const auto source{entry->second.m_sources.find(contribution)};
-  if (source == entry->second.m_sources.end() || source->second != generation) {
+  if (source == entry->second.m_sources.end() ||
+      source->second.m_generation != generation) {
     return nullptr;
   }
 
@@ -381,7 +403,8 @@ DiscoveryBrowser::findLive(const DiscoveryServiceKey &key,
     return nullptr;
   }
   const auto source{entry->second.m_sources.find(contribution)};
-  if (source == entry->second.m_sources.end() || source->second != generation) {
+  if (source == entry->second.m_sources.end() ||
+      source->second.m_generation != generation) {
     return nullptr;
   }
 
@@ -398,7 +421,8 @@ void DiscoveryBrowser::emit(DiscoveryEventKind kind,
 
 std::expected<std::uint64_t, DiscoveryError>
 DiscoveryBrowser::addObservation(const DiscoveryServiceKey &key,
-                                 DiscoveryContribution contribution) {
+                                 DiscoveryContribution contribution,
+                                 DiscoveryProvenance observation) {
   if (m_updating_records) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                           "reentrant browser update"}};
@@ -416,7 +440,14 @@ DiscoveryBrowser::addObservation(const DiscoveryServiceKey &key,
   if (entry != m_entries.end()) {
     const auto source{entry->second.m_sources.find(contribution)};
     if (source != entry->second.m_sources.end()) {
-      return source->second;
+      const auto generation{source->second.m_generation};
+      source->second.m_provenance = observation;
+      auto current{provenance(entry->second)};
+      if (current != entry->second.m_candidate.m_provenance) {
+        entry->second.m_candidate.m_provenance = std::move(current);
+        emit(DiscoveryEventKind::kChanged, entry->second.m_candidate);
+      }
+      return generation;
     }
   } else if (m_entries.size() >= m_max_instances) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
@@ -445,7 +476,9 @@ DiscoveryBrowser::addObservation(const DiscoveryServiceKey &key,
                 {},
                 std::move(records),
                 {}};
-    value.m_sources.emplace(contribution, generation);
+    value.m_sources.emplace(contribution,
+                            Entry::Source{generation, observation});
+    value.m_candidate.m_provenance = provenance(value);
     auto [inserted,
           created]{m_entries.emplace(std::move(canonical), std::move(value))};
     static_cast<void>(created);
@@ -456,11 +489,15 @@ DiscoveryBrowser::addObservation(const DiscoveryServiceKey &key,
       return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
                                             "could not add record source"}};
     }
-    entry->second.m_sources.emplace(contribution, generation);
+    entry->second.m_sources.emplace(contribution,
+                                    Entry::Source{generation, observation});
     auto current{entry->second.m_records->snapshot()};
+    auto currentProvenance{provenance(entry->second)};
     const bool changed{
-        !sameRecordView(entry->second.m_candidate.m_records, current)};
+        !sameRecordView(entry->second.m_candidate.m_records, current) ||
+        entry->second.m_candidate.m_provenance != currentProvenance};
     entry->second.m_candidate.m_records = std::move(current);
+    entry->second.m_candidate.m_provenance = std::move(currentProvenance);
     if (changed) {
       auto candidate{entry->second.m_candidate};
       emit(DiscoveryEventKind::kChanged, std::move(candidate));
@@ -489,7 +526,8 @@ bool DiscoveryBrowser::removeObservation(const DiscoveryServiceKey &key,
   }
 
   const auto source{entry->second.m_sources.find(contribution)};
-  if (source == entry->second.m_sources.end() || source->second != generation) {
+  if (source == entry->second.m_sources.end() ||
+      source->second.m_generation != generation) {
     return false;
   }
 
@@ -511,9 +549,12 @@ bool DiscoveryBrowser::removeObservation(const DiscoveryServiceKey &key,
     emit(DiscoveryEventKind::kRemoved, std::move(candidate));
   } else {
     auto current{entry->second.m_records->snapshot()};
+    auto currentProvenance{provenance(entry->second)};
     const bool changed{
-        !sameRecordView(entry->second.m_candidate.m_records, current)};
+        !sameRecordView(entry->second.m_candidate.m_records, current) ||
+        entry->second.m_candidate.m_provenance != currentProvenance};
     entry->second.m_candidate.m_records = std::move(current);
+    entry->second.m_candidate.m_provenance = std::move(currentProvenance);
     if (changed || failuresChanged) {
       auto candidate{entry->second.m_candidate};
       emit(DiscoveryEventKind::kChanged, std::move(candidate));
@@ -543,7 +584,8 @@ bool DiscoveryBrowser::updateResolution(const DiscoveryServiceKey &key,
   }
 
   const auto source{entry->second.m_sources.find(contribution)};
-  if (source == entry->second.m_sources.end() || source->second != generation) {
+  if (source == entry->second.m_sources.end() ||
+      source->second.m_generation != generation) {
     return false;
   }
 
@@ -579,7 +621,8 @@ DiscoveryResult DiscoveryBrowser::updateRecords(
                                           "unknown record source"}};
   }
   const auto source{entry->second.m_sources.find(contribution)};
-  if (source == entry->second.m_sources.end() || source->second != generation) {
+  if (source == entry->second.m_sources.end() ||
+      source->second.m_generation != generation) {
     return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
                                           "stale record source"}};
   }
@@ -674,8 +717,8 @@ DiscoveryBrowser::refresh(const DiscoveryServiceKey &key) {
   const auto id{m_next_refresh++};
   for (const auto &[contribution, source] : entry->second.m_sources) {
     static_cast<void>(contribution);
-    m_retries->cancelTimer({source, DiscoveryAttempt::kIpv4});
-    m_retries->cancelTimer({source, DiscoveryAttempt::kIpv6});
+    m_retries->cancelTimer({source.m_generation, DiscoveryAttempt::kIpv4});
+    m_retries->cancelTimer({source.m_generation, DiscoveryAttempt::kIpv6});
   }
   entry->second.m_candidate.m_refresh =
       DiscoveryRefreshStatus{id, DiscoveryRefreshState::kPending};
@@ -747,7 +790,8 @@ DiscoveryResult DiscoveryBrowser::failAttempt(
     const DiscoveryServiceKey &key, DiscoveryContribution contribution,
     std::uint64_t generation, DiscoveryAttempt attempt,
     std::uint64_t operationGeneration, std::uint64_t resolutionGeneration,
-    bool recoverable, std::string message) {
+    bool recoverable, std::string message,
+    std::optional<DiscoveryError> native) {
   if (m_updating_records || !m_clock) {
     return std::unexpected{
         DiscoveryError{DiscoveryErrorKind::kBackend, "invalid retry context"}};
@@ -799,7 +843,12 @@ DiscoveryResult DiscoveryBrowser::failAttempt(
   *entry->m_records = std::move(updated);
   entry->m_candidate.m_records = std::move(current);
   if (result) {
-    const auto error{retries.error(id)};
+    auto error{retries.error(id)};
+    if (native) {
+      error->m_backend_domain = std::move(native->m_backend_domain);
+      error->m_backend_code = native->m_backend_code;
+      error->m_native_category = native->m_native_category;
+    }
     auto &failures{entry->m_candidate.m_failures};
     const auto existing{std::find_if(
         failures.begin(), failures.end(),
@@ -856,6 +905,19 @@ DiscoveryBrowser::takeDueRetries() {
   }
 
   return m_retries->takeDue(m_clock());
+}
+
+std::optional<DiscoveryBrowser::TimePoint>
+DiscoveryBrowser::nextDeadline() const {
+  auto earliest{m_retries->nextDeadline()};
+  for (const auto &[key, entry] : m_entries) {
+    static_cast<void>(key);
+    if (entry.m_refresh_deadline &&
+        (!earliest || *entry.m_refresh_deadline < *earliest)) {
+      earliest = entry.m_refresh_deadline;
+    }
+  }
+  return earliest;
 }
 
 DiscoverySnapshot DiscoveryBrowser::snapshot() const {

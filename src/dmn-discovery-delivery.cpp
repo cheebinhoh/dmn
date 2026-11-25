@@ -7,6 +7,10 @@
 
 #include "dmn-discovery-delivery.hpp"
 
+#ifdef FIU_ENABLE
+#include "dmn-fault-injection.hpp"
+#endif
+
 #include <limits>
 #include <utility>
 
@@ -18,7 +22,7 @@ DiscoveryDeliveryQueue::DiscoveryDeliveryQueue(std::size_t maxData,
 
 DiscoveryResult DiscoveryDeliveryQueue::admit() {
   if (m_state == DiscoveryDeliveryState::kStopped) {
-    return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
+    return std::unexpected{DiscoveryError{DiscoveryErrorKind::kStopped,
                                           "discovery delivery stopped"}};
   }
   if (m_state == DiscoveryDeliveryState::kOverflow) {
@@ -33,6 +37,15 @@ DiscoveryResult DiscoveryDeliveryQueue::admit() {
 }
 
 DiscoveryResult DiscoveryDeliveryQueue::overflow() {
+  latchOverflow();
+  return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
+                                        "discovery delivery overflow"}};
+}
+
+void DiscoveryDeliveryQueue::latchOverflow() noexcept {
+  if (m_state != DiscoveryDeliveryState::kRunning) {
+    return;
+  }
   m_state = DiscoveryDeliveryState::kOverflow;
   m_overflowed = true;
   m_data.clear();
@@ -45,9 +58,6 @@ DiscoveryResult DiscoveryDeliveryQueue::overflow() {
     m_emergency = DiscoveryDelivery{
         m_epoch, ++m_sequence, {}, DiscoveryControl::kOverflow};
   }
-
-  return std::unexpected{DiscoveryError{DiscoveryErrorKind::kResourceLimit,
-                                        "discovery delivery overflow"}};
 }
 
 DiscoveryResult DiscoveryDeliveryQueue::pushData(DiscoveryEvent event) {
@@ -64,6 +74,42 @@ DiscoveryResult DiscoveryDeliveryQueue::pushData(DiscoveryEvent event) {
       DiscoveryDelivery{m_epoch, event.m_sequence, std::move(event), {}});
   ++m_sequence;
 
+  return {};
+}
+
+DiscoveryResult
+DiscoveryDeliveryQueue::pushRegistration(DiscoveryRegistrationStatus status) {
+  if (auto result{admit()}; !result) {
+    return result;
+  }
+  if (m_data.size() >= m_max_data) {
+    return overflow();
+  }
+
+  m_data.push_back(
+      DiscoveryDelivery{m_epoch, m_sequence + 1, {}, {}, std::move(status)});
+  ++m_sequence;
+  return {};
+}
+
+DiscoveryResult DiscoveryDeliveryQueue::registrationBackendChange(
+    DiscoveryRegistrationStatus status) {
+  if (auto result{admit()}; !result) {
+    return result;
+  }
+  if (m_epoch == std::numeric_limits<std::uint64_t>::max() ||
+      m_control.size() >= m_max_control) {
+    return overflow();
+  }
+  const bool unavailable{status.m_state ==
+                         DiscoveryRegistrationState::kUnavailable};
+  m_control.push_back(DiscoveryDelivery{
+      m_epoch + 1, m_sequence + 1, {}, {}, std::move(status)});
+  if (unavailable) {
+    m_data.clear();
+  }
+  ++m_epoch;
+  ++m_sequence;
   return {};
 }
 
@@ -87,7 +133,7 @@ DiscoveryResult DiscoveryDeliveryQueue::pushControl(DiscoveryControl control) {
 
 DiscoveryResult DiscoveryDeliveryQueue::reset() {
   if (m_state == DiscoveryDeliveryState::kStopped) {
-    return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
+    return std::unexpected{DiscoveryError{DiscoveryErrorKind::kStopped,
                                           "discovery delivery stopped"}};
   }
   if (m_epoch == std::numeric_limits<std::uint64_t>::max()) {
@@ -100,6 +146,11 @@ DiscoveryResult DiscoveryDeliveryQueue::reset() {
   m_state = DiscoveryDeliveryState::kRunning;
   m_overflowed = false;
 
+#ifdef FIU_ENABLE
+  if (fiu_fail("dmn/discovery/delivery/reset-allocation")) {
+    throw std::bad_alloc{};
+  }
+#endif
   return pushControl(DiscoveryControl::kReset);
 }
 
@@ -114,6 +165,11 @@ DiscoveryResult DiscoveryDeliveryQueue::backendLost() {
   m_data.clear();
   m_emergency.reset();
   ++m_epoch;
+#ifdef FIU_ENABLE
+  if (fiu_fail("dmn/discovery/delivery/backend-lost-allocation")) {
+    throw std::bad_alloc{};
+  }
+#endif
   if (auto result{pushControl(DiscoveryControl::kBackendUnavailable)};
       !result) {
     return result;

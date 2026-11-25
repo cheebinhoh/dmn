@@ -10,9 +10,11 @@
 
 #include <gtest/gtest.h>
 
+#include <atomic>
 #include <condition_variable>
 #include <future>
 #include <mutex>
+#include <pthread.h>
 #include <stdexcept>
 #include <thread>
 
@@ -54,6 +56,188 @@ TEST(DmnDiscoverySessionTest, ResetRebuildsViewAndRejectsLateObservations) {
   ASSERT_TRUE(client.shutdown());
 }
 
+TEST(DmnDiscoverySessionTest, NativeLifecycleRunsUnlockedOnStateWorker) {
+  DiscoverySessionClient client{{}};
+  DiscoverySessionHandle handle;
+  const DiscoveryServiceKey key{"Printer", "_http._tcp", "local.", 2};
+  std::uint64_t priorEpoch{0};
+  std::size_t resets{0};
+  std::size_t cancellations{0};
+  DiscoverySessionClient::BrowserLifecycle lifecycle{
+      [&] {
+        ++cancellations;
+        EXPECT_EQ(handle.snapshot().m_delivery.m_state,
+                  DiscoveryDeliveryState::kStopped);
+        return DiscoveryResult{};
+      },
+      [&]() -> DiscoveryResult {
+        ++resets;
+        const auto snapshot{handle.snapshot()};
+        EXPECT_GT(snapshot.m_delivery.m_epoch, priorEpoch);
+        auto source{handle.observe(snapshot.m_delivery.m_epoch, key,
+                                   DiscoveryContribution::kIpv4)};
+        if (!source) {
+          return std::unexpected{source.error()};
+        }
+        return {};
+      }};
+  auto session{client.browse({}, std::move(lifecycle))};
+  ASSERT_TRUE(session);
+  handle = *session;
+  priorEpoch = handle.snapshot().m_delivery.m_epoch;
+  ASSERT_TRUE(handle.clearCache());
+  EXPECT_EQ(resets, 1);
+  EXPECT_EQ(handle.snapshot().m_browser.m_candidates.size(), 1);
+  ASSERT_TRUE(handle.stop());
+  ASSERT_TRUE(handle.stop());
+  EXPECT_EQ(cancellations, 1);
+  ASSERT_TRUE(client.shutdown());
+}
+
+TEST(DmnDiscoverySessionTest, NativeCleanupFailureStillDrainsCallback) {
+  DiscoverySessionClient client{{}};
+  std::promise<void> entered;
+  std::promise<void> release;
+  auto released{release.get_future().share()};
+  std::promise<void> cancelled;
+  auto session{client.browse(
+      [&](DiscoveryDelivery event) {
+        if (event.m_data) {
+          entered.set_value();
+          released.wait();
+        }
+      },
+      {[&]() -> DiscoveryResult {
+         cancelled.set_value();
+         return std::unexpected{
+             DiscoveryError{DiscoveryErrorKind::kBackend, "cleanup failed"}};
+       },
+       {}})};
+  ASSERT_TRUE(session);
+  ASSERT_TRUE(session->observe(session->snapshot().m_delivery.m_epoch,
+                               {"Printer", "_http._tcp", "local.", 2},
+                               DiscoveryContribution::kIpv4));
+  entered.get_future().wait();
+  auto stopping{
+      std::async(std::launch::async, [&] { return session->stop(); })};
+  cancelled.get_future().wait();
+  const bool returnedEarly{stopping.wait_for(std::chrono::milliseconds{20}) ==
+                           std::future_status::ready};
+  release.set_value();
+  EXPECT_FALSE(returnedEarly);
+  auto stopped{stopping.get()};
+  ASSERT_FALSE(stopped);
+  EXPECT_EQ(stopped.error().m_message, "cleanup failed");
+  ASSERT_TRUE(session->snapshot().m_cleanup_error);
+  EXPECT_EQ(session->snapshot().m_cleanup_error->m_message, "cleanup failed");
+  EXPECT_FALSE(client.shutdown());
+}
+
+#if defined(__GLIBCXX__)
+TEST(DmnDiscoverySessionTest, CancelledStopCallerDoesNotStrandBarrier) {
+  DiscoverySessionClient client{{}};
+  std::promise<void> entered;
+  std::promise<void> release;
+  auto released{release.get_future().share()};
+  std::promise<void> cancelled;
+  auto session{client.browse(
+      [&](DiscoveryDelivery event) {
+        if (event.m_data) {
+          entered.set_value();
+          released.wait();
+        }
+      },
+      {[&]() -> DiscoveryResult {
+         cancelled.set_value();
+         return {};
+       },
+       {}})};
+  ASSERT_TRUE(session);
+  ASSERT_TRUE(session->observe(session->snapshot().m_delivery.m_epoch,
+                               {"Printer", "_http._tcp", "local.", 2},
+                               DiscoveryContribution::kIpv4));
+  entered.get_future().wait();
+
+  pthread_t thread{};
+  ASSERT_EQ(pthread_create(
+                &thread, nullptr,
+                [](void *arg) -> void * {
+                  auto &handle{*static_cast<DiscoverySessionHandle *>(arg)};
+                  static_cast<void>(handle.stop());
+                  return nullptr;
+                },
+                &*session),
+            0);
+  cancelled.get_future().wait();
+  EXPECT_EQ(pthread_cancel(thread), 0);
+  void *result{};
+  EXPECT_EQ(pthread_join(thread, &result), 0);
+  EXPECT_EQ(result, PTHREAD_CANCELED);
+  release.set_value();
+  EXPECT_TRUE(session->stop());
+  EXPECT_TRUE(client.shutdown());
+}
+
+TEST(DmnDiscoverySessionTest, CancelledResetLeaderReleasesJoinedCaller) {
+  DiscoverySessionClient client{{}};
+  std::promise<void> entered;
+  std::promise<void> release;
+  auto released{release.get_future().share()};
+  std::promise<void> resetStarted;
+  std::atomic<bool> firstReset{true};
+  auto session{client.browse(
+      [&](DiscoveryDelivery event) {
+        if (event.m_data) {
+          entered.set_value();
+          released.wait();
+        }
+      },
+      {{}, [&]() -> DiscoveryResult {
+         if (firstReset.exchange(false)) {
+           resetStarted.set_value();
+         }
+         return {};
+       }})};
+  ASSERT_TRUE(session);
+  ASSERT_TRUE(session->observe(session->snapshot().m_delivery.m_epoch,
+                               {"Printer", "_http._tcp", "local.", 2},
+                               DiscoveryContribution::kIpv4));
+  entered.get_future().wait();
+  pthread_t thread{};
+  ASSERT_EQ(pthread_create(
+                &thread, nullptr,
+                [](void *arg) -> void * {
+                  auto &handle{*static_cast<DiscoverySessionHandle *>(arg)};
+                  static_cast<void>(handle.clearCache());
+                  return nullptr;
+                },
+                &*session),
+            0);
+  resetStarted.get_future().wait();
+  auto joined{
+      std::async(std::launch::async, [&] { return session->clearCache(); })};
+  const auto deadline{std::chrono::steady_clock::now() +
+                      std::chrono::seconds{2}};
+  while (session->snapshot().m_joined_reset_callers == 0 &&
+         std::chrono::steady_clock::now() < deadline) {
+    std::this_thread::yield();
+  }
+  const bool joinedReset{session->snapshot().m_joined_reset_callers != 0};
+  EXPECT_EQ(pthread_cancel(thread), 0);
+  void *result{};
+  EXPECT_EQ(pthread_join(thread, &result), 0);
+  EXPECT_EQ(result, PTHREAD_CANCELED);
+  const auto joinedResult{joined.get()};
+  release.set_value();
+  EXPECT_TRUE(joinedReset);
+  ASSERT_FALSE(joinedResult);
+  EXPECT_EQ(joinedResult.error().m_kind, DiscoveryErrorKind::kCancelled);
+  EXPECT_TRUE(session->clearCache());
+  EXPECT_TRUE(session->stop());
+  EXPECT_TRUE(client.shutdown());
+}
+#endif
+
 TEST(DmnDiscoverySessionTest, HandleSurvivesClientShutdown) {
   DiscoverySessionHandle handle{};
   {
@@ -65,7 +249,9 @@ TEST(DmnDiscoverySessionTest, HandleSurvivesClientShutdown) {
   }
   EXPECT_EQ(handle.snapshot().m_delivery.m_state,
             DiscoveryDeliveryState::kStopped);
-  EXPECT_FALSE(handle.refresh({"Printer", "_http._tcp", "local.", 2}));
+  const auto refresh{handle.refresh({"Printer", "_http._tcp", "local.", 2})};
+  ASSERT_FALSE(refresh);
+  EXPECT_EQ(refresh.error().m_kind, DiscoveryErrorKind::kStopped);
   EXPECT_TRUE(handle.stop());
 }
 
@@ -78,9 +264,15 @@ TEST(DmnDiscoverySessionTest, CallbackCanReadAndRefreshButNotWaitForBarriers) {
     if (event.m_data && event.m_data->m_kind == DiscoveryEventKind::kAdded) {
       const auto snapshot{handle.snapshot()};
       const auto refresh{handle.refresh(key)};
-      done.set_value(snapshot.m_browser.m_candidates.size() == 1 && refresh &&
-                     !handle.clearCache() && !handle.stop() &&
-                     !client.shutdown());
+      const auto reset{handle.clearCache()};
+      const auto stop{handle.stop()};
+      const auto shutdown{client.shutdown()};
+      done.set_value(
+          snapshot.m_browser.m_candidates.size() == 1 && refresh && !reset &&
+          reset.error().m_kind == DiscoveryErrorKind::kReentrantCall && !stop &&
+          stop.error().m_kind == DiscoveryErrorKind::kReentrantCall &&
+          !shutdown &&
+          shutdown.error().m_kind == DiscoveryErrorKind::kReentrantCall);
     }
   })};
   ASSERT_TRUE(session);
@@ -235,6 +427,36 @@ TEST(DmnDiscoverySessionTest, CallbackFailureIsIsolatedFromOtherSessions) {
   EXPECT_EQ(failing->snapshot().m_native_operations, 0);
   ASSERT_TRUE(failing->stop());
   ASSERT_TRUE(other->stop());
+}
+
+TEST(DmnDiscoverySessionTest, ConversionFailureRetainsItsError) {
+  DiscoverySessionClient client{{}};
+  std::promise<void> failingEntered;
+  std::promise<void> delivered;
+  auto failing{client.browse([&](DiscoveryDelivery) {
+    failingEntered.set_value();
+    throw DiscoveryDeliveryFailure{
+        {DiscoveryErrorKind::kResourceLimit, "conversion failed"}};
+  })};
+  auto other{client.browse([&](DiscoveryDelivery) { delivered.set_value(); })};
+  ASSERT_TRUE(failing);
+  ASSERT_TRUE(other);
+  ASSERT_TRUE(failing->observe(failing->snapshot().m_delivery.m_epoch,
+                               {"First", "_http._tcp", "local.", 2},
+                               DiscoveryContribution::kIpv4));
+  failingEntered.get_future().wait();
+  ASSERT_TRUE(other->observe(other->snapshot().m_delivery.m_epoch,
+                             {"Other", "_http._tcp", "local.", 2},
+                             DiscoveryContribution::kIpv4));
+  delivered.get_future().wait();
+  const auto snapshot{failing->snapshot()};
+  ASSERT_TRUE(snapshot.m_cleanup_error);
+  EXPECT_EQ(snapshot.m_cleanup_error->m_kind,
+            DiscoveryErrorKind::kResourceLimit);
+  EXPECT_EQ(snapshot.m_cleanup_error->m_message, "conversion failed");
+  EXPECT_TRUE(snapshot.m_delivery.m_callback_failed);
+  EXPECT_TRUE(failing->stop());
+  EXPECT_TRUE(other->stop());
 }
 
 TEST(DmnDiscoverySessionTest, BackendLossResetsViewAndRecoveryUsesFreshEpoch) {

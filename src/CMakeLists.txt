@@ -25,6 +25,36 @@ add_library(dmn
 add_library(Dmn::dmn ALIAS dmn)
 target_compile_features(dmn PUBLIC cxx_std_23)
 
+if (ENABLE_DMN_DISCOVERY)
+  find_package(Threads REQUIRED)
+  target_sources(dmn PRIVATE
+    dmn-discovery.cpp
+    dmn-discovery-public-conversion.cpp
+    dmn-discovery-command.cpp
+    dmn-discovery-core.cpp
+    dmn-discovery-delivery.cpp
+    dmn-discovery-dispatcher.cpp
+    dmn-discovery-records.cpp
+    dmn-discovery-registration.cpp
+    dmn-discovery-retry.cpp
+    dmn-discovery-session.cpp
+    dmn-discovery-slots.cpp
+    dmn-discovery-avahi.cpp
+    dmn-discovery-avahi-browser.cpp
+    dmn-discovery-avahi-contribution.cpp
+    dmn-discovery-avahi-mapping.cpp
+    dmn-discovery-avahi-record-watch.cpp
+    dmn-discovery-avahi-registration.cpp
+    dmn-discovery-avahi-registration-session.cpp
+    dmn-discovery-avahi-resolver.cpp)
+  target_link_libraries(dmn PRIVATE
+    "${DMN_AVAHI_TARGET}" Threads::Threads)
+  target_compile_definitions(dmn PUBLIC DMN_ENABLE_DMN_DISCOVERY=1)
+  dmn_add_build_interface_sources(dmn
+    "${PROJECT_SOURCE_DIR}/include/dmn-discovery.hpp")
+  dmn_install_avahi("${CMAKE_INSTALL_LIBDIR}/cmake/Dmn")
+endif()
+
 if (ENABLE_DMN_DMESGNET)
   target_sources(dmn
                    PRIVATE
@@ -424,6 +454,12 @@ endif()
 if (NOT ENABLE_FAULT_INJECTION)
   list(APPEND DMN_EXCLUDED_PUBLIC_HEADER_PATTERNS
          PATTERN "dmn-fault-injection.hpp" EXCLUDE
+  )
+endif()
+
+if (NOT ENABLE_DMN_DISCOVERY)
+  list(APPEND DMN_EXCLUDED_PUBLIC_HEADER_PATTERNS
+         PATTERN "dmn-discovery.hpp" EXCLUDE
   )
 endif()
 

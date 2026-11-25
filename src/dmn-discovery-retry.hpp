@@ -89,6 +89,9 @@ public:
    */
   [[nodiscard]] std::vector<DiscoveryAttemptId> takeDue(TimePoint now);
 
+  /** @brief Earliest pending retry, or no value when no timer is armed. */
+  [[nodiscard]] std::optional<TimePoint> nextDeadline() const;
+
   /**
    * @brief Copy the currently visible error for one operation.
    *

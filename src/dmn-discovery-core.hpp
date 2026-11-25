@@ -31,7 +31,24 @@ namespace dmn::detail {
 /**
  * @brief Private error categories for validation and backend initialization.
  */
-enum class DiscoveryErrorKind { kInvalidArgument, kBackend, kResourceLimit };
+enum class DiscoveryErrorKind {
+  kInvalidArgument,
+  kUnsupported,
+  kBackend,
+  kResourceLimit,
+  kStopped,
+  kReentrantCall,
+  kCancelled,
+  kCallbackFailure
+};
+
+enum class DiscoveryNativeErrorCategory {
+  kUnavailable,
+  kPermission,
+  kResourceLimit,
+  kUnsupported,
+  kCollision
+};
 
 /**
  * @brief Owned error without references to native or caller-owned storage.
@@ -39,6 +56,9 @@ enum class DiscoveryErrorKind { kInvalidArgument, kBackend, kResourceLimit };
 struct DiscoveryError {
   DiscoveryErrorKind m_kind{DiscoveryErrorKind::kBackend};
   std::string m_message{};
+  std::optional<std::string> m_backend_domain{};
+  std::optional<std::int64_t> m_backend_code{};
+  std::optional<DiscoveryNativeErrorCategory> m_native_category{};
 };
 
 /**
@@ -147,6 +167,9 @@ struct DiscoveryAttemptId {
 struct DiscoveryAttemptError {
   bool m_recoverable;
   std::string m_message;
+  std::optional<std::string> m_backend_domain{};
+  std::optional<std::int64_t> m_backend_code{};
+  std::optional<DiscoveryNativeErrorCategory> m_native_category{};
 
   bool operator==(const DiscoveryAttemptError &) const = default;
 };
@@ -159,6 +182,15 @@ struct DiscoveryFailure {
   bool operator==(const DiscoveryFailure &) const = default;
 };
 
+/** @brief Known provenance of a browse observation; unset means unknown. */
+struct DiscoveryProvenance {
+  std::optional<bool> m_cached;
+  std::optional<bool> m_local;
+  std::optional<bool> m_wide_area;
+  std::optional<bool> m_multicast;
+  bool operator==(const DiscoveryProvenance &) const = default;
+};
+
 /**
  * @brief Owned service observation, independent of callback buffer lifetime.
  */
@@ -168,6 +200,7 @@ struct DiscoveryCandidate {
   DiscoveryRecordSnapshot m_records{};
   std::optional<DiscoveryRefreshStatus> m_refresh{};
   std::vector<DiscoveryFailure> m_failures{};
+  DiscoveryProvenance m_provenance{};
 };
 
 /**
@@ -313,7 +346,8 @@ public:
    */
   [[nodiscard]] std::expected<std::uint64_t, DiscoveryError>
   addObservation(const DiscoveryServiceKey &key,
-                 DiscoveryContribution contribution);
+                 DiscoveryContribution contribution,
+                 DiscoveryProvenance provenance = {});
 
   /**
    * @brief Remove a matching live contribution.
@@ -349,9 +383,9 @@ public:
    * The update runs synchronously on the caller-serialized browser. The
    * callback receives the live source token and must not retain the model
    * reference, alter browse-source membership, or re-enter browser mutation
-   * methods. An exception leaves the prior state unchanged. Observable
-   * changes are published after the update, including changes caused by an
-   * unsuccessful update.
+   * methods. An exception from the update leaves the prior state unchanged.
+   * Observable changes are published after the update, including changes
+   * caused by an unsuccessful update; the session handles publication failures.
    *
    * @param key Service identity.
    * @param contribution Native observation source.
@@ -424,7 +458,7 @@ public:
               DiscoveryContribution contribution, std::uint64_t generation,
               DiscoveryAttempt attempt, std::uint64_t operationGeneration,
               std::uint64_t resolutionGeneration, bool recoverable,
-              std::string message);
+              std::string message, std::optional<DiscoveryError> native = {});
 
   /**
    * @brief Clear a current operation's previously reported failure.
@@ -452,6 +486,9 @@ public:
   [[nodiscard]] std::expected<std::vector<DiscoveryAttemptId>, DiscoveryError>
   takeDueRetries();
 
+  /** @brief Earliest retry or refresh deadline for the owning poll loop. */
+  [[nodiscard]] std::optional<TimePoint> nextDeadline() const;
+
   /**
    * @brief Copy the current candidate set and last assigned event sequence.
    *
@@ -470,8 +507,12 @@ private:
   };
 
   struct Entry {
+    struct Source {
+      std::uint64_t m_generation;
+      DiscoveryProvenance m_provenance;
+    };
     DiscoveryCandidate m_candidate;
-    std::map<DiscoveryContribution, std::uint64_t> m_sources;
+    std::map<DiscoveryContribution, Source> m_sources;
     std::unique_ptr<DiscoveryRecords> m_records;
     std::optional<TimePoint> m_refresh_deadline;
   };
@@ -481,6 +522,7 @@ private:
    */
   [[nodiscard]] static CanonicalKey
   canonicalize(const DiscoveryServiceKey &key);
+  [[nodiscard]] static DiscoveryProvenance provenance(const Entry &entry);
 
   [[nodiscard]] Entry *findLive(const DiscoveryServiceKey &key,
                                 DiscoveryContribution contribution,

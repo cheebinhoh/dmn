@@ -74,4 +74,19 @@ TEST(DmnDiscoveryRetryTest, CancellingTimerKeepsTheVisibleError) {
   EXPECT_EQ(retries.takeDue(now + 1s), (std::vector{watch}));
 }
 
+TEST(DmnDiscoveryRetryTest, NextDeadlineTracksOnlyPendingTimers) {
+  DiscoveryRetrySchedule retries{3};
+  const DiscoveryRetrySchedule::TimePoint now{};
+  const DiscoveryAttemptId first{1, DiscoveryAttempt::kSrv};
+  const DiscoveryAttemptId second{2, DiscoveryAttempt::kTxt};
+  EXPECT_FALSE(retries.nextDeadline());
+  ASSERT_TRUE(retries.fail(first, true, "failed", now + 5s));
+  ASSERT_TRUE(retries.fail(second, true, "failed", now));
+  EXPECT_EQ(retries.nextDeadline(), now + 1s);
+  retries.cancelTimer(second);
+  EXPECT_EQ(retries.nextDeadline(), now + 6s);
+  retries.removeSource(1);
+  EXPECT_FALSE(retries.nextDeadline());
+}
+
 } // namespace

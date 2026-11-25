@@ -2,15 +2,16 @@
 
 # Reusable DNS-SD/mDNS Discovery
 
-**Status: proposed specification; not implemented.** This document defines a
-test-driven Phase 3 design. Proposed names and snippets are design contracts,
-not existing headers or evidence of platform qualification. Phase 2's
-`Dmn_DMesgNet` behavior is unchanged.
+**Status: implementation in progress; not yet platform-qualified.** This
+document defines a test-driven Phase 3 design. Contract sketches are not
+evidence of platform qualification. Phase 2's `Dmn_DMesgNet` behavior is
+unchanged.
 
 ## 1. Decision and scope
 
 Provide an optional, reusable Dmn-owned DNS Service Discovery (DNS-SD) API,
-independent of DMesgNet, D-Bus, BlueZ, protobuf, Kafka and any GUI. Its first
+independent of Dmn's DMesgNet, D-Bus and BlueZ features, protobuf, Kafka and
+any GUI. The Linux backend itself uses the system D-Bus through Avahi. Its first
 backend uses the system **Avahi client library and daemon on Linux**. A native
 **Bonjour/mDNSResponder backend on macOS** implements the same portable
 contract; it is a separate milestone and is required before claiming Phase 3
@@ -137,8 +138,8 @@ inventing it when the native API does not expose it.
 ## 3. Targets and API boundary
 
 Proposed public headers are `include/dmn-discovery.hpp` and, if separation
-improves clarity, `include/dmn-discovery-types.hpp`. The optional library is
-`dmn-discovery`, exported as `Dmn::dmn-discovery`, with a build option
+improves clarity, `include/dmn-discovery-types.hpp`. Discovery is an optional
+feature of `dmn`, exported as `Dmn::dmn`, with a build option
 `ENABLE_DMN_DISCOVERY` defaulting to `OFF`. The Dmn-owned types are
 platform-neutral. No Avahi, libdbus, DNSService, protobuf or GUI types appear
 in public headers. Backend objects and fake injection are private
@@ -225,12 +226,26 @@ offer synchronous waiting from the callback worker.
   instance is not an endpoint; no address is fabricated. A port of zero or
   unusable address is not presented as a usable endpoint. In particular, an
   IPv6 link-local address without a known interface/scope is not usable.
-- Preserve each TXT entry as length-delimited bytes, including empty entries,
-  duplicate keys, binary values, backend-provided ordering and unknown keys.
+- Preserve every backend-reported TXT entry as length-delimited bytes,
+  including any reported empty entries, duplicate keys, binary values,
+  backend-provided ordering and unknown keys.
   Distinguish an absent TXT record from an empty record when the backend can
   report it; otherwise represent that distinction as unknown. Do not
   treat TXT as a NUL-terminated string, credentials, or trusted configuration.
   A future convenience parser must not replace the raw representation.
+  This applies to the data delivered by the backend, not necessarily the
+  original network packet. In particular, Avahi 0.8 discards empty strings
+  when parsing and serializing TXT RDATA and reserializes the daemon's record
+  for a record-browser callback. An Avahi consumer cannot recover those
+  discarded entries or claim byte-for-byte network TXT preservation. To avoid
+  silently changing an advertisement, the Avahi backend rejects TXT with more
+  than one entry if any entry is empty (for example `["version=1", ""]` or
+  `["", ""]`). An empty list or a single empty entry remains supported as an
+  empty TXT record. Other daemon versions may behave differently, but the
+  conservative rejection applies to the Avahi backend.
+  ([Avahi TXT parser](https://github.com/avahi/avahi/blob/v0.8/avahi-common/strlst.c),
+  [DNS parser](https://github.com/avahi/avahi/blob/v0.8/avahi-core/dns.c),
+  [record browser](https://github.com/avahi/avahi/blob/v0.8/avahi-daemon/dbus-record-browser.c)).
 - A snapshot is an owned, point-in-time **local observation**, with browser
   state, epoch and sequence. It is not a network-wide inventory. Include
   unresolved/error state rather than a success-shaped empty endpoint.
@@ -239,7 +254,8 @@ offer synchronous waiting from the callback worker.
   unsupported platform/capability, unavailable/disconnected backend,
   permission/policy, resource limit/overflow, resolution failure, collision,
   cancellation/stopped and internal failure. Never require callers to parse
-  error strings or expose borrowed backend buffers.
+  error strings or expose borrowed backend buffers. An allocation failure may
+  have empty detail so reporting it does not require another allocation.
 
 The public options must expose the limits and attempt deadline in sections 3.3
 and 7; queries and advertisements own their strings and byte sequences.
@@ -316,8 +332,9 @@ source. Never retain an old address merely because a replacement failed.
 SRV or TXT records are watched independently as described in section 8.
 Use bounded sets of distinct currently observed records, deduplicated across
 contributions with per-contribution presence. Compare SRV priority, weight,
-port and DNS-normalized target; compare TXT as exact wire bytes except for
-the RFC 6763 empty-TXT equivalence below. A record
+port and DNS-normalized target; compare TXT as exact backend-reported wire
+bytes except for the RFC 6763 empty-TXT equivalence below. Avahi's prior
+normalization can make distinct network records indistinguishable here. A record
 remove affects only its contribution; delete it from the union when the last
 contribution disappears. The following applies to records *observed* by these
 subscriptions, not to an unknowable complete network-wide record set. A
@@ -438,6 +455,12 @@ version is invented here. The native backend advertises the host machine's
 daemon-selected target hostname; this version does not publish an arbitrary
 remote host or open a listening socket for the caller.
 
+For Avahi, reject a multi-entry TXT value containing any empty entry with an
+explicit unsupported-capability error before starting native registration.
+Do not silently remove entries. Both an empty list and a single empty entry
+are accepted as an empty TXT record, using the RFC 6763 empty-TXT equivalence.
+This restriction does not prohibit binary or duplicate non-empty entries.
+
 `advertise()` returns a registration handle on local acceptance. Its
 serialized events distinguish registering, established, collision,
 unavailable and failure. A collision is reported; do not silently rename the
@@ -511,10 +534,9 @@ prompt shutdown on both systems before claiming platform acceptance.
 
 ### 6.1 Reuse of existing Dmn execution primitives
 
-Phase 4's private fake currently uses a `DiscoveryCommandWorker` and a
-`DiscoveryDispatcher`, each with a `std::thread`. Evaluate replacing their
-thread ownership with the existing `Dmn_Proc`, as already used by the D-Bus
-input/output workers. Prefer composition and keep discovery's separate state
+The private fake uses a `DiscoveryCommandWorker` and a `DiscoveryDispatcher`.
+Both own a `Dmn_Proc`, as do the D-Bus input/output workers. Use composition
+and keep discovery's separate state
 and callback workers. `Dmn_Proc` is not a process-wide runtime and does not
 itself provide a command queue, a poll wakeup or a callback-drain barrier.
 
@@ -525,8 +547,24 @@ and report it through discovery's typed error channel; roll back a partially
 started client. Do not rely on the destructor's pthread cancellation as the
 normal shutdown path. Select and handle the worker exception policy explicitly;
 never swallow a pthread forced-unwind exception as an ordinary callback or
-command failure. A worker cannot join itself. Keep callback-side snapshot and
-refresh usable while an external barrier drains a callback.
+command failure. Discovery workers disable pthread cancellation while running:
+native C callbacks cannot safely propagate cancellation, and shutdown uses
+the explicit wake and cooperative join path. A worker cannot join itself.
+Keep callback-side snapshot and refresh usable while an external barrier drains
+a callback. A fatal state-worker failure completes queued waiters with an
+error and tears down its poller; a fatal callback-worker failure stops
+delivery, records the error and requests native cleanup on the state worker.
+If cleanup submission cannot allocate, retain a resource-limit error, mark
+the affected session stopped and wake the native owner to finish cleanup.
+If shutdown exits before completing because of an allocation failure, later
+or concurrent shutdown calls must be able to retry instead of waiting forever.
+Reset and stop leaders prepare their failure diagnostics before admission and
+publish results without allocating for an error copy. Allocation failures
+release joined callers with a resource-limit error and leave the barrier
+available for a later retry.
+On Linux with libstdc++, cancellation of a barrier leader propagates pthread
+forced unwind, releases joined callers with a cancellation error, and permits
+a subsequent barrier call to finish cleanup.
 
 `Dmn_Pipe` is an in-memory typed FIFO with an optional worker, not an OS pipe
 or an automatically pollable file descriptor. Its default queue is unbounded,
@@ -608,10 +646,22 @@ Bound all Dmn-owned handoffs:
   first. The terminal status remains observable through `snapshot()` even if
   the callback fails. `clearCache()` explicitly attempts a restart; there is
   no automatic overflow retry.
+- An allocation failure while mutating the browser model or preparing its
+  event invalidates the entire view in the same way, rather than retaining
+  a partially updated model or an unannounced delta. Allocation failure while
+  applying reset or backend transitions likewise latches overflow; a failed
+  reset still drains callbacks from older epochs. The emergency transition
+  itself does not allocate; native objects are retired after callback stacks
+  unwind. Native callback allocation failures retain `ResourceLimit` even if
+  their failure notification cannot run; diagnostic text may be empty when
+  memory is exhausted. Public event and registration-status conversion
+  failures use the same allocation-free error detail and move the error into
+  session status before callback cleanup.
 - If a registration queue or slot overflows, withdraw that registration,
   discard its queued events, set a persistent overflow status and use its
   emergency overflow slot. `status()` reports it even if no callback can run.
-  A new registration is required to retry.
+  The overflow error and emergency transition are prepared without allocating
+  during failure handling. A new registration is required to retry.
 - Multiple pending control transitions must not silently overwrite an
   undelivered required transition. If they cannot fit, invalidate the
   affected session, discard its queued deltas and replace them with one
@@ -629,6 +679,12 @@ on documented disconnection, free associated objects and the client before
 recreating it. Its documentation does not promise transparent recovery from
 all D-Bus daemon restarts. The backend must report errors and use bounded
 backoff for supported retries; retry waits must be interruptible by shutdown.
+For `AVAHI_ERR_DISCONNECTED` and `AVAHI_ERR_NO_DAEMON`, notify the owner,
+release the failed client on the state worker after its callback returns, and
+recreate it using one pending timer with delays doubling from one second to a
+maximum of thirty seconds. Reset the delay when the client reaches RUNNING.
+Other client errors remain visible and are not assumed recoverable. Session
+objects must be invalidated before the failed client is released.
 The macOS backend must likewise report broken references and either rebuild
 with a new epoch or remain visibly unavailable. No cross-platform recovery
 guarantee is accepted until the relevant platform tests demonstrate it.
@@ -637,13 +693,17 @@ guarantee is accepted until the relevant platform tests demonstrate it.
 
 ### Linux/Avahi
 
-1. Discover `avahi-client` and `avahi-common` with pkg-config only when the
-   option is enabled. Construct the client with an owned poll context; handle
-   immediate constructor callbacks and failure without exposing partial state.
+1. Discover `avahi-client` with pkg-config only when the option is enabled;
+   its link metadata supplies `avahi-common` on distributions such as Ubuntu
+   that do not ship a separate `avahi-common.pc`. Verify the resulting headers
+   and libraries are usable. Construct the client with an owned poll context;
+   handle immediate constructor callbacks and failure without exposing partial
+   state.
 2. Use service browse with explicit type, domain and interface and both
    supported query transports. Map `NEW` and `REMOVE` to per-transport
-   contributions to the portable key. Cache exhaustion/all-for-now are
-   backend progress hints, not global completion.
+   contributions to the portable key. Reject results outside the requested
+   type, domain or explicit interface. Cache exhaustion/all-for-now are backend
+   progress hints, not global completion.
 3. For each contribution, watch SRV and TXT using bounded
    `AvahiRecordBrowser` objects. For each requested address family, use a
    bounded `AvahiServiceResolver`, passing the contribution's interface and
@@ -689,12 +749,18 @@ guarantee is accepted until the relevant platform tests demonstrate it.
 ## 9. Build, packaging and documentation
 
 - `ENABLE_DMN_DISCOVERY=OFF` introduces no Avahi, Bonjour, D-Bus, BlueZ,
-  protobuf or Kafka discovery dependency. On Linux, enabling it requires the
-  Avahi development packages and fails with an actionable diagnostic if
-  missing. On macOS, enabling it selects the native system API; never fetch or
-  silently start an Avahi daemon. Unsupported enabled configurations fail
-  explicitly, rather than building a success-shaped no-op.
-- Install the supported public header(s) and optional exported target; propagate
+  protobuf or Kafka discovery dependency. On Linux, `DMN_AVAHI_PROVIDER=AUTO`
+  uses system Avahi development files when available, otherwise builds the
+  pinned upstream client/common libraries if `DMN_ALLOW_DEPENDENCY_FETCH=ON`.
+  `SYSTEM` requires system development files; `SOURCE` forces the source
+  build. The source build requires D-Bus development files and make, and does
+  not install or start an Avahi daemon. Missing prerequisites and disabled
+  fetching produce actionable errors. The opt-in
+  `DMN_BUILD_AVAHI_ADAPTER_TESTS=ON` can prepare this dependency for private
+  adapter tests before the discovery target is available. On macOS, enabling
+  discovery selects the native system API. Unsupported enabled configurations
+  fail explicitly, rather than building a success-shaped no-op.
+- Install the supported public header(s) and export discovery through `dmn`; propagate
   static-link dependencies correctly through `DmnConfig.cmake` only when
   needed. Do not export build-machine paths or leak native types into the API.
   Add feature information to the umbrella/header and standalone-header checks
@@ -702,26 +768,19 @@ guarantee is accepted until the relevant platform tests demonstrate it.
   `find_package(Dmn CONFIG)` consumer with the option both on and off.
 - **Packaging decision:** preserve the existing single `Dmn` package and its
   eager dependency discovery; do not introduce a component-aware export or a
-  second package in this feature. `dmn-discovery` itself must not link to
-  `dmn`, protobuf or Kafka. For a discovery consumer that must not require
+  second package in this feature. Discovery is part of `dmn`, not a separate
+  library. For a discovery consumer that must not require
   protobuf/Kafka, install Dmn with `ENABLE_DMN_DISCOVERY=ON` and
   `ENABLE_DMN_DMESGNET=OFF` (and other unrelated options off). The current
   `DmnConfig.cmake` still requires ICU and any dependencies enabled in that
-  installed build, even if a consumer links only discovery. In particular,
+  installed build. In particular,
   a default DMesgNet-enabled package requires protobuf and librdkafka at
-  `find_package` time. Do not describe target independence as independent
-  package dependency discovery. Component-aware packaging is future work and
+  `find_package` time. Component-aware packaging is future work and
   would require a separate package-spec change.
-- `Dmn_Proc` is currently implemented in `dmn-proc.cpp` inside `dmn`; using
-  it from the standalone discovery target cannot simply add a link to `dmn`.
-  First design and test a shared support target or another ownership arrangement
-  that preserves the existing `dmn` ABI and the independent discovery target.
-  Avoid duplicate definitions when both libraries are linked, and export any
-  static-link dependencies correctly. Test installed, relocated consumers
-  linking discovery alone and both targets, with DMesgNet off and protobuf and
-  Kafka unavailable. If this cannot be established, retain the existing
-  `std::thread` implementation and document the limitation rather than
-  silently breaking packaging.
+- Keep `Dmn_Proc` in `dmn` and use it for the discovery workers. Preserve
+  existing symbols and lifecycle behavior; do not introduce a second copy or
+  a separate support library. Test installed, relocated consumers linking
+  `Dmn::dmn` with DMesgNet off and protobuf and Kafka unavailable.
 - Public classes, types, lifetime, thread-safety, errors, byte ownership and
   examples require Doxygen. Update the package specification, feature
   documentation and installed-header expectations as implementation lands.
@@ -740,7 +799,7 @@ lifecycle outcomes, not backend implementation details.
 | --- | --- |
 | Configuration and input | Option off, unsupported platform, invalid type/domain/interface/port, malformed or oversized TXT, zero/overflow limits, missing dependency and no implicit daemon/network activity. |
 | Browse and resolve | Initial empty snapshot; per-source address replacement and independent source retention; SRV target/port change invalidates old address generation, TXT-only change preserves addresses; root target and port zero are unusable; address removal; transient timeout then retry without another browse `NEW`; permanent error; refresh success, failure, supersession, absent key and cancellation; late callback and independent handles. |
-| Identity and values | Same key via two Avahi transports produces one `Added`; removing one transport retains the key; last removal emits one `Removed`; Bonjour equivalent and distinct interfaces; unknown interface; literal dots and UTF-8; DNS case equivalence; IPv6 link-local scope; binary/empty/duplicate TXT; network-to-host port conversion. |
+| Identity and values | Same key via two Avahi transports produces one `Added`; removing one transport retains the key; last removal emits one `Removed`; Bonjour equivalent and distinct interfaces; unknown interface; literal dots and UTF-8; DNS case equivalence; IPv6 link-local scope; binary/empty/duplicate backend-reported TXT; Avahi rejects multi-entry advertisements containing empty entries but accepts an empty TXT record; network-to-host port conversion. |
 | Record conflicts | Duplicate identical SRV/TXT across transports; absent TXT, zero-length TXT and single empty string; two distinct observed records, transient overlapping update, conflict clears after removal, old endpoint invalidation, singleton changes, malformed RDATA, per-record limits and late old-generation callbacks on both adapters. No test asserts complete network-wide enumeration. |
 | Cache/reset | Clear populated/empty view, one reset before new-epoch events, immediate reappearance from fake daemon cache, no daemon-global clear, callback in flight, queued old callback suppression, stale resolution after clear, restart failure and unavailable clear. |
 | Loss/recovery | Daemon absent at startup, available later, loss while resolving, invalidation without false removal, repeated loss, bounded/interruptible backoff, reappearance and fresh epoch; bus/daemon failure that cannot recover is explicitly surfaced. |
@@ -754,6 +813,14 @@ including immediate callbacks and daemon restart. Add macOS DNSService-adapter
 tests with controlled native shims, query/update/address lifecycle and port
 byte order. Test each failure/cancellation cleanup path under Valgrind on
 Linux where supported and sanitizers where available.
+
+With `DMN_BUILD_AVAHI_ADAPTER_TESTS=ON`, the opt-in
+`DMN_AVAHI_REAL_DAEMON_TEST=ON` adapter fixture uses separate user, mount, PID
+and network namespaces, a private D-Bus session, a test-only Avahi daemon and
+a dummy multicast interface. It requires unprivileged user namespaces, mount,
+iproute2, D-Bus and Avahi daemon support. It does not modify the host daemon or
+use the host network. Its native-seam checks are not a substitute for an
+installed public-client test or cross-host qualification.
 
 Real-network tests are **opt-in**, isolated and time-bounded: Linux
 Avahi-to-Avahi, macOS Bonjour-to-Bonjour, and Linux-to-macOS on the same
@@ -783,8 +850,8 @@ Do not treat an unrun integration test as a pass.
   `dmn` and `dmn-discovery`. Test names below describe behavior, not mandatory
   GoogleTest spelling. Use the existing `ADD_TEST_EXECUTABLE` and
   `ADD_TEST_VALGRIND` patterns where appropriate, and link each test to the
-  actual target(s) it exercises. The existing test macro also links `dmn`;
-  it does **not** by itself prove discovery's standalone link interface.
+  actual target(s) it exercises. Test the installed `Dmn::dmn` target
+  separately from the in-tree test macro.
 - Until a complete native backend is ready, build the portable core and fake
   as private test-only code when `DMN_BUILD_TESTS=ON`. Their fake injection
   seam is private and is never installed or selected by the production
@@ -897,29 +964,31 @@ add deterministic worker-start failure and partial-start rollback, concurrent
 shutdown, callback reentrancy, worker exception reporting and prompt
 cooperative wake/join tests. Verify no queued waiter is stranded, no stale
 callback begins after a barrier, and one session's callback failure does not
-stop another. Test discovery both with its standalone support target and when
-linked alongside `dmn`; private tests that implicitly link `dmn` cannot prove
-standalone linkage. Exercise both supported library linkage modes where
+stop another. Test discovery and existing `Dmn_Proc` consumers through
+`dmn`. Exercise both supported library linkage modes where
 available.
 
-**Implement:** resolve the `Dmn_Proc` support-target/export issue first, then
-adapt the two discovery workers to use it if the package and lifecycle gates
-can be preserved. Keep bounded discovery queues and the separate callback
+**Implement:** adapt the two discovery workers to use the existing
+`Dmn_Proc` in `dmn`. Keep bounded discovery queues and the separate callback
 worker unless a tested reusable extension provides equivalent semantics. Any
 proposed change to `Dmn_Proc`, `Dmn_Pipe`, or queue defaults must preserve
 existing callers; add focused compatibility and failure-injection tests for
 the shared primitive itself before adopting it. A more capable pipe is
 optional and must not delay or weaken the stop/control paths.
+`Dmn_Proc` relies on the POSIX initial cancellation state and type (enabled
+and deferred) instead of repeating their setup before the task. This removes
+the pre-task failure path without changing its object layout. Discovery's own
+worker wrappers disable cancellation before admitting work. Worker construction
+waits for that setup and reports a failure through the typed admission path,
+rolling back any worker already started; failures after startup use the
+serialized worker-failure paths.
 
 **Gate:** existing proc, pipe, async, timer, queue and discovery tests pass,
 including relevant fault-injection tests where configured and discovery
-Valgrind tests. Test standalone linkage of the private discovery core without
-the test macro's implicit `dmn` dependency, and together with `dmn`; test
-relocation/export of any new support target. The installed discovery target
-does not exist yet, so its relocated consumers remain mandatory phase 6/7
-gates. Native poll integration and macOS execution also remain phase 6/7
-gates. If standalone support cannot be established, record the blocking
-evidence and leave the working Phase 4 implementation unchanged.
+Valgrind tests. Test the existing `dmn` linkage and relocated discovery
+consumer in static and shared builds. Native poll integration and macOS
+execution remain phase 6/7 gates. Worker reuse is not complete until its
+failure and lifecycle tests pass.
 
 ### Phase 5 — Registration contract
 
@@ -941,6 +1010,9 @@ bounded failure paths, independent of browsing and DMesgNet.
 command wakeup, absent daemon, native errors and prompt stop with controlled
 native shims. Implement one owned `AvahiSimplePoll` worker and safe teardown.
 Gate on the adapter suite plus phases 0–5.
+The native poll limits each blocking wait to one second so that a failed
+command-wake pipe write is observed even if it cannot wake an already
+blocked poll; ordinary successful writes still wake it promptly.
 
 **6b — Browse and resolve.** First test native `NEW`/`REMOVE` mapping,
 transport-versus-address-family arguments, SRV/TXT wire parsing,
@@ -948,19 +1020,61 @@ transport-versus-address-family arguments, SRV/TXT wire parsing,
 native browse, bounded record watches and resolvers. Gate on adapter and core
 tests; use a private bus/daemon when available to check real initialization,
 resource limits and daemon restart.
+Avahi's set browse-result flags provide positive provenance; unset flags are
+unknown. For merged live observations, each provenance field is true if any
+source reports true, false only if every source reports false, and unknown
+otherwise. Changes to the merged value produce a changed event.
+Browser model preparation occurs before dispatcher admission. If the initial
+unavailable event cannot be queued, the unpublished session is discarded and
+its capacity released, including when admission is attempted from a callback.
+After local admission, Avahi startup allocation failures retain the accepted
+handle and latch resource overflow; startup exceptions are reported through
+the handle's backend status. This also applies to nested admission from a
+callback. If a disconnect occurs during startup, release all native objects
+before the client can be freed and finish the pending loss transition even
+when the newly admitted browser has overflowed.
+Contribution teardown releases all native watches and resolvers before copying
+session state or updating the model. An allocation failure in that remaining
+cleanup is reported as a resource-limit error so the owner can invalidate the
+session and release its operation leases. Repeated contribution cleanup
+retains that allocation error rather than reporting success. On worker
+teardown, backend failure or daemon loss, all browsers' native objects are
+released before potentially allocating contribution cleanup and before the
+Avahi client is freed.
 
 **6c — Advertisement and install.** First test entry-group creation,
 immediate callbacks, binary TXT, collision, withdrawal and recovery, then
 implement them. Add the real optional target, export and package tests. Run
 the relocated downstream consumer with discovery on, DMesgNet off and
 protobuf/Kafka unavailable; independently verify the feature-off build. The
-consumer must link only `Dmn::dmn-discovery`, not use the test macro's implicit
-`dmn` link. Register and run the Avahi adapter's Valgrind test.
+consumer must link `Dmn::dmn` directly rather than rely on the in-tree test
+macro. Exercise both system Avahi and forced source providers, including
+their relocated package dependencies and applicable license notices. Register
+and run the Avahi adapter's Valgrind test.
 
 **Linux gate:** all previous deterministic tests and Linux adapter/package
 tests pass. Run the opt-in real Avahi browse/advertise/withdraw test where its
 prerequisites are available; record a skip otherwise. Without that real
 test, report the Linux implementation as unqualified, not network-verified.
+
+**Concurrency investigation, not a qualification:** on one Linux environment,
+ThreadSanitizer passed ten deterministic discovery and ten controlled Avahi
+test executables when ASLR was disabled for the test processes. Real-daemon
+tests reported a D-Bus lock-order inversion during Avahi client creation and
+destruction. The same warning reproduced with an isolated, single-threaded
+Avahi-only client using system Avahi 0.8 and libdbus 1.14.10, without Dmn
+code. This establishes an upstream-library reproduction, not that concurrent
+clients are free of deadlock. With lock-order detection disabled solely to
+check for data races, the real public and recovery tests also passed
+ThreadSanitizer. An isolated real-daemon test also exercised four concurrent
+clients, each creating and stopping three browser/client lifecycles; it passed
+normally and under ThreadSanitizer with lock-order detection disabled. This
+bounded test does not resolve the lock-order warning. In one Helgrind poll
+test run, all 57 reported contexts involved command-future storage or test
+data read after the corresponding command completed. A separate synchronized
+future reproducer shows that Helgrind can miss that happens-before
+relationship. This triage is limited to that run and does not establish race
+freedom or complete Phase 4a.
 
 ### Phase 7 — macOS Bonjour adapter and packaging
 
@@ -976,8 +1090,8 @@ Bonjour adapter suite.
 
 **7c — Advertisement and install.** First test `NoAutoRename`, network-byte
 order registration port, collision, withdrawal and error recovery. Implement
-native registration and package discovery; run the relocated standalone
-consumer with discovery enabled and DMesgNet disabled, plus feature-off tests.
+native registration and package discovery; run the relocated Dmn consumer
+with discovery enabled and DMesgNet disabled, plus feature-off tests.
 
 **macOS CI integration.** Update
 `.github/workflows/cmake-macos-platform.yml` after the Linux implementation:
@@ -992,7 +1106,7 @@ consumer with discovery enabled and DMesgNet disabled, plus feature-off tests.
    register their CTest labels so the workflow actually executes them.
 3. In a separate discovery-only configuration, disable DMesgNet and unrelated
    optional integrations, install and relocate the package, and build and run
-   a consumer linking only `Dmn::dmn-discovery`. Verify configuration and
+   a consumer linking `Dmn::dmn`. Verify configuration and
    consumption do not require protobuf or Kafka. Keep the existing ordinary
    package smoke test for the DMesgNet-enabled configuration.
 4. Make Bonjour adapter tests portable to a Linux controlled-native shim and
@@ -1060,8 +1174,8 @@ The following are explicit gates rather than assumed facts:
 | Record data and live updates | Avahi exposes record-browser RDATA and Bonjour exposes `DNSServiceQueryRecord`; correct RDATA parsing, update/removal behavior and TXT-less resolution need native adapter tests and real-daemon tests. Never infer a complete record set from initial callbacks. |
 | Capacity and daemon policy | The native operation count is locally bounded but daemon quotas and file descriptors can be lower; phase 6 must surface quota errors and phase 8 must record the tested settings. Defaults are not evidence that a deployment supports 64 simultaneously resolved instances. |
 | Recovery and platform policy | Avahi's own documentation does not guarantee transparent D-Bus restart recovery; macOS privacy and daemon behavior vary. Tests and diagnostics must distinguish unavailable, retrying and permanent failure, and document the supported recovery actually observed. |
-| Installation and independence | The current package eagerly discovers dependencies of all enabled features. Phase 6c/7c must compile and link an installed, relocated standalone consumer with DMesgNet off; fake tests that inherit `dmn` from the test macro are not sufficient. |
-| Dmn primitive reuse | `Dmn_Proc` currently lives in `dmn`, while `Dmn_Pipe` uses unbounded queues by default. Phase 4a must prove independent linkage and preserve bounds, cooperative shutdown and existing users before changing the worker implementation. |
+| Installation and independence | The package eagerly discovers dependencies of all enabled features. Phase 6c/7c must compile and link an installed, relocated Dmn consumer with DMesgNet off; fake in-tree tests are not sufficient. |
+| Dmn primitive reuse | `Dmn_Proc` lives in `dmn`, while `Dmn_Pipe` uses unbounded queues by default. Phase 4a must preserve bounds, cooperative shutdown and existing users when changing the worker implementation. |
 | Discovery versus DMesgNet | Phase 8 proves only discovery and withdrawal. Automatic DMesgNet peer connectivity is expressly deferred to phase 9 and cannot be inferred from a discovered hostname and port. |
 
 ## 12. Design decisions and tradeoffs

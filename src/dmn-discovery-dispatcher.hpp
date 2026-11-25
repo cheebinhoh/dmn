@@ -13,6 +13,7 @@
 #define DMN_DISCOVERY_DISPATCHER_HPP_
 
 #include "dmn-discovery-delivery.hpp"
+#include "dmn-proc.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -20,7 +21,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
-#include <thread>
+#include <optional>
 
 namespace dmn::detail {
 
@@ -46,6 +47,21 @@ public:
    */
   [[nodiscard]] DiscoveryResult postData(std::uint64_t epoch,
                                          DiscoveryEvent event) const;
+
+  /**
+   * @brief Submit an owned registration transition for a current epoch.
+   *
+   * @param epoch Current delivery epoch.
+   * @param status Owned registration status.
+   * @return Success or a typed stale/stopped/overflow error.
+   */
+  [[nodiscard]] DiscoveryResult
+  postRegistration(std::uint64_t epoch,
+                   DiscoveryRegistrationStatus status) const;
+
+  /** @brief Queue an epoch-changing registration backend transition. */
+  [[nodiscard]] DiscoveryResult
+  registrationBackendChange(DiscoveryRegistrationStatus status) const;
 
   /**
    * @brief Submit a required control event for a current epoch.
@@ -80,6 +96,9 @@ public:
    */
   [[nodiscard]] DiscoveryResult failOverflow() const;
 
+  /** @brief Latch overflow and wake delivery without allocating an error. */
+  void latchOverflow() const;
+
   /** @brief Whether this thread is executing this client's callback. */
   [[nodiscard]] bool inCallbackContext() const;
 
@@ -108,6 +127,13 @@ public:
    * @return Success or a typed reentrant error.
    */
   [[nodiscard]] DiscoveryResult beginStop() const;
+
+  /** @brief Invalidate delivery from its callback without waiting for drain. */
+  [[nodiscard]] DiscoveryResult cancelFromCallback() const;
+
+  /** @brief Discard an unpublished session whose initial event was not queued.
+   */
+  [[nodiscard]] DiscoveryResult abandonUnpublished() const;
 
   /**
    * @brief Drain callbacks after beginStop() and release the session slot.
@@ -162,7 +188,8 @@ public:
    *
    * @param maxSessions Maximum concurrently admitted sessions.
    */
-  explicit DiscoveryDispatcher(std::size_t maxSessions);
+  explicit DiscoveryDispatcher(std::size_t maxSessions,
+                               std::function<void()> workerFailure = {});
   ~DiscoveryDispatcher();
   DiscoveryDispatcher(const DiscoveryDispatcher &) = delete;
   DiscoveryDispatcher &operator=(const DiscoveryDispatcher &) = delete;
@@ -191,7 +218,9 @@ public:
 private:
   std::shared_ptr<DiscoveryDispatcherState> m_state;
   std::mutex m_shutdown_mutex;
-  std::thread m_worker;
+  Dmn_Proc m_worker;
+  bool m_worker_started{false};
+  std::optional<DiscoveryError> m_worker_error;
 };
 
 } // namespace dmn::detail

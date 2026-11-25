@@ -14,6 +14,7 @@
 #define DMN_DISCOVERY_DELIVERY_HPP_
 
 #include "dmn-discovery-core.hpp"
+#include "dmn-discovery-registration.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -39,6 +40,7 @@ struct DiscoveryDelivery {
   std::uint64_t m_sequence;
   std::optional<DiscoveryEvent> m_data;
   std::optional<DiscoveryControl> m_control;
+  std::optional<DiscoveryRegistrationStatus> m_registration{};
 };
 
 /** @brief Owned status independent of callback delivery. */
@@ -73,6 +75,23 @@ public:
    * @return Success or a typed overflow/stopped error.
    */
   [[nodiscard]] DiscoveryResult pushData(DiscoveryEvent event);
+
+  /**
+   * @brief Enqueue a registration transition in the bounded data queue.
+   *
+   * @param status Owned registration transition.
+   * @return Success or a typed overflow/stopped error.
+   */
+  [[nodiscard]] DiscoveryResult
+  pushRegistration(DiscoveryRegistrationStatus status);
+
+  /**
+   * @brief Queue a registration backend transition as a reserved control.
+   *
+   * Loss discards stale data; both transitions advance the delivery epoch.
+   */
+  [[nodiscard]] DiscoveryResult
+  registrationBackendChange(DiscoveryRegistrationStatus status);
 
   /**
    * @brief Assign sequence/epoch and enqueue a required control transition.
@@ -115,6 +134,9 @@ public:
    * @return A typed overflow error.
    */
   [[nodiscard]] DiscoveryResult failOverflow();
+
+  /** @brief Latch overflow without allocating or constructing an error. */
+  void latchOverflow() noexcept;
 
   /**
    * @brief Stop admission and discard queued or emergency notifications.

@@ -4,9 +4,9 @@
  * @file dmn-discovery-session.hpp
  * @brief Private browser, state-worker and callback-dispatch integration.
  *
- * This deterministic seam has no native daemon or network implementation.
- * It is not installed as a public API and must not be used to claim discovery
- * support before the platform adapters are implemented and qualified.
+ * The session itself has no daemon or network implementation. Private
+ * adapters may attach worker-owned cancellation hooks and pollers. It is not
+ * installed as a public API.
  */
 
 #ifndef DMN_DISCOVERY_SESSION_HPP_
@@ -17,14 +17,127 @@
 
 #include <condition_variable>
 #include <cstdint>
+#include <exception>
 #include <expected>
 #include <memory>
 #include <mutex>
+#include <utility>
 #include <vector>
 
 namespace dmn::detail {
 
+/** @brief Internal value-conversion failure, distinct from a user callback. */
+class DiscoveryDeliveryFailure final : public std::exception {
+public:
+  explicit DiscoveryDeliveryFailure(DiscoveryError error)
+      : m_error{std::move(error)} {}
+  [[nodiscard]] const DiscoveryError &error() const noexcept { return m_error; }
+  [[nodiscard]] DiscoveryError takeError() noexcept {
+    return std::move(m_error);
+  }
+  [[nodiscard]] const char *what() const noexcept override {
+    return m_error.m_message.c_str();
+  }
+
+private:
+  DiscoveryError m_error;
+};
+
 struct DiscoverySessionState;
+struct DiscoveryRegistrationSessionState;
+
+/** @brief Fault points in the private fake registration integration. */
+enum class DiscoveryRegistrationFaultPoint {
+  kAdmission,
+  kInitialDelivery,
+  kTransitionDelivery,
+  kCallbackCleanup
+};
+
+/**
+ * @brief Copyable private registration handle with synchronous withdrawal.
+ *
+ * Status remains available after client shutdown. The owner coordinates
+ * destruction with concurrent calls; stop from callback context is rejected.
+ */
+class DiscoveryRegistrationHandle {
+public:
+  DiscoveryRegistrationHandle() = default;
+
+  /**
+   * @brief Apply a fake backend establishment callback.
+   *
+   * @param generation Native-operation generation.
+   * @return Success or a stale, stopped, or overflow error.
+   */
+  [[nodiscard]] DiscoveryResult established(std::uint64_t generation) const;
+
+  /**
+   * @brief Apply a fake backend collision callback without renaming.
+   *
+   * @param generation Native-operation generation.
+   * @param message Non-sensitive error detail.
+   * @return Success or a stale, stopped, or overflow error.
+   */
+  [[nodiscard]] DiscoveryResult collision(std::uint64_t generation,
+                                          std::string message) const;
+
+  /**
+   * @brief Apply a fake backend failure callback.
+   *
+   * @param generation Native-operation generation.
+   * @param message Non-sensitive error detail.
+   * @return Success or a stale, stopped, or overflow error.
+   */
+  [[nodiscard]] DiscoveryResult failed(std::uint64_t generation,
+                                       std::string message) const;
+
+  /** @brief Apply a typed backend failure for a current generation. */
+  [[nodiscard]] DiscoveryResult failed(std::uint64_t generation,
+                                       DiscoveryError error) const;
+
+  /** @brief Invalidate fake native work after backend loss. */
+  [[nodiscard]] DiscoveryResult backendLost() const;
+
+  /** @brief Re-register after fake backend recovery. */
+  [[nodiscard]] DiscoveryResult backendAvailable() const;
+
+  /** @brief Report a fatal backend failure, including while unavailable. */
+  [[nodiscard]] DiscoveryResult backendFailed(DiscoveryError error) const;
+
+  /** @brief Withdraw and drain callbacks; repeated calls are safe. */
+  [[nodiscard]] DiscoveryResult stop() const;
+
+  /** @brief Copy the retained registration status. */
+  [[nodiscard]] DiscoveryRegistrationStatus status() const;
+
+  /** @brief Read the current fake native callback generation. */
+  [[nodiscard]] std::uint64_t generation() const;
+
+  /** @brief Whether fake native registration work is currently owned. */
+  [[nodiscard]] bool nativeActive() const;
+
+  /**
+   * @brief Install a worker-owned withdrawal hook for a native adapter.
+   *
+   * The hook must not call back into this handle. It is invoked on the state
+   * worker, without the registration mutex held, before stop completes.
+   */
+  [[nodiscard]] DiscoveryResult
+  setNativeCancellation(std::function<void()> cancellation) const;
+
+  /** @brief Disarm the hook after native cleanup on the state worker. */
+  [[nodiscard]] DiscoveryResult nativeCleanupComplete() const;
+
+  /** @brief Mark post-admission allocation failure without allocating. */
+  void failPostAdmissionAllocation() const;
+
+private:
+  friend class DiscoverySessionClient;
+  explicit DiscoveryRegistrationHandle(
+      std::shared_ptr<DiscoveryRegistrationSessionState> state);
+  std::shared_ptr<DiscoveryRegistrationSessionState> m_state;
+};
 
 /** @brief Owned browser view and authoritative delivery lifecycle status. */
 struct DiscoverySessionSnapshot {
@@ -35,12 +148,19 @@ struct DiscoverySessionSnapshot {
   std::optional<DiscoveryError> m_cleanup_error;
   std::size_t m_joined_reset_callers; ///< Callers sharing the active reset.
   bool m_stop_pending; ///< Stop has been requested, including after stop.
+  bool m_explicit_stop{false};
 };
 
 /** @brief Copyable private browser handle with synchronous barriers. */
 class DiscoverySessionHandle {
 public:
   DiscoverySessionHandle() = default;
+
+  /** @brief Disarm the hooks after native cleanup on the state worker. */
+  [[nodiscard]] DiscoveryResult nativeCleanupComplete() const;
+
+  /** @brief Mark post-admission allocation failure without allocating. */
+  void failPostAdmissionAllocation() const;
 
   /**
    * @brief Apply one fake native browse contribution on the state worker.
@@ -52,7 +172,8 @@ public:
    */
   [[nodiscard]] std::expected<std::uint64_t, DiscoveryError>
   observe(std::uint64_t epoch, DiscoveryServiceKey key,
-          DiscoveryContribution contribution) const;
+          DiscoveryContribution contribution,
+          DiscoveryProvenance provenance = {}) const;
 
   /**
    * @brief Remove one still-current fake native browse contribution.
@@ -123,7 +244,8 @@ public:
               DiscoveryContribution contribution, std::uint64_t generation,
               DiscoveryAttempt attempt, std::uint64_t operationGeneration,
               std::uint64_t resolutionGeneration, bool recoverable,
-              std::string message) const;
+              std::string message,
+              std::optional<DiscoveryError> native = {}) const;
 
   /**
    * @brief Clear a current attempt's failure after successful recovery.
@@ -151,6 +273,14 @@ public:
    */
   [[nodiscard]] std::expected<std::vector<DiscoveryAttemptId>, DiscoveryError>
   takeDueRetries(std::uint64_t epoch) const;
+
+  /** @brief Read the next worker retry or refresh deadline. */
+  [[nodiscard]] std::expected<std::optional<DiscoveryBrowser::TimePoint>,
+                              DiscoveryError>
+  nextDeadline(std::uint64_t epoch) const;
+
+  /** @brief Invalidate a browser after a terminal native backend failure. */
+  [[nodiscard]] DiscoveryResult backendFailed(DiscoveryError error) const;
 
   /**
    * @brief Reserve a fake native operation in the current backend generation.
@@ -218,11 +348,19 @@ private:
  * @brief Private client owning a state worker and one callback dispatcher.
  *
  * The owner must coordinate client destruction with concurrent methods.
- * This fake seam starts no native browser or network operation.
+ * This session starts no native operation unless a private adapter attaches
+ * one; the adapter owns backend state and callback-to-worker integration.
  */
 class DiscoverySessionClient {
 public:
   using Handler = DiscoveryDispatcher::Handler;
+  using RegistrationHandler = std::function<void(DiscoveryRegistrationStatus)>;
+  using RegistrationFault =
+      std::function<void(DiscoveryRegistrationFaultPoint)>;
+  struct BrowserLifecycle {
+    std::function<DiscoveryResult()> m_cancel;
+    std::function<DiscoveryResult()> m_reset;
+  };
 
   /**
    * @brief Configure a client with a simulated initial backend state.
@@ -232,10 +370,12 @@ public:
    * @param options Finite resource limits.
    * @param backendAvailable Whether the fake backend is initially available.
    * @param clock Monotonic clock used for deterministic deadline tests.
+   * @param registrationFault Optional deterministic fake fault injection.
    */
   explicit DiscoverySessionClient(
       const DiscoveryOptions &options, bool backendAvailable = true,
-      DiscoveryBrowser::Clock clock = std::chrono::steady_clock::now);
+      DiscoveryBrowser::Clock clock = std::chrono::steady_clock::now,
+      RegistrationFault registrationFault = {});
   ~DiscoverySessionClient();
   DiscoverySessionClient(const DiscoverySessionClient &) = delete;
   DiscoverySessionClient &operator=(const DiscoverySessionClient &) = delete;
@@ -247,7 +387,29 @@ public:
    * @return A browser handle or a typed validation/resource error.
    */
   [[nodiscard]] std::expected<DiscoverySessionHandle, DiscoveryError>
-  browse(Handler handler);
+  browse(Handler handler, BrowserLifecycle lifecycle = {});
+
+  /**
+   * @brief Accept an explicitly requested fake advertisement.
+   *
+   * @param advertisement Owned service description.
+   * @param handler User callback for registration changes.
+   * @param nativeCancellation Optional worker-owned native withdrawal hook,
+   * installed before the initial event can be delivered.
+   * @return Registration handle or a typed validation/resource error.
+   */
+  [[nodiscard]] std::expected<DiscoveryRegistrationHandle, DiscoveryError>
+  advertise(DiscoveryAdvertisement advertisement, RegistrationHandler handler,
+            std::function<void()> nativeCancellation = {});
+
+  /**
+   * @brief Start a native poller on the same worker used by session mutations.
+   *
+   * The poller may issue immediate worker-context callbacks during startup.
+   * Only one poller may be attached; shutdown stops it after session barriers.
+   */
+  [[nodiscard]] DiscoveryResult
+  attachPoller(std::shared_ptr<DiscoveryCommandPoller> poller);
 
   /**
    * @brief Drive one fake native callback on the serialized state worker.
@@ -266,14 +428,20 @@ public:
   [[nodiscard]] DiscoveryResult shutdown();
 
 private:
+  [[nodiscard]] DiscoveryResult ensureWorkers();
+  void handleDispatcherFailure();
+
   DiscoveryOptions m_options;
   bool m_initial_backend_available;
   DiscoveryBrowser::Clock m_clock;
+  RegistrationFault m_registration_fault;
   std::shared_ptr<DiscoveryCommandWorker> m_commands;
   std::unique_ptr<DiscoveryDispatcher> m_dispatcher;
   std::mutex m_mutex;
   std::condition_variable m_changed;
   std::vector<std::shared_ptr<DiscoverySessionState>> m_sessions;
+  std::vector<std::shared_ptr<DiscoveryRegistrationSessionState>>
+      m_registrations;
   std::uint64_t m_next_session{1};
   bool m_closing{false};
   bool m_closed{false};

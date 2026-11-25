@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.26)
+project(avahi_fixture_consumer LANGUAGES CXX)
+find_package(AvahiFixture CONFIG REQUIRED)
+add_executable(consumer main.cpp)
+target_link_libraries(consumer PRIVATE AvahiFixture::dmn-avahi-package-fixture)

@@ -13,6 +13,7 @@
 #define DMN_DISCOVERY_COMMAND_HPP_
 
 #include "dmn-discovery-core.hpp"
+#include "dmn-proc.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -21,7 +22,7 @@
 #include <future>
 #include <memory>
 #include <mutex>
-#include <thread>
+#include <optional>
 
 namespace dmn::detail {
 
@@ -29,6 +30,16 @@ namespace dmn::detail {
 enum class DiscoveryCommandControl { kReset, kStop };
 
 struct DiscoveryCommandState;
+
+/** @brief Interruptible native poll loop owned by the command worker. */
+class DiscoveryCommandPoller {
+public:
+  virtual ~DiscoveryCommandPoller() = default;
+  [[nodiscard]] virtual DiscoveryResult start() = 0;
+  [[nodiscard]] virtual DiscoveryResult wait(bool block) = 0;
+  virtual void wake() noexcept = 0;
+  [[nodiscard]] virtual DiscoveryResult stop() = 0;
+};
 
 /**
  * @brief One serialized worker with finite ordinary and control admission.
@@ -57,6 +68,9 @@ public:
   /** @brief Whether the caller is executing on this state worker. */
   [[nodiscard]] bool inWorkerContext() const;
 
+  /** @brief Interrupt an attached poller without admitting a command. */
+  void wakePoller() noexcept;
+
   /**
    * @brief Admit an ordinary command without waiting for queue capacity.
    *
@@ -77,6 +91,10 @@ public:
    * @return Operation result or a typed admission/exception error.
    */
   [[nodiscard]] DiscoveryResult execute(Command command);
+
+  /** @brief Start a poller on the worker; commands interrupt its wait. */
+  [[nodiscard]] DiscoveryResult
+  attachPoller(std::shared_ptr<DiscoveryCommandPoller> poller);
 
   /**
    * @brief Admit or coalesce a reserved session control.
@@ -101,10 +119,21 @@ public:
    */
   [[nodiscard]] DiscoveryResult shutdown();
 
+  /**
+   * @brief Join a worker that stopped after a poll error.
+   *
+   * Returns false if no poll failure has been recorded. Cleanup errors are
+   * returned separately; the original poll error remains available from
+   * shutdown().
+   */
+  [[nodiscard]] std::expected<bool, DiscoveryError> joinAfterPollFailure();
+
 private:
   std::shared_ptr<DiscoveryCommandState> m_state;
   std::mutex m_shutdown_mutex;
-  std::thread m_worker;
+  Dmn_Proc m_worker;
+  bool m_worker_started{false};
+  std::optional<DiscoveryError> m_worker_error;
 };
 
 } // namespace dmn::detail

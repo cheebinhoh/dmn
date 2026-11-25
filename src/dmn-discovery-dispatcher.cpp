@@ -7,11 +7,23 @@
 
 #include "dmn-discovery-dispatcher.hpp"
 
+#ifdef FIU_ENABLE
+#include "dmn-fault-injection.hpp"
+#endif
+
+#include <cerrno>
 #include <condition_variable>
 #include <limits>
 #include <map>
 #include <optional>
+#include <pthread.h>
+#include <stdexcept>
+#include <system_error>
 #include <utility>
+
+#if defined(__GLIBCXX__)
+#include <cxxabi.h>
+#endif
 
 namespace dmn::detail {
 
@@ -31,17 +43,25 @@ struct DiscoveryDeliverySession {
 };
 
 struct DiscoveryDispatcherState {
-  explicit DiscoveryDispatcherState(std::size_t maxSessions)
-      : m_max_sessions{maxSessions} {}
+  DiscoveryDispatcherState(std::size_t maxSessions,
+                           std::function<void()> workerFailure)
+      : m_max_sessions{maxSessions},
+        m_worker_failure{std::move(workerFailure)} {}
 
   std::mutex m_mutex;
   std::condition_variable m_changed;
+  bool m_startup_complete{false};
+  int m_startup_error{0};
   std::map<std::uint64_t, std::shared_ptr<DiscoveryDeliverySession>> m_sessions;
   std::size_t m_max_sessions;
   std::uint64_t m_next_id{1};
   std::uint64_t m_last_served{0};
   bool m_shutdown{false};
   bool m_wake{false};
+  DiscoveryError m_fatal_error{DiscoveryErrorKind::kBackend,
+                               "callback worker failed"};
+  std::optional<DiscoveryError> m_worker_error;
+  std::function<void()> m_worker_failure;
 };
 
 namespace {
@@ -96,12 +116,21 @@ void runDispatcher(const std::shared_ptr<DiscoveryDispatcherState> &state) {
     session->m_active = true;
     session->m_active_epoch = event->m_epoch;
     lock.unlock();
+#ifdef FIU_ENABLE
+    if (fiu_fail("dmn/discovery/callback-worker/fatal")) {
+      throw std::runtime_error{"injected callback worker failure"};
+    }
+#endif
     bool failed{false};
     activeDispatcher = state.get();
     try {
       if (session->m_handler) {
         session->m_handler(std::move(*event));
       }
+#if defined(__GLIBCXX__)
+    } catch (const __cxxabiv1::__forced_unwind &) {
+      throw;
+#endif
     } catch (...) {
       failed = true;
     }
@@ -113,6 +142,51 @@ void runDispatcher(const std::shared_ptr<DiscoveryDispatcherState> &state) {
       session->m_queue.stop();
     }
     state->m_changed.notify_all();
+  }
+}
+
+void runDispatcherSafely(
+    const std::shared_ptr<DiscoveryDispatcherState> &state) {
+  try {
+#ifdef FIU_ENABLE
+    const int error{fiu_fail("dmn/discovery/callback-worker/cancel-setup")
+                        ? EINVAL
+                        : pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, nullptr)};
+#else
+    const int error{pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, nullptr)};
+#endif
+    {
+      std::lock_guard lock{state->m_mutex};
+      state->m_startup_error = error;
+      state->m_startup_complete = true;
+      state->m_changed.notify_all();
+    }
+    if (error != 0) {
+      throw std::system_error{error, std::generic_category()};
+    }
+    runDispatcher(state);
+    return;
+#if defined(__GLIBCXX__)
+  } catch (const __cxxabiv1::__forced_unwind &) {
+    throw;
+#endif
+  } catch (...) {
+    activeDispatcher = nullptr;
+  }
+
+  {
+    std::lock_guard lock{state->m_mutex};
+    state->m_shutdown = true;
+    state->m_worker_error = std::move(state->m_fatal_error);
+    for (auto &[id, session] : state->m_sessions) {
+      static_cast<void>(id);
+      session->m_queue.stop();
+      session->m_active = false;
+    }
+    state->m_changed.notify_all();
+  }
+  if (state->m_startup_error == 0 && state->m_worker_failure) {
+    state->m_worker_failure();
   }
 }
 
@@ -143,6 +217,35 @@ DiscoveryResult DiscoveryDeliveryHandle::postData(std::uint64_t epoch,
                                           "stale delivery epoch"}};
   }
   auto result{m_session->m_queue.pushData(std::move(event))};
+  m_state->m_wake = true;
+  m_state->m_changed.notify_all();
+  return result;
+}
+
+DiscoveryResult DiscoveryDeliveryHandle::postRegistration(
+    std::uint64_t epoch, DiscoveryRegistrationStatus status) const {
+  if (!m_state || !m_session) {
+    return invalidHandle();
+  }
+
+  std::lock_guard lock{m_state->m_mutex};
+  if (epoch != m_session->m_queue.epoch()) {
+    return std::unexpected{DiscoveryError{DiscoveryErrorKind::kInvalidArgument,
+                                          "stale delivery epoch"}};
+  }
+  auto result{m_session->m_queue.pushRegistration(std::move(status))};
+  m_state->m_wake = true;
+  m_state->m_changed.notify_all();
+  return result;
+}
+
+DiscoveryResult DiscoveryDeliveryHandle::registrationBackendChange(
+    DiscoveryRegistrationStatus status) const {
+  if (!m_state || !m_session) {
+    return invalidHandle();
+  }
+  std::lock_guard lock{m_state->m_mutex};
+  auto result{m_session->m_queue.registrationBackendChange(std::move(status))};
   m_state->m_wake = true;
   m_state->m_changed.notify_all();
   return result;
@@ -212,6 +315,16 @@ DiscoveryResult DiscoveryDeliveryHandle::failOverflow() const {
   return result;
 }
 
+void DiscoveryDeliveryHandle::latchOverflow() const {
+  if (!m_state || !m_session) {
+    throw std::logic_error{"invalid discovery delivery handle"};
+  }
+  std::lock_guard lock{m_state->m_mutex};
+  m_session->m_queue.latchOverflow();
+  m_state->m_wake = true;
+  m_state->m_changed.notify_all();
+}
+
 bool DiscoveryDeliveryHandle::inCallbackContext() const {
   return m_state && activeDispatcher == m_state.get();
 }
@@ -222,7 +335,7 @@ DiscoveryDeliveryHandle::beginReset() const {
     return std::unexpected{invalidHandle().error()};
   }
   if (activeDispatcher == m_state.get()) {
-    return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
+    return std::unexpected{DiscoveryError{DiscoveryErrorKind::kReentrantCall,
                                           "reentrant reset barrier"}};
   }
 
@@ -242,20 +355,20 @@ DiscoveryResult DiscoveryDeliveryHandle::awaitReset(std::uint64_t epoch) const {
     return invalidHandle();
   }
   if (activeDispatcher == m_state.get()) {
-    return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
+    return std::unexpected{DiscoveryError{DiscoveryErrorKind::kReentrantCall,
                                           "reentrant reset barrier"}};
   }
 
   std::unique_lock lock{m_state->m_mutex};
   if (epoch != m_session->m_queue.epoch()) {
     return std::unexpected{
-        DiscoveryError{DiscoveryErrorKind::kBackend, "reset was superseded"}};
+        DiscoveryError{DiscoveryErrorKind::kCancelled, "reset was superseded"}};
   }
   m_state->m_changed.wait(lock, [&] {
     return !m_session->m_active || m_session->m_active_epoch >= epoch;
   });
   if (m_session->m_callback_failed) {
-    return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
+    return std::unexpected{DiscoveryError{DiscoveryErrorKind::kCallbackFailure,
                                           "discovery callback failed"}};
   }
   if (m_session->m_queue.state() != DiscoveryDeliveryState::kRunning) {
@@ -264,7 +377,7 @@ DiscoveryResult DiscoveryDeliveryHandle::awaitReset(std::uint64_t epoch) const {
   }
   if (m_session->m_queue.epoch() != epoch) {
     return std::unexpected{
-        DiscoveryError{DiscoveryErrorKind::kBackend, "reset was superseded"}};
+        DiscoveryError{DiscoveryErrorKind::kCancelled, "reset was superseded"}};
   }
 
   return {};
@@ -275,8 +388,8 @@ DiscoveryResult DiscoveryDeliveryHandle::beginStop() const {
     return invalidHandle();
   }
   if (activeDispatcher == m_state.get()) {
-    return std::unexpected{
-        DiscoveryError{DiscoveryErrorKind::kBackend, "reentrant stop barrier"}};
+    return std::unexpected{DiscoveryError{DiscoveryErrorKind::kReentrantCall,
+                                          "reentrant stop barrier"}};
   }
 
   std::lock_guard lock{m_state->m_mutex};
@@ -287,13 +400,45 @@ DiscoveryResult DiscoveryDeliveryHandle::beginStop() const {
   return {};
 }
 
+DiscoveryResult DiscoveryDeliveryHandle::cancelFromCallback() const {
+  if (!m_state || !m_session) {
+    return invalidHandle();
+  }
+  if (activeDispatcher != m_state.get()) {
+    return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
+                                          "not in callback context"}};
+  }
+  std::lock_guard lock{m_state->m_mutex};
+  m_session->m_queue.stop();
+  m_state->m_wake = true;
+  m_state->m_changed.notify_all();
+  return {};
+}
+
+DiscoveryResult DiscoveryDeliveryHandle::abandonUnpublished() const {
+  if (!m_state || !m_session) {
+    return invalidHandle();
+  }
+  std::unique_lock lock{m_state->m_mutex};
+  if (m_session->m_active) {
+    return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
+                                          "unpublished callback is active"}};
+  }
+  m_session->m_queue.stop();
+  m_state->m_sessions.erase(m_session->m_id);
+  DiscoveryDispatcher::Handler retired{std::move(m_session->m_handler)};
+  lock.unlock();
+  retireHandler(retired, m_state.get());
+  return {};
+}
+
 DiscoveryResult DiscoveryDeliveryHandle::awaitStop() const {
   if (!m_state || !m_session) {
     return invalidHandle();
   }
   if (activeDispatcher == m_state.get()) {
-    return std::unexpected{
-        DiscoveryError{DiscoveryErrorKind::kBackend, "reentrant stop barrier"}};
+    return std::unexpected{DiscoveryError{DiscoveryErrorKind::kReentrantCall,
+                                          "reentrant stop barrier"}};
   }
 
   std::unique_lock lock{m_state->m_mutex};
@@ -315,7 +460,7 @@ DiscoveryResult DiscoveryDeliveryHandle::reset() const {
     return invalidHandle();
   }
   if (activeDispatcher == m_state.get()) {
-    return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
+    return std::unexpected{DiscoveryError{DiscoveryErrorKind::kReentrantCall,
                                           "reentrant reset barrier"}};
   }
 
@@ -333,8 +478,8 @@ DiscoveryResult DiscoveryDeliveryHandle::stop() const {
     return invalidHandle();
   }
   if (activeDispatcher == m_state.get()) {
-    return std::unexpected{
-        DiscoveryError{DiscoveryErrorKind::kBackend, "reentrant stop barrier"}};
+    return std::unexpected{DiscoveryError{DiscoveryErrorKind::kReentrantCall,
+                                          "reentrant stop barrier"}};
   }
 
   std::lock_guard barrier{m_session->m_barrier};
@@ -356,9 +501,30 @@ DiscoveryDeliverySnapshot DiscoveryDeliveryHandle::snapshot() const {
           m_session->m_queue.overflowed()};
 }
 
-DiscoveryDispatcher::DiscoveryDispatcher(std::size_t maxSessions)
-    : m_state{std::make_shared<DiscoveryDispatcherState>(maxSessions)},
-      m_worker{[state = m_state] { runDispatcher(state); }} {}
+DiscoveryDispatcher::DiscoveryDispatcher(std::size_t maxSessions,
+                                         std::function<void()> workerFailure)
+    : m_state{std::make_shared<DiscoveryDispatcherState>(
+          maxSessions, std::move(workerFailure))},
+      m_worker{"discovery-callback",
+               [state = m_state] { runDispatcherSafely(state); },
+               Dmn_Proc::ExceptionPolicy::kCaptureAndRethrowFromWait} {
+  if (!m_worker.exec()) {
+    throw std::system_error{EAGAIN, std::generic_category(),
+                            "starting discovery callback worker"};
+  }
+  {
+    std::unique_lock lock{m_state->m_mutex};
+    m_state->m_changed.wait(lock, [this] { return m_state->m_startup_complete; });
+    const int error{m_state->m_startup_error};
+    if (error != 0) {
+      lock.unlock();
+      static_cast<void>(m_worker.wait());
+      throw std::system_error{error, std::generic_category(),
+                              "starting discovery callback worker"};
+    }
+  }
+  m_worker_started = true;
+}
 
 DiscoveryDispatcher::~DiscoveryDispatcher() { static_cast<void>(shutdown()); }
 
@@ -375,7 +541,7 @@ DiscoveryDispatcher::create(std::size_t maxData, std::size_t maxControl,
                                           "delivery limits must be nonzero"}};
   }
   if (m_state->m_shutdown) {
-    return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
+    return std::unexpected{DiscoveryError{DiscoveryErrorKind::kStopped,
                                           "discovery dispatcher stopped"}};
   }
   if (m_state->m_sessions.size() >= m_state->m_max_sessions ||
@@ -394,7 +560,7 @@ DiscoveryDispatcher::create(std::size_t maxData, std::size_t maxControl,
 
 DiscoveryResult DiscoveryDispatcher::shutdown() {
   if (activeDispatcher == m_state.get()) {
-    return std::unexpected{DiscoveryError{DiscoveryErrorKind::kBackend,
+    return std::unexpected{DiscoveryError{DiscoveryErrorKind::kReentrantCall,
                                           "reentrant shutdown barrier"}};
   }
 
@@ -409,8 +575,31 @@ DiscoveryResult DiscoveryDispatcher::shutdown() {
     m_state->m_wake = true;
     m_state->m_changed.notify_all();
   }
-  if (m_worker.joinable()) {
-    m_worker.join();
+  if (m_worker_started) {
+    try {
+      static_cast<void>(m_worker.wait());
+    } catch (const std::exception &error) {
+      m_worker_error =
+          DiscoveryError{DiscoveryErrorKind::kBackend, error.what()};
+#if defined(__GLIBCXX__)
+    } catch (const __cxxabiv1::__forced_unwind &) {
+      throw;
+#endif
+    } catch (...) {
+      m_worker_error = DiscoveryError{DiscoveryErrorKind::kBackend,
+                                      "discovery callback worker failed"};
+    }
+    if (m_worker.isJoinable()) {
+      return std::unexpected{*m_worker_error};
+    }
+    m_worker_started = false;
+  }
+
+  {
+    std::lock_guard lock{m_state->m_mutex};
+    if (m_state->m_worker_error) {
+      m_worker_error = m_state->m_worker_error;
+    }
   }
 
   while (true) {
@@ -427,6 +616,9 @@ DiscoveryResult DiscoveryDispatcher::shutdown() {
     retireHandler(retired, m_state.get());
   }
 
+  if (m_worker_error) {
+    return std::unexpected{*m_worker_error};
+  }
   return {};
 }
 

@@ -14,6 +14,7 @@
 #include <future>
 #include <memory>
 #include <mutex>
+#include <pthread.h>
 #include <stdexcept>
 #include <thread>
 #include <vector>
@@ -26,6 +27,27 @@ DiscoveryEvent added() {
   return DiscoveryEvent{
       DiscoveryEventKind::kAdded, 0, 0,
       DiscoveryCandidate{{"Printer", "_http._tcp", "local.", 2}}};
+}
+
+TEST(DmnDiscoveryDispatcherTest, PendingCancellationDoesNotInterruptDrain) {
+  DiscoveryDispatcher dispatcher{1};
+  std::promise<void> delivered;
+  unsigned count{0};
+  auto handle{dispatcher.create(2, 1, [&](DiscoveryDelivery) {
+    if (++count == 1) {
+      EXPECT_EQ(pthread_cancel(pthread_self()), 0);
+    } else {
+      delivered.set_value();
+    }
+  })};
+  ASSERT_TRUE(handle);
+  const auto epoch{handle->snapshot().m_epoch};
+  ASSERT_TRUE(handle->postData(epoch, added()));
+  ASSERT_TRUE(handle->postData(epoch, added()));
+  EXPECT_EQ(delivered.get_future().wait_for(std::chrono::seconds{2}),
+            std::future_status::ready);
+  EXPECT_TRUE(handle->stop());
+  EXPECT_TRUE(dispatcher.shutdown());
 }
 
 TEST(DmnDiscoveryDispatcherTest, FailureOfOneSessionDoesNotStopAnother) {

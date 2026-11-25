@@ -13,8 +13,23 @@ foreach(target IN ITEMS Dmn::dmn Dmn::dmn-gatt)
   endif()
 endforeach()
 
+if (DMN_EXPECT_DISCOVERY)
+  add_executable(dmn-discovery-package-consumer discovery-consumer.cpp)
+  target_link_libraries(dmn-discovery-package-consumer PRIVATE Dmn::dmn)
+  add_executable(dmn-discovery-and-dmn-package-consumer discovery-and-dmn-consumer.cpp)
+  target_link_libraries(dmn-discovery-and-dmn-package-consumer
+    PRIVATE Dmn::dmn)
+endif()
+
 get_target_property(_dmn_compile_definitions
                     Dmn::dmn INTERFACE_COMPILE_DEFINITIONS)
+if (DMN_EXPECT_DISCOVERY AND
+    NOT "DMN_ENABLE_DMN_DISCOVERY=1" IN_LIST _dmn_compile_definitions)
+  message(FATAL_ERROR "Dmn::dmn must propagate DMN_ENABLE_DMN_DISCOVERY=1")
+elseif (NOT DMN_EXPECT_DISCOVERY AND
+        "DMN_ENABLE_DMN_DISCOVERY=1" IN_LIST _dmn_compile_definitions)
+  message(FATAL_ERROR "Discovery feature definition must be absent")
+endif()
 if (DMN_EXPECT_DMESGNET AND
     NOT "DMN_ENABLE_DMN_DMESGNET=1" IN_LIST _dmn_compile_definitions)
   message(FATAL_ERROR
@@ -86,3 +101,9 @@ endforeach()
 enable_testing()
 
 add_test(NAME dmn-package-consumer COMMAND dmn-package-consumer)
+if (DMN_EXPECT_DISCOVERY)
+  add_test(NAME dmn-discovery-package-consumer
+           COMMAND dmn-discovery-package-consumer)
+  add_test(NAME dmn-discovery-and-dmn-package-consumer
+           COMMAND dmn-discovery-and-dmn-package-consumer)
+endif()

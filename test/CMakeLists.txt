@@ -2,12 +2,17 @@
 
 # [TEST TYPE: GTEST]
 # Core unit and component tests (CTest label: dmn).
+if (DMN_BUILD_AVAHI_ADAPTER_TESTS)
+  add_subdirectory(cmake-avahi)
+endif()
+
 add_library(dmn-discovery-core-test STATIC
               ${PROJECT_SOURCE_DIR}/src/dmn-discovery-command.cpp
               ${PROJECT_SOURCE_DIR}/src/dmn-discovery-core.cpp
               ${PROJECT_SOURCE_DIR}/src/dmn-discovery-delivery.cpp
               ${PROJECT_SOURCE_DIR}/src/dmn-discovery-dispatcher.cpp
               ${PROJECT_SOURCE_DIR}/src/dmn-discovery-records.cpp
+              ${PROJECT_SOURCE_DIR}/src/dmn-discovery-registration.cpp
               ${PROJECT_SOURCE_DIR}/src/dmn-discovery-retry.cpp
               ${PROJECT_SOURCE_DIR}/src/dmn-discovery-session.cpp
               ${PROJECT_SOURCE_DIR}/src/dmn-discovery-slots.cpp
@@ -15,13 +20,23 @@ add_library(dmn-discovery-core-test STATIC
 
 target_include_directories(dmn-discovery-core-test
                              PUBLIC ${PROJECT_SOURCE_DIR}/src
+                                    ${PROJECT_SOURCE_DIR}/include
 )
+target_link_libraries(dmn-discovery-core-test PUBLIC dmn)
 
 target_compile_options(dmn-discovery-core-test PRIVATE -Wall -Wextra -Wpedantic)
 
 ADD_TEST_EXECUTABLE(dmn dmn-test-discovery-core)
 target_link_libraries(dmn-test-discovery-core PRIVATE dmn-discovery-core-test)
 set_tests_properties(dmn-test-discovery-core
+                       PROPERTIES LABELS "dmn;dmn-discovery"
+)
+
+ADD_TEST_EXECUTABLE(dmn dmn-test-discovery-public-conversion)
+target_sources(dmn-test-discovery-public-conversion
+                 PRIVATE ${PROJECT_SOURCE_DIR}/src/dmn-discovery-public-conversion.cpp)
+target_link_libraries(dmn-test-discovery-public-conversion PRIVATE dmn-discovery-core-test)
+set_tests_properties(dmn-test-discovery-public-conversion
                        PROPERTIES LABELS "dmn;dmn-discovery"
 )
 
@@ -34,6 +49,12 @@ set_tests_properties(dmn-test-discovery-records
 ADD_TEST_EXECUTABLE(dmn dmn-test-discovery-retry)
 target_link_libraries(dmn-test-discovery-retry PRIVATE dmn-discovery-core-test)
 set_tests_properties(dmn-test-discovery-retry
+                       PROPERTIES LABELS "dmn;dmn-discovery"
+)
+
+ADD_TEST_EXECUTABLE(dmn dmn-test-discovery-registration)
+target_link_libraries(dmn-test-discovery-registration PRIVATE dmn-discovery-core-test)
+set_tests_properties(dmn-test-discovery-registration
                        PROPERTIES LABELS "dmn;dmn-discovery"
 )
 
@@ -474,6 +495,13 @@ if (ENABLE_FAULT_INJECTION)
                                         dmn/timer/pipe/proc/pthread_create
   )
 
+  ADD_TEST_FAULT_INJECTION_EXECUTABLE(dmn-test-fi-discovery-worker-start-failure
+                                      dmn/timer/pipe/proc/pthread_create)
+  target_link_libraries(dmn-test-fi-discovery-worker-start-failure
+                        PRIVATE dmn-discovery-core-test)
+  set_tests_properties(dmn-test-fi-discovery-worker-start-failure
+                       PROPERTIES TIMEOUT 20)
+
   ADD_TEST_FAULT_INJECTION_EXECUTABLE(dmn-test-fi-timer-thread-start-failure
                                         dmn/timer/pipe/proc/pthread_create
   )
@@ -645,8 +673,11 @@ add_test(NAME dmn-cmake-package
                    "-DDMN_BUILD_CONFIG=$<CONFIG>"
                    "-DDMN_INSTALL_LIBDIR=${CMAKE_INSTALL_LIBDIR}"
                    "-DDMN_INSTALL_INCLUDEDIR=${CMAKE_INSTALL_INCLUDEDIR}"
+                   "-DDMN_INSTALL_DATADIR=${CMAKE_INSTALL_DATADIR}"
                    "-DDMN_CTEST_COMMAND=${CMAKE_CTEST_COMMAND}"
                    "-DDMN_EXPECT_DMESGNET=${ENABLE_DMN_DMESGNET}"
+                   "-DDMN_EXPECT_DISCOVERY=${ENABLE_DMN_DISCOVERY}"
+                   "-DDMN_EXPECT_AVAHI_PROVIDER=${DMN_AVAHI_SELECTED_PROVIDER}"
                    "-DDMN_EXPECT_ANCS=${ENABLE_ANCS}"
                    "-DDMN_EXPECT_DBUS=${ENABLE_DBUS}"
                    "-DDMN_EXPECT_BLUEZ=${ENABLE_BLUEZ}"
@@ -685,7 +716,9 @@ if (ENABLE_VALGRIND)
   # Run the selected regular GTest executables under Valgrind.
   SET(DMN_VALGRIND_TESTS
         dmn-test-discovery-core
+        dmn-test-discovery-public-conversion
         dmn-test-discovery-records
+        dmn-test-discovery-registration
         dmn-test-discovery-retry
         dmn-test-discovery-delivery
         dmn-test-discovery-dispatcher

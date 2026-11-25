@@ -33,6 +33,7 @@ using dmn::detail::DiscoveryErrorKind;
 using dmn::detail::DiscoveryEvent;
 using dmn::detail::DiscoveryEventKind;
 using dmn::detail::DiscoveryOptions;
+using dmn::detail::DiscoveryProvenance;
 using dmn::detail::DiscoveryResolution;
 using dmn::detail::DiscoveryResult;
 using dmn::detail::DiscoveryServiceKey;
@@ -249,6 +250,71 @@ TEST(DmnDiscoveryCoreTest, MergesTransportContributionsAndRetainsOwnedKeys) {
   EXPECT_EQ(events[1].m_kind, DiscoveryEventKind::kRemoved);
   EXPECT_EQ(events[0].m_candidate.m_key.m_instance, "Printer.1");
   EXPECT_EQ(events[1].m_sequence, 2);
+  EXPECT_TRUE(browser.snapshot().m_candidates.empty());
+}
+
+TEST(DmnDiscoveryCoreTest, MergesAndRemovesContributionProvenance) {
+  std::vector<DiscoveryEvent> events;
+  DiscoveryBrowser browser{
+      {}, [&](DiscoveryEvent event) { events.push_back(std::move(event)); }};
+  const DiscoveryServiceKey key{"Printer", "_http._tcp", "local.", 7};
+  DiscoveryProvenance ipv4;
+  ipv4.m_cached = true;
+  ipv4.m_multicast = true;
+  const auto first{
+      browser.addObservation(key, DiscoveryContribution::kIpv4, ipv4)};
+  ASSERT_TRUE(first);
+  EXPECT_EQ(events.back().m_candidate.m_provenance, ipv4);
+  DiscoveryProvenance ipv6;
+  ipv6.m_local = true;
+  const auto second{
+      browser.addObservation(key, DiscoveryContribution::kIpv6, ipv6)};
+  ASSERT_TRUE(second);
+  auto combined{browser.snapshot().m_candidates.at(0).m_provenance};
+  EXPECT_EQ(combined.m_cached, true);
+  EXPECT_EQ(combined.m_local, true);
+  EXPECT_EQ(combined.m_multicast, true);
+  EXPECT_FALSE(combined.m_wide_area);
+  const auto before{events.size()};
+  ASSERT_TRUE(browser.addObservation(key, DiscoveryContribution::kIpv6, {}));
+  EXPECT_EQ(events.size(), before + 1);
+  EXPECT_FALSE(browser.snapshot().m_candidates.at(0).m_provenance.m_local);
+  ASSERT_TRUE(
+      browser.removeObservation(key, DiscoveryContribution::kIpv4, *first));
+  EXPECT_EQ(browser.snapshot().m_candidates.at(0).m_provenance,
+            DiscoveryProvenance{});
+  ipv6.m_cached = false;
+  ASSERT_TRUE(browser.addObservation(key, DiscoveryContribution::kIpv6, ipv6));
+  EXPECT_EQ(browser.snapshot().m_candidates.at(0).m_provenance.m_cached, false);
+  const auto third{browser.addObservation(key, DiscoveryContribution::kIpv4)};
+  ASSERT_TRUE(third);
+  EXPECT_FALSE(browser.snapshot().m_candidates.at(0).m_provenance.m_cached);
+  ASSERT_TRUE(
+      browser.removeObservation(key, DiscoveryContribution::kIpv4, *third));
+  EXPECT_EQ(browser.snapshot().m_candidates.at(0).m_provenance.m_cached, false);
+}
+
+TEST(DmnDiscoveryCoreTest, ProvenanceChangeCanRemoveItsOwnSource) {
+  const DiscoveryServiceKey key{"Printer", "_http._tcp", "local.", 7};
+  DiscoveryBrowser *browserPtr{nullptr};
+  std::uint64_t generation{};
+  DiscoveryBrowser browser{
+      {}, [&](DiscoveryEvent event) {
+        if (event.m_kind == DiscoveryEventKind::kChanged) {
+          EXPECT_TRUE(browserPtr->removeObservation(
+              key, DiscoveryContribution::kIpv4, generation));
+        }
+      }};
+  browserPtr = &browser;
+  const auto added{browser.addObservation(key, DiscoveryContribution::kIpv4)};
+  ASSERT_TRUE(added);
+  generation = *added;
+  DiscoveryProvenance provenance;
+  provenance.m_cached = true;
+  const auto updated{
+      browser.addObservation(key, DiscoveryContribution::kIpv4, provenance)};
+  ASSERT_TRUE(updated);
+  EXPECT_EQ(*updated, generation);
   EXPECT_TRUE(browser.snapshot().m_candidates.empty());
 }
 
@@ -550,6 +616,7 @@ TEST(DmnDiscoveryCoreTest, RefreshTimeoutIsNotChangedByLaterRecovery) {
       browser.snapshot().m_candidates.front().m_records.m_generation};
   const auto refresh{browser.refresh(key)};
   ASSERT_TRUE(refresh);
+  EXPECT_EQ(browser.nextDeadline(), now + 5s);
   EXPECT_EQ(browser.snapshot().m_candidates.front().m_refresh->m_state,
             DiscoveryRefreshState::kPending);
   const auto newGeneration{
@@ -557,6 +624,7 @@ TEST(DmnDiscoveryCoreTest, RefreshTimeoutIsNotChangedByLaterRecovery) {
   EXPECT_NE(oldGeneration, newGeneration);
   now += 5s;
   ASSERT_TRUE(browser.processRefreshDeadlines());
+  EXPECT_FALSE(browser.nextDeadline());
   EXPECT_EQ(events.back().m_candidate.m_refresh->m_state,
             DiscoveryRefreshState::kFailed);
 
@@ -694,6 +762,7 @@ TEST(DmnDiscoveryCoreTest, RetryFailureRemovesOnlyFailedSourceAndRecovers) {
   ASSERT_TRUE(browser.failAttempt(key, DiscoveryContribution::kIpv4, *first,
                                   DiscoveryAttempt::kIpv4, *firstLookup,
                                   resolution, true, "timeout"));
+  EXPECT_EQ(browser.nextDeadline(), now + 1s);
   const auto failed{browser.snapshot().m_candidates.front()};
   EXPECT_EQ(failed.m_records.m_addresses, (std::vector{secondAddress}));
   ASSERT_EQ(failed.m_failures.size(), 1);
@@ -703,6 +772,7 @@ TEST(DmnDiscoveryCoreTest, RetryFailureRemovesOnlyFailedSourceAndRecovers) {
   now += 1s;
   const auto retries{browser.takeDueRetries()};
   ASSERT_TRUE(retries);
+  EXPECT_FALSE(browser.nextDeadline());
   EXPECT_EQ(*retries,
             (std::vector{DiscoveryAttemptId{*first, DiscoveryAttempt::kIpv4}}));
   const auto retryLookup{browser.attemptGeneration(

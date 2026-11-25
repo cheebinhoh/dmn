@@ -37,7 +37,9 @@ option(DMN_ALLOW_DEPENDENCY_FETCH
 option(ENABLE_DMN_DMESGNET
        "Build the Protobuf-based DMesg/DMesgNet stack and Kafka transport" ON)
 option(ENABLE_DMN_DISCOVERY
-       "Build the optional DNS-SD discovery library" OFF)
+       "Build optional DNS-SD discovery in the Dmn library" OFF)
+option(DMN_BUILD_AVAHI_ADAPTER_TESTS
+       "Build experimental Linux Avahi adapter tests" OFF)
 option(ENABLE_ANCS "Build the optional ANCS protocol library" OFF)
 option(ENABLE_ANCS_HARDWARE_TESTS
        "Enable opt-in ANCS tests that use a physical iPhone over BlueZ" OFF)
@@ -65,9 +67,12 @@ if (BUILD_KAFKA_TEST AND NOT ENABLE_DMN_DMESGNET)
           "BUILD_KAFKA_TEST=ON but ENABLE_DMN_DMESGNET=OFF; Kafka integration tests are skipped.")
 endif()
 
-if (ENABLE_DMN_DISCOVERY)
+if (ENABLE_DMN_DISCOVERY AND NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
   message(FATAL_ERROR
-          "ENABLE_DMN_DISCOVERY=ON is not yet supported; no native discovery backend is implemented.")
+          "ENABLE_DMN_DISCOVERY=ON currently requires the Linux Avahi backend.")
+endif()
+if (DMN_BUILD_AVAHI_ADAPTER_TESTS AND NOT DMN_BUILD_TESTS)
+  message(FATAL_ERROR "DMN_BUILD_AVAHI_ADAPTER_TESTS requires DMN_BUILD_TESTS=ON.")
 endif()
 set(DMN_ANCS_HARDWARE_DEVICE "iPhone Old" CACHE STRING
     "Exact BlueZ display name or address used by opt-in ANCS hardware tests")
@@ -347,6 +352,10 @@ if(BUILD_NDEBUG)
 endif()
 
 # build DMN library and applications
+if (ENABLE_DMN_DISCOVERY)
+  include("${PROJECT_SOURCE_DIR}/cmake/DmnAvahi.cmake")
+  dmn_prepare_avahi()
+endif()
 add_subdirectory(src)
 
 if (DMN_BUILD_TESTS)

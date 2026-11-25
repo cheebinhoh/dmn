@@ -1,0 +1,20 @@
+# Copyright © 2026 Chee Bin HOH. All rights reserved.
+# Private support for exported targets; not a standalone public package.
+
+include("${CMAKE_CURRENT_LIST_DIR}/DmnAvahiDependencies.cmake")
+if ("@DMN_AVAHI_SELECTED_PROVIDER@" STREQUAL "SYSTEM")
+  _dmn_avahi_system_target()
+elseif (NOT TARGET DmnAvahiInternal::client)
+  _dmn_avahi_dbus_target()
+  find_package(Threads REQUIRED)
+  set(_dmn_avahi_libdir "${CMAKE_CURRENT_LIST_DIR}/@DMN_AVAHI_LIB_RELATIVE@")
+  add_library(DmnAvahiInternal::common STATIC IMPORTED)
+  set_target_properties(DmnAvahiInternal::common PROPERTIES
+    IMPORTED_LOCATION "${_dmn_avahi_libdir}/libavahi-common.a"
+    INTERFACE_LINK_LIBRARIES Threads::Threads)
+  add_library(DmnAvahiInternal::client STATIC IMPORTED)
+  set_target_properties(DmnAvahiInternal::client PROPERTIES
+    IMPORTED_LOCATION "${_dmn_avahi_libdir}/libavahi-client.a"
+    INTERFACE_LINK_LIBRARIES "DmnAvahiInternal::common;DmnAvahiInternal::dbus;${CMAKE_DL_LIBS}")
+  unset(_dmn_avahi_libdir)
+endif()
