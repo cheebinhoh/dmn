@@ -42,6 +42,9 @@ public:
   DiscoveryBonjourRecordWatch(const DiscoveryBonjourRecordWatch &) = delete;
   DiscoveryBonjourRecordWatch &
   operator=(const DiscoveryBonjourRecordWatch &) = delete;
+  DiscoveryBonjourRecordWatch(DiscoveryBonjourRecordWatch &&) = delete;
+  DiscoveryBonjourRecordWatch &
+  operator=(DiscoveryBonjourRecordWatch &&) = delete;
 
   [[nodiscard]] DiscoveryResult start();
   [[nodiscard]] DiscoveryResult status() const;

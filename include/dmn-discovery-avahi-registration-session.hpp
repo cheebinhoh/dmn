@@ -43,6 +43,14 @@ public:
          DiscoveryAvahiPoller::Clock clock = std::chrono::steady_clock::now,
          DiscoverySessionClient::RegistrationFault fault = {});
   ~DiscoveryAvahiRegistrationSessions();
+  DiscoveryAvahiRegistrationSessions(
+      const DiscoveryAvahiRegistrationSessions &) = delete;
+  DiscoveryAvahiRegistrationSessions &
+  operator=(const DiscoveryAvahiRegistrationSessions &) = delete;
+  DiscoveryAvahiRegistrationSessions(DiscoveryAvahiRegistrationSessions &&) =
+      delete;
+  DiscoveryAvahiRegistrationSessions &
+  operator=(DiscoveryAvahiRegistrationSessions &&) = delete;
 
   [[nodiscard]] std::expected<DiscoveryRegistrationHandle, DiscoveryError>
   advertise(DiscoveryAdvertisement advertisement,

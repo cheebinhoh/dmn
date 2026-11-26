@@ -58,6 +58,9 @@
 #include "dmn-dmesg-pb-util.hpp"
 #include "dmn-dmesg.hpp"
 #include "dmn-dmesgnet.hpp"
+#if defined(DMN_ENABLE_DMN_DISCOVERY)
+#include "dmn-dmesgnet-discovery.hpp"
+#endif
 #include "kafka/dmn-dmesgnet-kafka.hpp"
 #include "kafka/dmn-kafka-util.hpp"
 #include "kafka/dmn-kafka.hpp"

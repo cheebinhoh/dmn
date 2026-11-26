@@ -38,6 +38,9 @@ public:
   DiscoveryBonjourAddressLookup(const DiscoveryBonjourAddressLookup &) = delete;
   DiscoveryBonjourAddressLookup &
   operator=(const DiscoveryBonjourAddressLookup &) = delete;
+  DiscoveryBonjourAddressLookup(DiscoveryBonjourAddressLookup &&) = delete;
+  DiscoveryBonjourAddressLookup &
+  operator=(DiscoveryBonjourAddressLookup &&) = delete;
 
   [[nodiscard]] DiscoveryResult start();
   [[nodiscard]] DiscoveryResult status() const;

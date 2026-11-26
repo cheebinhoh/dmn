@@ -25,6 +25,11 @@ if (DMN_EXPECT_DISCOVERY)
     PRIVATE Dmn::dmn)
   add_executable(dmn-discovery-qualification discovery-qualification.cpp)
   target_link_libraries(dmn-discovery-qualification PRIVATE Dmn::dmn)
+  if (DMN_EXPECT_DMESGNET)
+    add_executable(dmn-discovery-dmesgnet-consumer
+                   discovery-dmesgnet-consumer.cpp)
+    target_link_libraries(dmn-discovery-dmesgnet-consumer PRIVATE Dmn::dmn)
+  endif()
 endif()
 
 get_target_property(_dmn_compile_definitions
@@ -114,4 +119,8 @@ if (DMN_EXPECT_DISCOVERY)
            COMMAND dmn-discovery-and-dmn-package-consumer)
   add_test(NAME dmn-discovery-qualification-help
            COMMAND dmn-discovery-qualification --help)
+  if (DMN_EXPECT_DMESGNET)
+    add_test(NAME dmn-discovery-dmesgnet-consumer
+             COMMAND dmn-discovery-dmesgnet-consumer)
+  endif()
 endif()

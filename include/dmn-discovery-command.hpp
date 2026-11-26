@@ -64,6 +64,8 @@ public:
   ~DiscoveryCommandWorker();
   DiscoveryCommandWorker(const DiscoveryCommandWorker &) = delete;
   DiscoveryCommandWorker &operator=(const DiscoveryCommandWorker &) = delete;
+  DiscoveryCommandWorker(DiscoveryCommandWorker &&) = delete;
+  DiscoveryCommandWorker &operator=(DiscoveryCommandWorker &&) = delete;
 
   /** @brief Whether the caller is executing on this state worker. */
   [[nodiscard]] bool inWorkerContext() const;

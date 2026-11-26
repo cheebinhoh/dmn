@@ -75,7 +75,7 @@ if (ENABLE_DMN_DISCOVERY)
       ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi.hpp)
     target_link_libraries(dmn PRIVATE "${DMN_AVAHI_TARGET}")
     dmn_install_avahi("${CMAKE_INSTALL_LIBDIR}/cmake/Dmn")
-  else()
+  elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
     set(DMN_DNS_SD_SDK_ROOTS)
     if (CMAKE_OSX_SYSROOT AND IS_ABSOLUTE "${CMAKE_OSX_SYSROOT}")
       list(APPEND DMN_DNS_SD_SDK_ROOTS "${CMAKE_OSX_SYSROOT}")
@@ -100,6 +100,7 @@ int main() { return DNSServiceRefSockFD(nullptr); }" DMN_HAVE_BONJOUR)
     if (NOT DMN_HAVE_BONJOUR)
       message(FATAL_ERROR "The macOS DNS-SD headers and library are required.")
     endif()
+    target_include_directories(dmn PRIVATE "${DMN_DNS_SD_INCLUDE_DIR}")
     target_sources(dmn PRIVATE
       dmn-discovery-bonjour-address.cpp
       dmn-discovery-bonjour-browser.cpp
@@ -121,6 +122,9 @@ int main() { return DNSServiceRefSockFD(nullptr); }" DMN_HAVE_BONJOUR)
       ${PROJECT_SOURCE_DIR}/include/dmn-discovery-bonjour-registration.hpp
       ${PROJECT_SOURCE_DIR}/include/dmn-discovery-bonjour-sessions.hpp)
     target_compile_definitions(dmn PRIVATE DMN_DISCOVERY_USE_BONJOUR=1)
+  else()
+    message(FATAL_ERROR
+            "ENABLE_DMN_DISCOVERY is unsupported on ${CMAKE_SYSTEM_NAME}.")
   endif()
 endif()
 
@@ -134,6 +138,14 @@ if (ENABLE_DMN_DMESGNET)
                    ${CMAKE_CURRENT_BINARY_DIR}/proto/dmn-dmesg-type.pb.cc
                    ${CMAKE_CURRENT_BINARY_DIR}/proto/dmn-dmesg.pb.cc
   )
+
+  if (ENABLE_DMN_DISCOVERY)
+    target_sources(dmn PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}/dmn-dmesgnet-discovery.cpp
+      ${PROJECT_SOURCE_DIR}/include/dmn-dmesgnet-discovery.hpp)
+    dmn_add_build_interface_sources(dmn
+      "${PROJECT_SOURCE_DIR}/include/dmn-dmesgnet-discovery.hpp")
+  endif()
 
   GENERATE_PROTOBUF(dmn
                       dmn-dlock.proto
@@ -527,6 +539,11 @@ if (NOT ENABLE_FAULT_INJECTION)
   )
 endif()
 
+if (NOT ENABLE_DMN_DISCOVERY OR NOT ENABLE_DMN_DMESGNET)
+  list(APPEND DMN_EXCLUDED_PUBLIC_HEADER_PATTERNS
+         PATTERN "dmn-dmesgnet-discovery.hpp" EXCLUDE
+  )
+endif()
 if (NOT ENABLE_DMN_DISCOVERY)
   list(APPEND DMN_EXCLUDED_PUBLIC_HEADER_PATTERNS
          PATTERN "dmn-discovery.hpp" EXCLUDE

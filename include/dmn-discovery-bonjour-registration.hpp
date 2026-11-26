@@ -46,6 +46,9 @@ public:
   DiscoveryBonjourRegistration(const DiscoveryBonjourRegistration &) = delete;
   DiscoveryBonjourRegistration &
   operator=(const DiscoveryBonjourRegistration &) = delete;
+  DiscoveryBonjourRegistration(DiscoveryBonjourRegistration &&) = delete;
+  DiscoveryBonjourRegistration &
+  operator=(DiscoveryBonjourRegistration &&) = delete;
 
   /** @brief Start the native registration without automatic renaming. */
   [[nodiscard]] DiscoveryResult start();
