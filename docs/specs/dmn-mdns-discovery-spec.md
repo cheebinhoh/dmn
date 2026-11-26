@@ -1240,6 +1240,9 @@ not a passing interoperability result.
 
 ### Phase 9 — Separate future DMesgNet integration
 
+The detailed Phase 9 contract and TDD plan are maintained in
+`docs/specs/dmn-dmesgnet-discovery-integration-spec.md`.
+
 Before any automatic peer configuration, write and review a separate
 specification and TDD plan for service identity/version, transport selection,
 interface scope, bind/receive, peer registry and fan-out, authentication,
