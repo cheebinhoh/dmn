@@ -67,9 +67,10 @@ if (BUILD_KAFKA_TEST AND NOT ENABLE_DMN_DMESGNET)
           "BUILD_KAFKA_TEST=ON but ENABLE_DMN_DMESGNET=OFF; Kafka integration tests are skipped.")
 endif()
 
-if (ENABLE_DMN_DISCOVERY AND NOT CMAKE_SYSTEM_NAME STREQUAL "Linux")
+if (ENABLE_DMN_DISCOVERY AND NOT CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
+    NOT CMAKE_SYSTEM_NAME STREQUAL "Darwin")
   message(FATAL_ERROR
-          "ENABLE_DMN_DISCOVERY=ON currently requires the Linux Avahi backend.")
+          "ENABLE_DMN_DISCOVERY=ON requires Linux Avahi or macOS Bonjour.")
 endif()
 if (DMN_BUILD_AVAHI_ADAPTER_TESTS AND NOT DMN_BUILD_TESTS)
   message(FATAL_ERROR "DMN_BUILD_AVAHI_ADAPTER_TESTS requires DMN_BUILD_TESTS=ON.")
@@ -352,7 +353,7 @@ if(BUILD_NDEBUG)
 endif()
 
 # build DMN library and applications
-if (ENABLE_DMN_DISCOVERY)
+if (ENABLE_DMN_DISCOVERY AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
   include("${PROJECT_SOURCE_DIR}/cmake/DmnAvahi.cmake")
   dmn_prepare_avahi()
 endif()

@@ -8,7 +8,8 @@
  * ------------
  * This header defines the portable application-facing contract for explicit
  * service browsing and registration. It exposes no Avahi, Bonjour, D-Bus or
- * other native types. The optional Linux implementation uses Avahi.
+ * other native types. The optional Linux implementation uses Avahi; the
+ * macOS implementation uses Bonjour.
  *
  * Ownership and Threading
  * -----------------------

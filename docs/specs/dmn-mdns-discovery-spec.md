@@ -1089,6 +1089,13 @@ freedom or complete Phase 4a.
 reference ownership, asynchronous errors, wakeup, cancellation and no
 double-deallocation. Implement DNSService socket polling on the state worker.
 
+Current work includes a DNSService reference poller, browse, record-watch,
+address-lookup and registration adapters, shared session integration, public
+backend selection and a controlled native shim. Linux shim tests and a
+simulated platform/package build pass, but these do not constitute a macOS
+SDK build or macOS qualification. Registration failure-path and native
+lifecycle qualification remain open.
+
 **7b — Browse and resolve.** First test browse interface mapping; SRV/TXT
 add/remove and byte-order parsing; TXT-less resolution from SRV;
 `DNSServiceGetAddrInfo` add/remove; target changes, retry and stale
@@ -1152,6 +1159,31 @@ connection, authenticated identity or guaranteed delivery. Publish a
 cross-platform-complete claim only when phases 0–7 and all three real-network
 pairings pass; otherwise identify precisely which gate was skipped or failed.
 Keep manual DMesgNet configuration unchanged.
+
+The opt-in `dmn-discovery-qualification` consumer in `test/cmake-package/`
+can be built against an installed Dmn package on each host:
+
+```sh
+cmake -S test/cmake-package -B build-qualification \
+  -DDmn_DIR=/path/to/installed/lib/cmake/Dmn \
+  -DDMN_EXPECT_DISCOVERY=ON -DDMN_EXPECT_DMESGNET=OFF
+cmake --build build-qualification --target dmn-discovery-qualification
+```
+
+Use the discovery-enabled, DMesgNet-disabled package and its normal platform
+dependencies. Choose a unique instance name owned by the test and determine
+each host's interface index and the advertiser's expected local hostname.
+Start `dmn-discovery-qualification advertise INSTANCE INTERFACE` on the first
+host; after it prints `ESTABLISHED`, start
+`dmn-discovery-qualification browse INSTANCE HOSTNAME INTERFACE` on the
+second. After the browser reports `READY`, press Enter on the advertiser;
+the browser must report `REMOVED`. All waits have deadlines. The client
+verifies port 12345, binary TXT, hostname, interface and a usable address,
+requests refresh, and resets its own view. It never starts a service
+implicitly. Both programs return failure for an unmet check or timeout.
+Record both OS versions, interface and privacy configuration, outcomes and
+any missing prerequisites. A single-host isolated-daemon test checks the
+client itself but is not cross-host or macOS qualification.
 
 ### Phase 9 — Separate future DMesgNet integration
 

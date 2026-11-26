@@ -39,23 +39,6 @@ if (ENABLE_DMN_DISCOVERY)
     dmn-discovery-retry.cpp
     dmn-discovery-session.cpp
     dmn-discovery-slots.cpp
-    dmn-discovery-avahi.cpp
-    dmn-discovery-avahi-browser.cpp
-    dmn-discovery-avahi-contribution.cpp
-    dmn-discovery-avahi-mapping.cpp
-    dmn-discovery-avahi-record-watch.cpp
-    dmn-discovery-avahi-registration.cpp
-    dmn-discovery-avahi-registration-session.cpp
-    dmn-discovery-avahi-resolver.cpp
-    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-browser.hpp
-    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-contribution.hpp
-    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-error.hpp
-    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-mapping.hpp
-    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-record-watch.hpp
-    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-registration-session.hpp
-    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-registration.hpp
-    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-resolver.hpp
-    ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi.hpp
     ${PROJECT_SOURCE_DIR}/include/dmn-discovery-command.hpp
     ${PROJECT_SOURCE_DIR}/include/dmn-discovery-core.hpp
     ${PROJECT_SOURCE_DIR}/include/dmn-discovery-delivery.hpp
@@ -66,12 +49,79 @@ if (ENABLE_DMN_DISCOVERY)
     ${PROJECT_SOURCE_DIR}/include/dmn-discovery-retry.hpp
     ${PROJECT_SOURCE_DIR}/include/dmn-discovery-session.hpp
     ${PROJECT_SOURCE_DIR}/include/dmn-discovery-slots.hpp)
-  target_link_libraries(dmn PRIVATE
-    "${DMN_AVAHI_TARGET}" Threads::Threads)
+  target_link_libraries(dmn PRIVATE Threads::Threads)
   target_compile_definitions(dmn PUBLIC DMN_ENABLE_DMN_DISCOVERY=1)
   dmn_add_build_interface_sources(dmn
     "${PROJECT_SOURCE_DIR}/include/dmn-discovery.hpp")
-  dmn_install_avahi("${CMAKE_INSTALL_LIBDIR}/cmake/Dmn")
+
+  if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    target_sources(dmn PRIVATE
+      dmn-discovery-avahi.cpp
+      dmn-discovery-avahi-browser.cpp
+      dmn-discovery-avahi-contribution.cpp
+      dmn-discovery-avahi-mapping.cpp
+      dmn-discovery-avahi-record-watch.cpp
+      dmn-discovery-avahi-registration.cpp
+      dmn-discovery-avahi-registration-session.cpp
+      dmn-discovery-avahi-resolver.cpp
+      ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-browser.hpp
+      ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-contribution.hpp
+      ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-error.hpp
+      ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-mapping.hpp
+      ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-record-watch.hpp
+      ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-registration-session.hpp
+      ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-registration.hpp
+      ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-resolver.hpp
+      ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi.hpp)
+    target_link_libraries(dmn PRIVATE "${DMN_AVAHI_TARGET}")
+    dmn_install_avahi("${CMAKE_INSTALL_LIBDIR}/cmake/Dmn")
+  else()
+    set(DMN_DNS_SD_SDK_ROOTS)
+    if (CMAKE_OSX_SYSROOT AND IS_ABSOLUTE "${CMAKE_OSX_SYSROOT}")
+      list(APPEND DMN_DNS_SD_SDK_ROOTS "${CMAKE_OSX_SYSROOT}")
+    endif()
+    find_path(DMN_DNS_SD_INCLUDE_DIR
+              NAMES dns_sd.h
+              HINTS ${DMN_DNS_SD_SDK_ROOTS}
+              PATH_SUFFIXES usr/include)
+    if (NOT DMN_DNS_SD_INCLUDE_DIR)
+      message(FATAL_ERROR
+              "macOS DNS-SD requires dns_sd.h. "
+              "Set CMAKE_OSX_SYSROOT to the active macOS SDK.")
+    endif()
+
+    include(CheckCXXSourceCompiles)
+    include(CMakePushCheckState)
+    cmake_push_check_state(RESET)
+    set(CMAKE_REQUIRED_INCLUDES "${DMN_DNS_SD_INCLUDE_DIR}")
+    check_cxx_source_compiles("#include <dns_sd.h>
+int main() { return DNSServiceRefSockFD(nullptr); }" DMN_HAVE_BONJOUR)
+    cmake_pop_check_state()
+    if (NOT DMN_HAVE_BONJOUR)
+      message(FATAL_ERROR "The macOS DNS-SD headers and library are required.")
+    endif()
+    target_sources(dmn PRIVATE
+      dmn-discovery-bonjour-address.cpp
+      dmn-discovery-bonjour-browser.cpp
+      dmn-discovery-bonjour-contribution.cpp
+      dmn-discovery-bonjour-mapping.cpp
+      dmn-discovery-bonjour-native.cpp
+      dmn-discovery-bonjour-operation.cpp
+      dmn-discovery-bonjour-poll.cpp
+      dmn-discovery-bonjour-record.cpp
+      dmn-discovery-bonjour-registration.cpp
+      dmn-discovery-bonjour-sessions.cpp
+      ${PROJECT_SOURCE_DIR}/include/dmn-discovery-bonjour-address.hpp
+      ${PROJECT_SOURCE_DIR}/include/dmn-discovery-bonjour-browser.hpp
+      ${PROJECT_SOURCE_DIR}/include/dmn-discovery-bonjour-contribution.hpp
+      ${PROJECT_SOURCE_DIR}/include/dmn-discovery-bonjour-mapping.hpp
+      ${PROJECT_SOURCE_DIR}/include/dmn-discovery-bonjour-operation.hpp
+      ${PROJECT_SOURCE_DIR}/include/dmn-discovery-bonjour-poll.hpp
+      ${PROJECT_SOURCE_DIR}/include/dmn-discovery-bonjour-record.hpp
+      ${PROJECT_SOURCE_DIR}/include/dmn-discovery-bonjour-registration.hpp
+      ${PROJECT_SOURCE_DIR}/include/dmn-discovery-bonjour-sessions.hpp)
+    target_compile_definitions(dmn PRIVATE DMN_DISCOVERY_USE_BONJOUR=1)
+  endif()
 endif()
 
 if (ENABLE_DMN_DMESGNET)

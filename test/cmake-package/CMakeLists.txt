@@ -7,6 +7,10 @@ project(DmnPackageConsumer LANGUAGES CXX)
 # This fixture intentionally runs outside Dmn's source/build target graph.
 find_package(Dmn CONFIG REQUIRED)
 
+if (NOT DMN_EXPECT_DMESGNET AND TARGET PkgConfig::RDKAFKA)
+  message(FATAL_ERROR "DMesg-disabled package must not require Kafka")
+endif()
+
 foreach(target IN ITEMS Dmn::dmn Dmn::dmn-gatt)
   if (NOT TARGET ${target})
     message(FATAL_ERROR "Required imported target is missing: ${target}")
@@ -19,6 +23,8 @@ if (DMN_EXPECT_DISCOVERY)
   add_executable(dmn-discovery-and-dmn-package-consumer discovery-and-dmn-consumer.cpp)
   target_link_libraries(dmn-discovery-and-dmn-package-consumer
     PRIVATE Dmn::dmn)
+  add_executable(dmn-discovery-qualification discovery-qualification.cpp)
+  target_link_libraries(dmn-discovery-qualification PRIVATE Dmn::dmn)
 endif()
 
 get_target_property(_dmn_compile_definitions
@@ -106,4 +112,6 @@ if (DMN_EXPECT_DISCOVERY)
            COMMAND dmn-discovery-package-consumer)
   add_test(NAME dmn-discovery-and-dmn-package-consumer
            COMMAND dmn-discovery-and-dmn-package-consumer)
+  add_test(NAME dmn-discovery-qualification-help
+           COMMAND dmn-discovery-qualification --help)
 endif()

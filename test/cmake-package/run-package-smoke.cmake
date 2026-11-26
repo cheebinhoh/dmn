@@ -210,6 +210,10 @@ set(_configure_command "${CMAKE_COMMAND}"
                        -DDMN_EXPECT_BLUEZ=${DMN_EXPECT_BLUEZ}
                        -DDMN_EXPECT_ANCS_BLUEZ_MONITOR=${DMN_EXPECT_ANCS_BLUEZ_MONITOR})
 
+if (NOT DMN_EXPECT_DMESGNET)
+  list(APPEND _configure_command -DCMAKE_DISABLE_FIND_PACKAGE_Protobuf=TRUE)
+endif()
+
 if (DEFINED _protobuf_config_dir)
   list(APPEND _configure_command "-DProtobuf_DIR=${_protobuf_config_dir}")
 endif()

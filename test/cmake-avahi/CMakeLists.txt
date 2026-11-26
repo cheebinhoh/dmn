@@ -316,6 +316,18 @@ if (DMN_AVAHI_REAL_DAEMON_TEST)
     set_tests_properties(dmn-avahi-real-public-test PROPERTIES
       TIMEOUT 75 LABELS "dmn;dmn-discovery;dmn-avahi;real-daemon")
 
+    add_executable(dmn-avahi-qualification-test
+      "${CMAKE_CURRENT_LIST_DIR}/../cmake-package/discovery-qualification.cpp")
+    target_link_libraries(dmn-avahi-qualification-test PRIVATE Dmn::dmn)
+    target_compile_options(dmn-avahi-qualification-test PRIVATE -Wall -Wextra -Wpedantic)
+    add_test(NAME dmn-avahi-qualification-test
+      COMMAND sh "${CMAKE_CURRENT_LIST_DIR}/run-isolated-daemon-test.sh"
+        "${CMAKE_CURRENT_LIST_DIR}/isolated-daemon.conf"
+        sh "${CMAKE_CURRENT_LIST_DIR}/run-qualification-test.sh"
+        "$<TARGET_FILE:dmn-avahi-qualification-test>")
+    set_tests_properties(dmn-avahi-qualification-test PROPERTIES
+      TIMEOUT 75 LABELS "dmn;dmn-discovery;dmn-avahi;real-daemon")
+
     add_test(NAME dmn-avahi-real-recovery-test
       COMMAND "${CMAKE_COMMAND}" -E env DMN_TEST_MANAGED_AVAHI=1
         sh "${CMAKE_CURRENT_LIST_DIR}/run-isolated-daemon-test.sh"
