@@ -35,11 +35,15 @@ struct Fixture {
 
   dmn::Dmn_DiscoveryCandidate candidate() const {
     dmn::Dmn_DiscoveryCandidate c;
-    c.key = {"peer", "_dmn._tcp", "local.", 2};
+    c.key = {"peer", "_dmn._tcp", "local", 2};
     c.resolution = dmn::Dmn_DiscoveryResolutionState::Resolved;
     c.record_state = dmn::Dmn_DiscoveryRecordState::Monitoring;
     c.srv = dmn::Dmn_DiscoverySrvRecord{0, 0, 443, "peer.local."};
     c.hostname = "peer.local.";
+    c.addresses.push_back(
+        {dmn::Dmn_DiscoveryAddressFamily::IPv6,
+         {0x20, 0x01, 0x0d, 0xb8, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+         std::nullopt});
     c.addresses.push_back(
         {dmn::Dmn_DiscoveryAddressFamily::IPv4, {127, 0, 0, 1}, 2});
     c.txt_state = dmn::Dmn_DiscoveryTxtState::Present;
@@ -277,6 +281,16 @@ TEST(DmnDmesgNetDiscovery, EnvironmentTrustedAdapterFramesLoopbackDmesgNet) {
   EXPECT_EQ(coordinator.status().kind,
             Coordinator::StatusKind::ConnectedUnverified);
   EXPECT_EQ(coordinator.peerCount(), 1u);
+  auto handler{coordinator.openHandler(
+      dmn::Dmn_DiscoveryServiceKey{"peer", "_dmn._tcp", "local", 2}, "loopback",
+      "hello")};
+  ASSERT_TRUE(handler.has_value());
+  dmn::DMesgPb message;
+  message.set_topic("hello");
+  message.set_type(dmn::DMesgTypePb::message);
+  message.set_sourceidentifier("node-a");
+  message.mutable_body()->set_message("hello");
+  (*handler)->write(message);
 
   const auto deadline{std::chrono::steady_clock::now() +
                       std::chrono::seconds{2}};

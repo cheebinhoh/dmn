@@ -31,20 +31,14 @@ include(GNUInstallDirs)
 option(BUILD_KAFKA_TEST
        "Build Kafka integration tests when ENABLE_DMN_DMESGNET is enabled" OFF)
 option(BUILD_NDEBUG "Define NDEBUG to disable assertions" OFF)
-option(DMN_BUILD_TESTS "Build and register Dmn unit tests" ON)
 option(DMN_ALLOW_DEPENDENCY_FETCH
        "Fetch missing build dependencies with CMake FetchContent" ON)
-option(ENABLE_DMN_DMESGNET
-       "Build the Protobuf-based DMesg/DMesgNet stack and Kafka transport" ON)
-option(ENABLE_DMN_DISCOVERY
-       "Build optional DNS-SD discovery in the Dmn library" OFF)
 option(DMN_BUILD_AVAHI_ADAPTER_TESTS
        "Build experimental Linux Avahi adapter tests" OFF)
+option(DMN_BUILD_TESTS "Build and register Dmn unit tests" ON)
 option(ENABLE_ANCS "Build the optional ANCS protocol library" OFF)
 option(ENABLE_ANCS_HARDWARE_TESTS
        "Enable opt-in ANCS tests that use a physical iPhone over BlueZ" OFF)
-option(ENABLE_APP_DMESG_DAEMON
-       "Build the Dmn DMesg daemon executable" OFF)
 option(ENABLE_APP_BLUEZ_DISCOVERY_CLI
        "Build the BlueZ discovery CLI application" OFF)
 option(ENABLE_APP_BLUETOOTH_CLI
@@ -53,11 +47,18 @@ option(ENABLE_APP_BLUETOOTH_COSMIC
        "Build the C ABI library used by the Cargo-built COSMIC Bluetooth app" OFF)
 option(ENABLE_APP_BLUETOOTH_GTK
        "Build the optional GTK Bluetooth monitor application" OFF)
+option(ENABLE_APP_DMESG_DAEMON
+       "Build the Dmn DMesg daemon executable" OFF)
 option(ENABLE_BLUEZ "Build the optional Linux BlueZ library and tests" OFF)
 option(ENABLE_DBUS
        "Build the optional D-Bus transport/client library and tests" OFF)
+option(ENABLE_DMN_DISCOVERY
+       "Build optional DNS-SD discovery in the Dmn library" OFF)
+option(ENABLE_DMN_DMESGNET
+       "Build the Protobuf-based DMesg/DMesgNet stack and Kafka transport" ON)
 option(ENABLE_FAULT_INJECTION "Enable fault injection tests with libfiu" OFF)
 option(ENABLE_VALGRIND "Enable valgrind-based tests (ctest -L valgrind)" OFF)
+
 if (DMN_BUILD_TESTS)
   enable_testing()
 endif()
@@ -72,9 +73,11 @@ if (ENABLE_DMN_DISCOVERY AND NOT CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
   message(FATAL_ERROR
           "ENABLE_DMN_DISCOVERY=ON requires Linux Avahi or macOS Bonjour.")
 endif()
+
 if (DMN_BUILD_AVAHI_ADAPTER_TESTS AND NOT DMN_BUILD_TESTS)
   message(FATAL_ERROR "DMN_BUILD_AVAHI_ADAPTER_TESTS requires DMN_BUILD_TESTS=ON.")
 endif()
+
 set(DMN_ANCS_HARDWARE_DEVICE "iPhone Old" CACHE STRING
     "Exact BlueZ display name or address used by opt-in ANCS hardware tests")
 
@@ -313,11 +316,13 @@ if (ENABLE_DMN_DMESGNET)
                 HINTS ${RDKAFKA_INCLUDE_DIRS}
                 PATH_SUFFIXES librdkafka
     )
+
     if (NOT DMN_RDKAFKA_INCLUDE_DIR)
       message(FATAL_ERROR
               "librdkafka was found through pkg-config, but rdkafka.h could "
               "not be located in its include directories.")
     endif()
+
     set(DMN_RDKAFKA_TARGET PkgConfig::RDKAFKA)
   else()
     if (NOT DMN_ALLOW_DEPENDENCY_FETCH)
@@ -330,19 +335,23 @@ if (ENABLE_DMN_DMESGNET)
     # librdkafka registers its own tests, which Dmn does not use.
     set(RDKAFKA_BUILD_TESTS OFF CACHE BOOL
         "Build librdkafka tests" FORCE)
+
     FetchContent_Declare(rdkafka
                            GIT_REPOSITORY https://github.com/confluentinc/librdkafka.git
                            GIT_TAG        v2.8.0
                            EXCLUDE_FROM_ALL
     )
+
     FetchContent_MakeAvailable(rdkafka)
 
     set(DMN_RDKAFKA_INCLUDE_DIR "${rdkafka_SOURCE_DIR}/src")
+
     if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
       set(rdkafka_LIB "${CMAKE_BINARY_DIR}/_deps/rdkafka-build/src/librdkafka.dylib")
     else()
       set(rdkafka_LIB "${CMAKE_BINARY_DIR}/_deps/rdkafka-build/src/librdkafka.so")
     endif()
+
     set(DMN_RDKAFKA_TARGET rdkafka)
     set(CMAKE_BUILD_RPATH "${CMAKE_BINARY_DIR}/_deps/rdkafka-build/src")
   endif()
@@ -357,6 +366,7 @@ if (ENABLE_DMN_DISCOVERY AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
   include("${PROJECT_SOURCE_DIR}/cmake/DmnAvahi.cmake")
   dmn_prepare_avahi()
 endif()
+
 add_subdirectory(src)
 
 if (DMN_BUILD_TESTS)

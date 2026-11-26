@@ -18,18 +18,24 @@ foreach(target IN ITEMS Dmn::dmn Dmn::dmn-gatt)
 endforeach()
 
 if (DMN_EXPECT_DISCOVERY)
-  add_executable(dmn-discovery-package-consumer discovery-consumer.cpp)
-  target_link_libraries(dmn-discovery-package-consumer PRIVATE Dmn::dmn)
   add_executable(dmn-discovery-and-dmn-package-consumer discovery-and-dmn-consumer.cpp)
   target_link_libraries(dmn-discovery-and-dmn-package-consumer
     PRIVATE Dmn::dmn)
-  add_executable(dmn-discovery-qualification discovery-qualification.cpp)
-  target_link_libraries(dmn-discovery-qualification PRIVATE Dmn::dmn)
   if (DMN_EXPECT_DMESGNET)
     add_executable(dmn-discovery-dmesgnet-consumer
                    discovery-dmesgnet-consumer.cpp)
     target_link_libraries(dmn-discovery-dmesgnet-consumer PRIVATE Dmn::dmn)
+    add_executable(dmn-discovery-dmesgnet-qualification
+                   discovery-dmesgnet-qualification.cpp)
+    target_link_libraries(dmn-discovery-dmesgnet-qualification PRIVATE
+                          Dmn::dmn)
+    target_compile_options(dmn-discovery-dmesgnet-qualification
+                           PRIVATE -Wall -Wextra -Wpedantic)
   endif()
+  add_executable(dmn-discovery-package-consumer discovery-consumer.cpp)
+  target_link_libraries(dmn-discovery-package-consumer PRIVATE Dmn::dmn)
+  add_executable(dmn-discovery-qualification discovery-qualification.cpp)
+  target_link_libraries(dmn-discovery-qualification PRIVATE Dmn::dmn)
 endif()
 
 get_target_property(_dmn_compile_definitions
@@ -113,14 +119,16 @@ enable_testing()
 
 add_test(NAME dmn-package-consumer COMMAND dmn-package-consumer)
 if (DMN_EXPECT_DISCOVERY)
-  add_test(NAME dmn-discovery-package-consumer
-           COMMAND dmn-discovery-package-consumer)
   add_test(NAME dmn-discovery-and-dmn-package-consumer
            COMMAND dmn-discovery-and-dmn-package-consumer)
-  add_test(NAME dmn-discovery-qualification-help
-           COMMAND dmn-discovery-qualification --help)
   if (DMN_EXPECT_DMESGNET)
     add_test(NAME dmn-discovery-dmesgnet-consumer
              COMMAND dmn-discovery-dmesgnet-consumer)
+    add_test(NAME dmn-discovery-dmesgnet-qualification-help
+             COMMAND dmn-discovery-dmesgnet-qualification --help)
   endif()
+  add_test(NAME dmn-discovery-package-consumer
+           COMMAND dmn-discovery-package-consumer)
+  add_test(NAME dmn-discovery-qualification-help
+           COMMAND dmn-discovery-qualification --help)
 endif()

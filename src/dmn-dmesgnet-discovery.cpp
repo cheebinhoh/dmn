@@ -53,6 +53,24 @@ struct KeyLess {
   }
 };
 
+bool sameDnsName(std::string_view left, std::string_view right) {
+  if (left.ends_with('.')) {
+    left.remove_suffix(1);
+  }
+  if (right.ends_with('.')) {
+    right.remove_suffix(1);
+  }
+  if (left.size() != right.size()) {
+    return false;
+  }
+  return std::ranges::equal(left, right, [](unsigned char a, unsigned char b) {
+    const auto fold = [](unsigned char value) {
+      return value >= 'A' && value <= 'Z' ? value + ('a' - 'A') : value;
+    };
+    return fold(a) == fold(b);
+  });
+}
+
 std::string fingerprint(const Dmn_DiscoveryCandidate &candidate) {
   std::ostringstream stream;
   stream << candidate.key.instance << '\n' << candidate.hostname << '\n';
@@ -250,6 +268,14 @@ public:
     m_io->shutdown();
   }
 
+  [[nodiscard]] Dmn_DMesg::HandlerType
+  openHandler(std::string_view name, std::string_view topic) override {
+    if (!m_network) {
+      return {};
+    }
+    return m_network->openHandler(name, topic);
+  }
+
   [[nodiscard]] bool authenticated() const noexcept override { return false; }
 
 private:
@@ -337,8 +363,8 @@ struct Dmn_DMesgNetDiscovery::Impl {
 
   std::expected<Endpoint, std::string>
   validate(const Dmn_DiscoveryCandidate &candidate) const {
-    if (candidate.key.service_type != policy.service_type ||
-        candidate.key.domain != policy.domain ||
+    if (!sameDnsName(candidate.key.service_type, policy.service_type) ||
+        !sameDnsName(candidate.key.domain, policy.domain) ||
         (policy.interface_index &&
          candidate.key.interface_index != policy.interface_index)) {
       return std::unexpected{"candidate does not match discovery policy"};
@@ -390,14 +416,19 @@ struct Dmn_DMesgNetDiscovery::Impl {
       return std::unexpected{"candidate metadata is not accepted by policy"};
     }
 
-    return Endpoint{candidate.key,
-                    *node,
-                    *version,
-                    *transport,
-                    candidate.hostname,
-                    candidate.srv->port,
-                    candidate.addresses.front(),
-                    auth->second};
+    const auto address{std::ranges::find_if(
+        candidate.addresses, [](const Dmn_DiscoveryAddress &item) {
+          return item.family == Dmn_DiscoveryAddressFamily::IPv4 &&
+                 item.bytes.size() == sizeof(in_addr);
+        })};
+    const auto selected_address{
+        address == candidate.addresses.end()
+            ? std::ranges::find_if(candidate.addresses, usable)
+            : address};
+    return Endpoint{candidate.key,      *node,
+                    *version,           *transport,
+                    candidate.hostname, candidate.srv->port,
+                    *selected_address,  auth->second};
   }
 
   void scheduleRetryLocked(const Key &key, Endpoint endpoint,
@@ -512,6 +543,23 @@ std::size_t Dmn_DMesgNetDiscovery::peerCount() const noexcept {
 Dmn_DMesgNetDiscovery::Status Dmn_DMesgNetDiscovery::status() const {
   std::lock_guard lock(m_impl->mutex);
   return m_impl->last;
+}
+
+std::expected<Dmn_DMesg::HandlerType, std::string>
+Dmn_DMesgNetDiscovery::openHandler(const Dmn_DiscoveryServiceKey &key,
+                                   std::string_view name,
+                                   std::string_view topic) {
+  std::lock_guard lock{m_impl->mutex};
+  const auto peer{m_impl->peers.find(key)};
+  if (peer == m_impl->peers.end()) {
+    return std::unexpected{"peer is not admitted"};
+  }
+
+  auto handler{peer->second.session->openHandler(name, topic)};
+  if (!handler) {
+    return std::unexpected{"session does not expose a DMesgNet publisher"};
+  }
+  return handler;
 }
 
 void Dmn_DMesgNetDiscovery::handle(Dmn_DiscoveryEvent event,

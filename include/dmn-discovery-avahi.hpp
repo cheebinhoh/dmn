@@ -3,6 +3,15 @@
  *
  * @file dmn-discovery-avahi.hpp
  * @brief Private Avahi poll and client ownership seam.
+ *
+ * Architecture
+ * ------------
+ * `DiscoveryAvahiPoller` is the only owner of the Avahi simple-poll and
+ * client references. `DiscoveryCommandWorker` drives it on the serialized
+ * state worker. Browser, resolver, record-watch and registration objects
+ * attach to that worker and translate native callbacks into the shared
+ * backend-neutral record/session model. No Avahi callback invokes application
+ * code directly.
  */
 
 #ifndef DMN_DISCOVERY_AVAHI_HPP_

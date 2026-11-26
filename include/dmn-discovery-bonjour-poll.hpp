@@ -4,6 +4,12 @@
  * @file dmn-discovery-bonjour-poll.hpp
  * @brief Private Bonjour reference polling and lifetime management.
  *
+ * The poller is the Bonjour counterpart to `DiscoveryAvahiPoller`. It keeps
+ * DNSServiceRef values on the serialized discovery worker, pumps them through
+ * the native socket, and defers reference removal until callbacks unwind.
+ * Higher-level browser, address, record and registration adapters use this
+ * seam but do not expose Bonjour types through the public discovery API.
+ *
  * This implementation is private and is not installed. Operations other than
  * wake() run on the state worker.
  */

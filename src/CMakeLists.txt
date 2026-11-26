@@ -29,11 +29,11 @@ if (ENABLE_DMN_DISCOVERY)
   find_package(Threads REQUIRED)
   target_sources(dmn PRIVATE
     dmn-discovery.cpp
-    dmn-discovery-public-conversion.cpp
     dmn-discovery-command.cpp
     dmn-discovery-core.cpp
     dmn-discovery-delivery.cpp
     dmn-discovery-dispatcher.cpp
+    dmn-discovery-public-conversion.cpp
     dmn-discovery-records.cpp
     dmn-discovery-registration.cpp
     dmn-discovery-retry.cpp
@@ -69,8 +69,8 @@ if (ENABLE_DMN_DISCOVERY)
       ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-error.hpp
       ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-mapping.hpp
       ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-record-watch.hpp
-      ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-registration-session.hpp
       ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-registration.hpp
+      ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-registration-session.hpp
       ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi-resolver.hpp
       ${PROJECT_SOURCE_DIR}/include/dmn-discovery-avahi.hpp)
     target_link_libraries(dmn PRIVATE "${DMN_AVAHI_TARGET}")

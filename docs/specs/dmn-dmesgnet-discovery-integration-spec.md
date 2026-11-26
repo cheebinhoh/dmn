@@ -81,8 +81,9 @@ socket or TLS-specific types in the public header.
 The installed library target is the product. A client integrates it by:
 
 1. creating a `Dmn_DiscoveryClient` and browser;
-2. constructing `Dmn_DMesgNetDiscovery` with a policy and authenticated
-   session factory;
+2. constructing `Dmn_DMesgNetDiscovery` with a policy and session factory
+   (the Phase 9.1 reference factory is environment-trusted; authenticated
+   factories are reserved for Phase 9.2);
 3. forwarding browser events to the coordinator;
 4. consuming coordinator status and owning application behavior.
 
@@ -97,7 +98,8 @@ backend implicitly.
 The injected factory receives an immutable, validated endpoint containing
 only copied values. It is responsible for:
 
-- authenticating the remote peer using an application-selected mechanism;
+- authenticating the remote peer when the selected delivery profile requires
+  it; the Phase 9.1 reference factory deliberately does not authenticate;
 - creating the concrete `Dmn_Io<std::string>` transport;
 - constructing and returning a session that owns the associated
   `Dmn_DMesgNet`;
@@ -120,11 +122,145 @@ Each accepted service must provide:
 - an exact supported protocol version;
 - an explicit transport scheme and endpoint;
 - a stable node identity;
-- an authentication credential or verifier input that is not treated as
-  trustworthy merely because it came from TXT.
+- for Phase 9.2, an authentication credential or verifier input that is not
+  treated as trustworthy merely because it came from TXT. The current
+  coordinator requires a non-empty `auth` TXT value in both profiles so the
+  application can carry an explicit deployment credential or token; Phase
+  9.1 passes it through but does not validate it cryptographically.
 
 The coordinator must reject missing, duplicate, malformed, oversized or
 unsupported metadata before creating a transport session.
+
+### 2.3 Linux-to-macOS multi-node runbook
+
+This runbook qualifies the implemented Phase 9.1 path between one Linux node
+and one macOS node. The repository includes an intentionally small,
+one-direction hello qualification executable; production applications may
+embed the same API shape for bidirectional or multi-peer operation. The
+`dmn-discovery-qualification` consumer and the
+`scripts/run-dmn-discovery-*.sh` wrappers still qualify discovery and
+withdrawal only, not DMesgNet transport.
+
+#### Prerequisites
+
+- Both hosts are on the same multicast-capable local network and use the same
+  `local.` DNS-SD domain.
+- Permit UDP 5353 mDNS traffic in both directions and permit the advertised
+  TCP listener port between the two hosts. Disable client isolation or
+  equivalent Wi-Fi peer blocking for the test network.
+- Linux has a running Avahi daemon and the required `avahi-client` development
+  files. macOS uses the system Bonjour/mDNSResponder API and requires the
+  host application's local-network permission where macOS requests it.
+- Use unique node identities and a unique service instance for the test.
+  Do not use a production credential or publish a secret in TXT.
+
+#### Build and install on both hosts
+
+Use the normal platform prerequisites, then build the feature-enabled
+library and install its Development component:
+
+```sh
+cmake -S . -B build-mdns-dmesgnet \
+  -DCMAKE_BUILD_TYPE=Debug \
+  -DCMAKE_INSTALL_PREFIX="$PWD/install-mdns-dmesgnet" \
+  -DDMN_BUILD_TESTS=ON \
+  -DENABLE_DMN_DISCOVERY=ON \
+  -DENABLE_DMN_DMESGNET=ON
+cmake --build build-mdns-dmesgnet --parallel 2
+ctest --test-dir build-mdns-dmesgnet -L 'dmn-discovery|dmn-dmesgnet' \
+  --output-on-failure
+cmake --install build-mdns-dmesgnet --component Development
+```
+
+Run the same sequence on Linux and macOS in separate build/install
+directories. The macOS configuration selects Bonjour from the active SDK;
+it must not be pointed at Avahi. The installed consumer must link
+`Dmn::dmn` and include `dmn-discovery.hpp` and
+`dmn-dmesgnet-discovery.hpp`.
+
+#### Application configuration
+
+Each node must:
+
+1. create a TCP listener on a configured nonzero port;
+2. create a `Dmn_DiscoveryClient`;
+3. advertise one service such as `_dmn-dmesgnet._tcp` with a unique instance,
+   the listener port and these binary-safe TXT entries:
+   `node=<node-identity>`, `version=1`, `transport=tcp`, and a non-empty
+   deployment `auth=<test-token>`;
+4. create a browser for the same service type/domain/interface and forward
+   every owned `Dmn_DiscoveryEvent` to `Dmn_DMesgNetDiscovery::handle()`;
+5. construct the coordinator with a policy matching the expected remote
+   `node_identity`, protocol version, transport and interface; and
+6. use `Dmn_DMesgNetDiscovery::EnvironmentTrusted::factory(local-node-id)`
+   as the Phase 9.1 `TransportFactory`, or inject an equivalent factory that
+   owns the listener's accepted TCP session.
+
+For a two-node test, Linux advertises `linux-node` and browses with a policy
+whose `node_identity` is `mac-node`; macOS advertises `mac-node` and browses
+with a policy whose `node_identity` is `linux-node`. If one process manages
+multiple peers, create one policy/coordinator per expected identity or add a
+caller-owned admission layer that applies the equivalent policy before
+forwarding events. The `auth` TXT value is required metadata, not proof of
+identity; Phase 9.1 remains unauthenticated and reports
+`ConnectedUnverified`.
+
+#### Repository hello qualification
+
+The installed-package consumer provides the smallest end-to-end check. Build
+and install Dmn on each host, then configure the package consumer against the
+installation:
+
+```sh
+cmake -S test/cmake-package -B build-qualification \
+  -DDmn_DIR="$PWD/install-mdns-dmesgnet/lib/cmake/Dmn" \
+  -DDMN_EXPECT_DISCOVERY=ON \
+  -DDMN_EXPECT_DMESGNET=ON
+cmake --build build-qualification \
+  --target dmn-discovery-dmesgnet-qualification --parallel 2
+```
+
+Run the listener on the host that owns the TCP endpoint. Run the connector on
+the other host; replace the interface argument with the numeric interface
+index selected for multicast:
+
+```sh
+# Linux listener:
+DMN_DMESGNET_DISCOVERY_QUALIFICATION=build-qualification/dmn-discovery-dmesgnet-qualification \
+  ./scripts/run-dmn-dmesgnet-discovery-linux.sh listen linux-node 45678 3
+
+# macOS connector:
+DMN_DMESGNET_DISCOVERY_QUALIFICATION=build-qualification/dmn-discovery-dmesgnet-qualification \
+  ./scripts/run-dmn-dmesgnet-discovery-macos.sh connect mac-node linux-node 4
+```
+
+Reverse the roles and use the macOS wrapper for the listener to qualify the
+opposite direction. The listener advertises `_dmn-hello._tcp`; the connector
+browses for the listener's node identity, forwards resolved events to the
+coordinator, admits the Phase 9.1 TCP session, opens a `hello` handler and
+sends one `DMesgPb` message. Passing output includes `HELLO_SENT` on the
+connector and `HELLO_RECEIVED` on the listener. The qualification token is
+required metadata only; it is not a cryptographic credential. The executable
+intentionally tests one direction so that it remains a short operational
+smoke test; a bidirectional application must keep both TCP listeners alive
+and open handlers on both admitted sessions.
+
+#### Run and verify
+
+Record the OS version, interface name/index, hostname, listener port and
+local-network privacy setting. The connector should report `ConnectedUnverified`
+and `HELLO_SENT`; the listener must report `HELLO_RECEIVED`. A successful
+discovery `READY` event without the framed DMesgNet message is not a passing
+Phase 9 gate. For a full application qualification, keep both registrations
+and listeners alive, exchange deterministic messages in both directions,
+verify removal/session loss, and restart one node to verify fresh admission
+and bounded retry.
+
+Record packet/transport details, observed statuses, retry timing, shutdown
+behavior and all skipped prerequisites. Do not report the run as secure:
+the Phase 9.1 TCP adapter provides framing and lifecycle only. Use a future
+TLS/mTLS or equivalent authenticated factory for a cryptographically
+authenticated deployment.
 
 ## 3. TDD test matrix
 

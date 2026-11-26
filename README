@@ -230,6 +230,50 @@ The helper downloads and verifies the pinned Kafka distribution when needed;
 it requires Java and network access on first use. The Docker entrypoint starts
 Kafka and creates this topic automatically.
 
+### DNS-SD/mDNS discovery and DMesgNet qualification
+
+The optional discovery library provides a portable DNS-SD/mDNS API. Linux
+uses Avahi; macOS uses the system Bonjour/mDNSResponder API. Discovery is
+disabled by default and does not authenticate peers. Enable it with the
+DMesgNet integration when building an application that needs peer discovery:
+
+```bash
+cmake -S . -B build-mdns-dmesgnet -DCMAKE_BUILD_TYPE=Debug \
+  -DDMN_BUILD_TESTS=ON -DENABLE_DMN_DISCOVERY=ON \
+  -DENABLE_DMN_DMESGNET=ON -DCMAKE_INSTALL_PREFIX="$PWD/install-mdns-dmesgnet"
+cmake --build build-mdns-dmesgnet --parallel 2
+cmake --install build-mdns-dmesgnet --component Development
+```
+
+The installed-package qualification consumer includes a small two-process
+hello test. Configure it against the installation, then run one listener and
+one connector on the same multicast-capable network:
+
+```bash
+cmake -S test/cmake-package -B build-qualification \
+  -DDmn_DIR="$PWD/install-mdns-dmesgnet/lib/cmake/Dmn" \
+  -DDMN_EXPECT_DISCOVERY=ON -DDMN_EXPECT_DMESGNET=ON
+cmake --build build-qualification \
+  --target dmn-discovery-dmesgnet-qualification --parallel 2
+```
+
+On Linux run `scripts/run-dmn-dmesgnet-discovery-linux.sh listen
+linux-node 45678 <interface>` on one host and
+`scripts/run-dmn-dmesgnet-discovery-linux.sh connect mac-node linux-node
+<interface>` on the other. On macOS use the corresponding
+`scripts/run-dmn-dmesgnet-discovery-macos.sh` wrapper. The listener advertises
+`_dmn-hello._tcp` with `node`, `version`, `transport` and non-empty `auth` TXT
+fields; the connector discovers that record, admits the endpoint, opens the
+environment-trusted framed TCP session, and sends a `hello` DMesg message.
+`HELLO_RECEIVED` on the listener is the passing application-message result.
+Allow UDP 5353 and the chosen TCP port through host firewalls, and grant
+macOS local-network permission if prompted. This Phase 9.1 check is for an
+isolated trusted network only; the TCP adapter is unencrypted and
+`ConnectedUnverified` is expected. See
+`docs/specs/dmn-mdns-discovery-spec.md` and
+`docs/specs/dmn-dmesgnet-discovery-integration-spec.md` for the complete
+contract, multi-node procedure and future authenticated Phase 9.2 boundary.
+
 ### D-Bus extension
 
 The optional D-Bus extension provides byte-oriented input/output adapters

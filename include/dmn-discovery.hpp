@@ -24,6 +24,27 @@
  *
  * Discovery is a local observation, not an inventory, reachability check or
  * trusted identity. TXT data is opaque untrusted data.
+ *
+ * Architecture
+ * ------------
+ * The public API is the portable boundary for the discovery library:
+ *
+ *   Dmn_DiscoveryClient
+ *          |
+ *          v
+ *   private session/state worker --> private callback dispatcher
+ *          |
+ *          +--> backend-neutral record model and bounded delivery
+ *          |
+ *          +--> Avahi on Linux
+ *          `--> Bonjour/DNS-SD on macOS
+ *
+ * Native backends own daemon references and translate callbacks into copied
+ * discovery values. They do not know about Dmn_DMesgNet. The optional
+ * Dmn_DMesgNetDiscovery coordinator is a separate integration layer: an
+ * application forwards selected discovery events to it, and its injected
+ * transport factory decides whether a peer is merely environment-trusted or
+ * cryptographically authenticated.
  */
 
 #ifndef DMN_DISCOVERY_HPP_

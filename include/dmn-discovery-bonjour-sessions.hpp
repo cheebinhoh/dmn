@@ -3,6 +3,12 @@
  *
  * @file dmn-discovery-bonjour-sessions.hpp
  * @brief Private Bonjour browser and session integration.
+ *
+ * This is the macOS backend composition root. It connects the shared
+ * `DiscoverySessionClient` lifecycle and callback dispatcher to one
+ * `DiscoveryBonjourPoller`, then owns browser, registration and contribution
+ * objects on that worker. It produces the same backend-neutral events as the
+ * Avahi composition root; it does not create DMesgNet sessions.
  */
 
 #ifndef DMN_DISCOVERY_BONJOUR_SESSIONS_HPP_
