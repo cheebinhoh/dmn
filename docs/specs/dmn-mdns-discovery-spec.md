@@ -1185,6 +1185,59 @@ Record both OS versions, interface and privacy configuration, outcomes and
 any missing prerequisites. A single-host isolated-daemon test checks the
 client itself but is not cross-host or macOS qualification.
 
+### Phase 8 TDD gate and manual qualification scripts
+
+Before running a real-network test, the following deterministic tests are
+required and must run without a second host, multicast access or an installed
+daemon:
+
+1. **Advertise and browse state:** accepted versus established registration,
+   collision without renaming, binary and empty TXT, browse filtering by
+   service type/domain/interface, SRV/TXT/address resolution, refresh,
+   withdrawal and idempotent stop.
+2. **Live observation:** add, change and remove events, target and port
+   replacement, address-family and interface scope, stale generations,
+   cache reset and reappearance from the controlled backend.
+3. **Failure and lifecycle:** unavailable backend, daemon loss/recovery,
+   registration and browser callback failures, client shutdown, handles that
+   outlive the client, bounded timeouts and no event after the stop boundary.
+4. **Packaging:** a relocated installed `Dmn::dmn` consumer with discovery on
+   and DMesgNet off, with protobuf and Kafka unavailable; feature-off and
+   ordinary DMesgNet-enabled package checks remain separate.
+
+The deterministic suite must run in both platform workflows. It validates
+the public contract and controlled native adapters, but it does not count as
+cross-host qualification.
+
+The following scripts provide the smallest manual two-host test. Build the
+installed discovery-only qualification executable first, then connect one
+Linux and one macOS host to the same multicast-capable Wi-Fi network. The
+advertiser and browser are intentionally separate processes on separate
+hosts:
+
+```sh
+# On either host, from the repository root:
+cmake -S test/cmake-package -B build-qualification \
+  -DDmn_DIR=/path/to/installed/lib/cmake/Dmn \
+  -DDMN_EXPECT_DISCOVERY=ON -DDMN_EXPECT_DMESGNET=OFF
+cmake --build build-qualification --target dmn-discovery-qualification
+
+# Linux advertiser; copy the printed ADVERTISER_HOSTNAME:
+scripts/run-dmn-discovery-linux.sh advertise dmn-wifi-test
+
+# macOS browser; replace ADVERTISER.local with that hostname:
+scripts/run-dmn-discovery-macos.sh browse dmn-wifi-test ADVERTISER.local
+```
+
+The roles may be reversed to test macOS advertisement and Linux browsing.
+The advertiser prints `ESTABLISHED`; the browser prints `READY`; press Enter
+in the advertiser terminal to withdraw; the browser must then print
+`REMOVED`. Set `DMN_DISCOVERY_INTERFACE` or pass an interface name/index
+explicitly when automatic multicast-interface selection is ambiguous. Record
+the OS versions, interface names, hostnames, privacy settings and whether
+each expected state was observed. A skipped or timed-out real-network run is
+not a passing interoperability result.
+
 ### Phase 9 — Separate future DMesgNet integration
 
 Before any automatic peer configuration, write and review a separate
@@ -1194,6 +1247,27 @@ loss/reconnect and shutdown. Its acceptance must test actual DMesgNet
 communication between nodes, not merely discovery of their advertised port.
 It is not a prerequisite for implementing the reusable discovery library,
 and its behavior is not warranted by phases 0–8.
+
+### Phase 9 TDD gate
+
+Phase 9 must begin with deterministic tests for a fake transport and explicit
+peer fixtures before any mDNS-driven connection logic is added:
+
+- peer admission and identity/version validation;
+- service-to-transport selection and interface binding;
+- connection loss, retry, duplicate peer suppression and reordering;
+- authentication failure and malformed input;
+- bounded fan-out, backpressure, shutdown and restart;
+- no connection attempt for discovery-only observations without an explicit
+  DMesgNet policy.
+
+Run these tests on Linux and macOS in the normal workflows. Add a Linux
+multi-process loopback integration test before claiming the implementation
+works across process boundaries. A real Linux-to-macOS Phase 9 gate requires
+two reachable hosts and must report the OS versions, transport endpoints,
+authentication setup, packet path and observed reconnect/shutdown results.
+The Phase 8 scripts are not sufficient evidence for Phase 9 because discovery
+of a port does not prove DMesgNet communication.
 
 If qualification exposes an unavailable semantic, do not fabricate success
 or silently weaken the common contract: revise this specification and its
