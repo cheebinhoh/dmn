@@ -263,7 +263,7 @@ Enumerations</h2></td></tr>
 <p>Copyright © 2026 Chee Bin HOH. All rights reserved.</p>
 <h2 class="doxsection"><a class="anchor" id="autotoc_md22"></a>
 API Boundary</h2>
-<p>This header defines the portable application-facing contract for explicit service browsing and registration. It exposes no Avahi, Bonjour, D-Bus or other native types. The optional Linux implementation uses Avahi.</p>
+<p>This header defines the portable application-facing contract for explicit service browsing and registration. It exposes no Avahi, Bonjour, D-Bus or other native types. The optional Linux implementation uses Avahi; the macOS implementation uses Bonjour.</p>
 <h2 class="doxsection"><a class="anchor" id="autotoc_md23"></a>
 Ownership and Threading</h2>
 <p>Values crossing the API boundary own their strings and byte sequences. Client, browser and registration operations are intended to be thread-safe. A client owns its state worker and serialized callback worker; native callbacks do not run application handlers. Handlers must not throw, block indefinitely, destroy a handle/client, or call barrier operations such as clearCache(), stop() or shutdown(). A callback may run before the call that accepted it returns. See the discovery specification for complete lifecycle and drain-barrier semantics.</p>
@@ -282,7 +282,7 @@ Ownership and Threading</h2>
 </div><div class="memdoc">
 <b>Initial value:</b><div class="fragment"><div class="line"> </div>
 <div class="line">    std::function&lt;void(<a class="code hl_struct" href="structdmn_1_1Dmn__DiscoveryRegistrationStatus.html">Dmn_DiscoveryRegistrationStatus</a>)&gt;</div>
-<div class="ttc" id="astructdmn_1_1Dmn__DiscoveryRegistrationStatus_html"><div class="ttname"><a href="structdmn_1_1Dmn__DiscoveryRegistrationStatus.html">dmn::Dmn_DiscoveryRegistrationStatus</a></div><div class="ttdoc">Owned registration state, including its last reported failure.</div><div class="ttdef"><b>Definition</b> dmn-discovery.hpp:323</div></div>
+<div class="ttc" id="astructdmn_1_1Dmn__DiscoveryRegistrationStatus_html"><div class="ttname"><a href="structdmn_1_1Dmn__DiscoveryRegistrationStatus.html">dmn::Dmn_DiscoveryRegistrationStatus</a></div><div class="ttdoc">Owned registration state, including its last reported failure.</div><div class="ttdef"><b>Definition</b> dmn-discovery.hpp:324</div></div>
 </div><!-- fragment -->
 <p>Callback receiving an owned registration transition by value. </p>
 

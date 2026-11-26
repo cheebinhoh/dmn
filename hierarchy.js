@@ -2,6 +2,7 @@ var hierarchy =
 [
     [ "dmn::Dmn_DbusValue::ArrayData", "structdmn_1_1Dmn__DbusValue_1_1ArrayData.html", null ],
     [ "dmn::Dmn_Runtime_Task::Awaiter", "structdmn_1_1Dmn__Runtime__Task_1_1Awaiter.html", null ],
+    [ "dmn::detail::DiscoveryBonjourSessions::Browser", "structdmn_1_1detail_1_1DiscoveryBonjourSessions_1_1Browser.html", null ],
     [ "dmn::detail::DiscoveryAvahiRegistrationSessions::BrowserEntry", "structdmn_1_1detail_1_1DiscoveryAvahiRegistrationSessions_1_1BrowserEntry.html", null ],
     [ "dmn::detail::DiscoverySessionClient::BrowserLifecycle", "structdmn_1_1detail_1_1DiscoverySessionClient_1_1BrowserLifecycle.html", null ],
     [ "dmn::Dmn_Pub&lt; T, QueueType &gt;::CallbackFailure", "structdmn_1_1Dmn__Pub_1_1CallbackFailure.html", null ],
@@ -29,11 +30,25 @@ var hierarchy =
     [ "dmn::detail::DiscoveryAvahiServiceResolver", "classdmn_1_1detail_1_1DiscoveryAvahiServiceResolver.html", null ],
     [ "dmn::detail::DiscoveryBackend", "classdmn_1_1detail_1_1DiscoveryBackend.html", null ],
     [ "dmn::detail::DiscoveryBarrierOperation", "structdmn_1_1detail_1_1DiscoveryBarrierOperation.html", null ],
+    [ "dmn::detail::DiscoveryBonjourAddressEvent", "structdmn_1_1detail_1_1DiscoveryBonjourAddressEvent.html", null ],
+    [ "dmn::detail::DiscoveryBonjourAddressLookup", "classdmn_1_1detail_1_1DiscoveryBonjourAddressLookup.html", null ],
+    [ "dmn::detail::DiscoveryBonjourApi", "classdmn_1_1detail_1_1DiscoveryBonjourApi.html", null ],
+    [ "dmn::detail::DiscoveryBonjourBrowseEvent", "structdmn_1_1detail_1_1DiscoveryBonjourBrowseEvent.html", null ],
+    [ "dmn::detail::DiscoveryBonjourBrowser", "classdmn_1_1detail_1_1DiscoveryBonjourBrowser.html", null ],
+    [ "dmn::detail::DiscoveryBonjourContribution", "classdmn_1_1detail_1_1DiscoveryBonjourContribution.html", null ],
+    [ "dmn::detail::DiscoveryBonjourOperation", "classdmn_1_1detail_1_1DiscoveryBonjourOperation.html", null ],
+    [ "dmn::detail::DiscoveryBonjourQuery", "structdmn_1_1detail_1_1DiscoveryBonjourQuery.html", null ],
+    [ "dmn::detail::DiscoveryBonjourRecordEvent", "structdmn_1_1detail_1_1DiscoveryBonjourRecordEvent.html", null ],
+    [ "dmn::detail::DiscoveryBonjourRecordWatch", "classdmn_1_1detail_1_1DiscoveryBonjourRecordWatch.html", null ],
+    [ "dmn::detail::DiscoveryBonjourRegistration", "classdmn_1_1detail_1_1DiscoveryBonjourRegistration.html", null ],
+    [ "dmn::detail::DiscoveryBonjourSessions", "classdmn_1_1detail_1_1DiscoveryBonjourSessions.html", null ],
     [ "dmn::detail::DiscoveryBrowser", "classdmn_1_1detail_1_1DiscoveryBrowser.html", null ],
     [ "dmn::detail::DiscoveryCandidate", "structdmn_1_1detail_1_1DiscoveryCandidate.html", null ],
     [ "dmn::detail::DiscoveryCommandPoller", "classdmn_1_1detail_1_1DiscoveryCommandPoller.html", [
       [ "dmn::detail::DiscoveryAvahiPoller", "classdmn_1_1detail_1_1DiscoveryAvahiPoller.html", null ],
-      [ "dmn::detail::DiscoveryAvahiRegistrationSessions::DrivingPoller", "classdmn_1_1detail_1_1DiscoveryAvahiRegistrationSessions_1_1DrivingPoller.html", null ]
+      [ "dmn::detail::DiscoveryAvahiRegistrationSessions::DrivingPoller", "classdmn_1_1detail_1_1DiscoveryAvahiRegistrationSessions_1_1DrivingPoller.html", null ],
+      [ "dmn::detail::DiscoveryBonjourPoller", "classdmn_1_1detail_1_1DiscoveryBonjourPoller.html", null ],
+      [ "dmn::detail::DiscoveryBonjourSessions::DrivingPoller", "classdmn_1_1detail_1_1DiscoveryBonjourSessions_1_1DrivingPoller.html", null ]
     ] ],
     [ "dmn::detail::DiscoveryCommandState", "structdmn_1_1detail_1_1DiscoveryCommandState.html", null ],
     [ "dmn::detail::DiscoveryCommandWorker", "classdmn_1_1detail_1_1DiscoveryCommandWorker.html", null ],
@@ -223,6 +238,7 @@ var hierarchy =
       [ "dmn::detail::DiscoveryAvahiRegistrationSessions", "classdmn_1_1detail_1_1DiscoveryAvahiRegistrationSessions.html", null ]
     ] ],
     [ "dmn::detail::DiscoveryAvahiRegistrationSessions::Entry", "structdmn_1_1detail_1_1DiscoveryAvahiRegistrationSessions_1_1Entry.html", null ],
+    [ "dmn::detail::DiscoveryBonjourPoller::Entry", "structdmn_1_1detail_1_1DiscoveryBonjourPoller_1_1Entry.html", null ],
     [ "std::exception", null, [
       [ "dmn::detail::DiscoveryDeliveryFailure", "classdmn_1_1detail_1_1DiscoveryDeliveryFailure.html", null ]
     ] ],
@@ -247,9 +263,11 @@ var hierarchy =
     [ "QueueType", null, [
       [ "dmn::Dmn_Pipe< std::shared_ptr< Dmn_Async_Handle >, QueueType< std::shared_ptr< Dmn_Async_Handle > > >", "classdmn_1_1Dmn__Pipe.html", null ]
     ] ],
+    [ "dmn::detail::DiscoveryBonjourSessions::Registration", "structdmn_1_1detail_1_1DiscoveryBonjourSessions_1_1Registration.html", null ],
     [ "dmn::ScopeGuard&lt; F &gt;", "classdmn_1_1ScopeGuard.html", null ],
     [ "dmn::Dmn_DbusValue::SignatureValue", "structdmn_1_1Dmn__DbusValue_1_1SignatureValue.html", null ],
     [ "dmn::detail::DiscoveryAvahiRegistrationSessions::BrowserEntry::Source", "structdmn_1_1detail_1_1DiscoveryAvahiRegistrationSessions_1_1BrowserEntry_1_1Source.html", null ],
+    [ "dmn::detail::DiscoveryBonjourSessions::Browser::Source", "structdmn_1_1detail_1_1DiscoveryBonjourSessions_1_1Browser_1_1Source.html", null ],
     [ "dmn::detail::DiscoveryBrowser::Entry::Source", "structdmn_1_1detail_1_1DiscoveryBrowser_1_1Entry_1_1Source.html", null ],
     [ "dmn::Dmn_DMesgNet::Status", "structdmn_1_1Dmn__DMesgNet_1_1Status.html", null ],
     [ "dmn::Dmn_DbusValue::StructData", "structdmn_1_1Dmn__DbusValue_1_1StructData.html", null ],

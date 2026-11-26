@@ -6,7 +6,7 @@ var searchData=
   ['enterinflightguardfnc_3',['enterInflightGuardFnc',['../classdmn_1_1Dmn__BlockingQueue__Lf.html#a06ef41db026b53a793dbbd88d1b90e23',1,'dmn::Dmn_BlockingQueue_Lf::enterInflightGuardFnc()'],['../classdmn_1_1Dmn__Inflight__Guard.html#a24e998e357f8385b4d44198e8e46899c',1,'dmn::Dmn_Inflight_Guard::enterInflightGuardFnc()']]],
   ['entermainloop_4',['enterMainLoop',['../classdmn_1_1Dmn__Runtime__Manager.html#ab9694235bcd595e812eacd6e115b1851',1,'dmn::Dmn_Runtime_Manager']]],
   ['entries_5',['entries',['../structdmn_1_1Dmn__DbusValue_1_1DictionaryData.html#a156c81a5443133eeeee905ca4efd5fca',1,'dmn::Dmn_DbusValue::DictionaryData']]],
-  ['entry_6',['Entry',['../structdmn_1_1detail_1_1DiscoveryAvahiRegistrationSessions_1_1Entry.html',1,'dmn::detail::DiscoveryAvahiRegistrationSessions']]],
+  ['entry_6',['Entry',['../structdmn_1_1detail_1_1DiscoveryAvahiRegistrationSessions_1_1Entry.html',1,'dmn::detail::DiscoveryAvahiRegistrationSessions::Entry'],['../structdmn_1_1detail_1_1DiscoveryBonjourPoller_1_1Entry.html',1,'dmn::detail::DiscoveryBonjourPoller::Entry']]],
   ['entry_5fmatcher_7',['entry_matcher',['../classdmn_1_1Dmn__IntervalBTree.html#ac2b6819bc937643d771a0add5e5012f8',1,'dmn::Dmn_IntervalBTree::entry_matcher'],['../dmn-interval-btree_8hpp.html#ae33346dbf85dfe5c70a5503e4b72a1d4',1,'dmn::entry_matcher']]],
   ['enumeratecanonical_8',['enumerateCanonical',['../classdmn_1_1Dmn__IntervalBTree.html#a5b29b9f0646240c00ea531c004c79e5c',1,'dmn::Dmn_IntervalBTree']]],
   ['enumeratecanonicalmove_9',['enumerateCanonicalMove',['../classdmn_1_1Dmn__IntervalBTree.html#a0ccb2d483342e09da5acc8d7a20addcb',1,'dmn::Dmn_IntervalBTree']]],
