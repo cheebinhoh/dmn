@@ -44,6 +44,7 @@ jobs:
             -DENABLE_DMN_DISCOVERY=OFF \
             -DENABLE_BLUEZ=OFF \
             -DENABLE_DBUS=OFF \
+            -DCMAKE_OSX_SYSROOT="$(xcrun --sdk macosx --show-sdk-path)" \
             -DICU_ROOT="$(brew --prefix icu4c)"
 
       - name: Build
@@ -64,6 +65,7 @@ jobs:
             -DENABLE_DMN_DMESGNET=OFF \
             -DENABLE_BLUEZ=OFF \
             -DENABLE_DBUS=OFF \
+            -DCMAKE_OSX_SYSROOT="$(xcrun --sdk macosx --show-sdk-path)" \
             -DICU_ROOT="$(brew --prefix icu4c)"
 
       - name: Build discovery

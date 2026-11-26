@@ -76,10 +76,34 @@ if (ENABLE_DMN_DISCOVERY)
     target_link_libraries(dmn PRIVATE "${DMN_AVAHI_TARGET}")
     dmn_install_avahi("${CMAKE_INSTALL_LIBDIR}/cmake/Dmn")
   else()
+    set(DMN_DNS_SD_SDK_ROOTS)
+    if (CMAKE_OSX_SYSROOT AND IS_ABSOLUTE "${CMAKE_OSX_SYSROOT}")
+      list(APPEND DMN_DNS_SD_SDK_ROOTS "${CMAKE_OSX_SYSROOT}")
+    endif()
+    find_path(DMN_DNS_SD_INCLUDE_DIR
+              NAMES dns_sd.h
+              HINTS ${DMN_DNS_SD_SDK_ROOTS}
+              PATH_SUFFIXES usr/include)
+    find_library(DMN_DNS_SD_LIBRARY
+                 NAMES dns_sd
+                 HINTS ${DMN_DNS_SD_SDK_ROOTS}
+                 PATH_SUFFIXES usr/lib)
+    if (NOT DMN_DNS_SD_INCLUDE_DIR OR NOT DMN_DNS_SD_LIBRARY)
+      message(FATAL_ERROR
+              "macOS DNS-SD requires dns_sd.h and the dns_sd library. "
+              "Set CMAKE_OSX_SYSROOT to the active macOS SDK.")
+    endif()
+
+    add_library(Dmn::dns_sd UNKNOWN IMPORTED)
+    set_target_properties(Dmn::dns_sd PROPERTIES
+                          IMPORTED_LOCATION "${DMN_DNS_SD_LIBRARY}"
+                          INTERFACE_INCLUDE_DIRECTORIES "${DMN_DNS_SD_INCLUDE_DIR}")
+
     include(CheckCXXSourceCompiles)
     include(CMakePushCheckState)
     cmake_push_check_state(RESET)
-    set(CMAKE_REQUIRED_LIBRARIES dns_sd)
+    set(CMAKE_REQUIRED_INCLUDES "${DMN_DNS_SD_INCLUDE_DIR}")
+    set(CMAKE_REQUIRED_LIBRARIES "${DMN_DNS_SD_LIBRARY}")
     check_cxx_source_compiles("#include <dns_sd.h>
 int main() { return DNSServiceRefSockFD(nullptr); }" DMN_HAVE_BONJOUR)
     cmake_pop_check_state()
@@ -107,7 +131,7 @@ int main() { return DNSServiceRefSockFD(nullptr); }" DMN_HAVE_BONJOUR)
       ${PROJECT_SOURCE_DIR}/include/dmn-discovery-bonjour-registration.hpp
       ${PROJECT_SOURCE_DIR}/include/dmn-discovery-bonjour-sessions.hpp)
     target_compile_definitions(dmn PRIVATE DMN_DISCOVERY_USE_BONJOUR=1)
-    target_link_libraries(dmn PRIVATE dns_sd)
+    target_link_libraries(dmn PRIVATE Dmn::dns_sd)
   endif()
 endif()
 
