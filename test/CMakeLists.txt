@@ -30,6 +30,7 @@ target_compile_options(dmn-discovery-core-test PRIVATE -Wall -Wextra -Wpedantic)
 ADD_TEST_EXECUTABLE(dmn dmn-test-discovery-bonjour)
 target_sources(dmn-test-discovery-bonjour
                  PRIVATE ${PROJECT_SOURCE_DIR}/src/dmn-discovery.cpp
+                         ${PROJECT_SOURCE_DIR}/src/dmn-discovery-public-conversion.cpp
                          ${PROJECT_SOURCE_DIR}/src/dmn-discovery-bonjour-address.cpp
                          ${PROJECT_SOURCE_DIR}/src/dmn-discovery-bonjour-browser.cpp
                          ${PROJECT_SOURCE_DIR}/src/dmn-discovery-bonjour-contribution.cpp
