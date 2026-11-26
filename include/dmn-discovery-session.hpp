@@ -381,6 +381,8 @@ public:
   ~DiscoverySessionClient();
   DiscoverySessionClient(const DiscoverySessionClient &) = delete;
   DiscoverySessionClient &operator=(const DiscoverySessionClient &) = delete;
+  DiscoverySessionClient(DiscoverySessionClient &&) = delete;
+  DiscoverySessionClient &operator=(DiscoverySessionClient &&) = delete;
 
   /**
    * @brief Create an empty, explicitly requested fake browser.

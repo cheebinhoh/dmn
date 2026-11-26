@@ -333,6 +333,8 @@ public:
   ~DiscoveryBrowser();
   DiscoveryBrowser(const DiscoveryBrowser &) = delete;
   DiscoveryBrowser &operator=(const DiscoveryBrowser &) = delete;
+  DiscoveryBrowser(DiscoveryBrowser &&) = delete;
+  DiscoveryBrowser &operator=(DiscoveryBrowser &&) = delete;
 
   /**
    * @brief Add one transport contribution to an interface-scoped service.

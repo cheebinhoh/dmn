@@ -53,6 +53,9 @@ public:
   ~DiscoveryBonjourBrowser();
   DiscoveryBonjourBrowser(const DiscoveryBonjourBrowser &) = delete;
   DiscoveryBonjourBrowser &operator=(const DiscoveryBonjourBrowser &) = delete;
+  DiscoveryBonjourBrowser(DiscoveryBonjourBrowser &&) = delete;
+  DiscoveryBonjourBrowser &
+  operator=(DiscoveryBonjourBrowser &&) = delete;
 
   [[nodiscard]] DiscoveryResult start();
   [[nodiscard]] DiscoveryResult status() const;

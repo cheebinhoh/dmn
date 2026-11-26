@@ -193,6 +193,8 @@ public:
   ~DiscoveryDispatcher();
   DiscoveryDispatcher(const DiscoveryDispatcher &) = delete;
   DiscoveryDispatcher &operator=(const DiscoveryDispatcher &) = delete;
+  DiscoveryDispatcher(DiscoveryDispatcher &&) = delete;
+  DiscoveryDispatcher &operator=(DiscoveryDispatcher &&) = delete;
 
   /** @brief Whether this thread is executing this dispatcher's callback. */
   [[nodiscard]] bool inCallbackContext() const;

@@ -440,7 +440,8 @@ public:
   Dmn_DiscoveryRegistration &
   operator=(const Dmn_DiscoveryRegistration &) = delete;
   Dmn_DiscoveryRegistration(Dmn_DiscoveryRegistration &&) = delete;
-  Dmn_DiscoveryRegistration &operator=(Dmn_DiscoveryRegistration &&) = delete;
+  Dmn_DiscoveryRegistration &
+  operator=(Dmn_DiscoveryRegistration &&) = delete;
 
   /**
    * @brief Copy the current owned registration state and last error.

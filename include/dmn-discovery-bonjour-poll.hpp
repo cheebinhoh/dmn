@@ -53,6 +53,10 @@ public:
                          Clock clock = std::chrono::steady_clock::now,
                          Drive drive = {});
   ~DiscoveryBonjourPoller() override;
+  DiscoveryBonjourPoller(const DiscoveryBonjourPoller &) = delete;
+  DiscoveryBonjourPoller &operator=(const DiscoveryBonjourPoller &) = delete;
+  DiscoveryBonjourPoller(DiscoveryBonjourPoller &&) = delete;
+  DiscoveryBonjourPoller &operator=(DiscoveryBonjourPoller &&) = delete;
 
   [[nodiscard]] DiscoveryResult start() override;
   [[nodiscard]] DiscoveryResult wait(bool block) override;

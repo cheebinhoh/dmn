@@ -59,6 +59,9 @@ public:
   DiscoveryAvahiServiceBrowser(const DiscoveryAvahiServiceBrowser &) = delete;
   DiscoveryAvahiServiceBrowser &
   operator=(const DiscoveryAvahiServiceBrowser &) = delete;
+  DiscoveryAvahiServiceBrowser(DiscoveryAvahiServiceBrowser &&) = delete;
+  DiscoveryAvahiServiceBrowser &
+  operator=(DiscoveryAvahiServiceBrowser &&) = delete;
 
   [[nodiscard]] DiscoveryResult start();
   [[nodiscard]] DiscoveryResult status() const;

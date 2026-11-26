@@ -58,6 +58,9 @@ public:
   DiscoveryAvahiServiceResolver(const DiscoveryAvahiServiceResolver &) = delete;
   DiscoveryAvahiServiceResolver &
   operator=(const DiscoveryAvahiServiceResolver &) = delete;
+  DiscoveryAvahiServiceResolver(DiscoveryAvahiServiceResolver &&) = delete;
+  DiscoveryAvahiServiceResolver &
+  operator=(DiscoveryAvahiServiceResolver &&) = delete;
 
   [[nodiscard]] DiscoveryResult start();
   [[nodiscard]] DiscoveryResult status() const;

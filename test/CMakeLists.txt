@@ -217,6 +217,12 @@ if (ENABLE_DMN_DMESGNET)
                         dmn-test-dmesgnet-shutdown
                         dmn-test-kafka-config
   )
+
+  if (ENABLE_DMN_DISCOVERY)
+    ADD_TEST_EXECUTABLE(dmn dmn-test-dmesgnet-discovery)
+    set_tests_properties(dmn-test-dmesgnet-discovery
+                         PROPERTIES LABELS "dmn;dmn-discovery;dmn-dmesgnet")
+  endif()
 endif()
 
 function(add_dmn_cli_version_test target)

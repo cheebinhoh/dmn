@@ -76,6 +76,10 @@ public:
   DiscoveryAvahiPoller(std::shared_ptr<DiscoveryAvahiApi> api, Handler handler,
                        Clock clock = std::chrono::steady_clock::now,
                        Cleanup cleanup = {}, Drive drive = {});
+  DiscoveryAvahiPoller(const DiscoveryAvahiPoller &) = delete;
+  DiscoveryAvahiPoller &operator=(const DiscoveryAvahiPoller &) = delete;
+  DiscoveryAvahiPoller(DiscoveryAvahiPoller &&) = delete;
+  DiscoveryAvahiPoller &operator=(DiscoveryAvahiPoller &&) = delete;
   [[nodiscard]] DiscoveryResult start() override;
   [[nodiscard]] DiscoveryResult wait(bool block) override;
   void wake() noexcept override;

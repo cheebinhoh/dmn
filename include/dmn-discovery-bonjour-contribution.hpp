@@ -35,6 +35,9 @@ public:
   DiscoveryBonjourContribution(const DiscoveryBonjourContribution &) = delete;
   DiscoveryBonjourContribution &
   operator=(const DiscoveryBonjourContribution &) = delete;
+  DiscoveryBonjourContribution(DiscoveryBonjourContribution &&) = delete;
+  DiscoveryBonjourContribution &
+  operator=(DiscoveryBonjourContribution &&) = delete;
 
   [[nodiscard]] DiscoveryResult start();
   [[nodiscard]] DiscoveryResult drive();

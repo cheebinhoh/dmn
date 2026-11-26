@@ -2,10 +2,11 @@
 
 # Reusable DNS-SD/mDNS Discovery
 
-**Status: implementation in progress; not yet platform-qualified.** This
-document defines a test-driven Phase 3 design. Contract sketches are not
-evidence of platform qualification. Phase 2's `Dmn_DMesgNet` behavior is
-unchanged.
+**Status: implementation complete; real-network qualification remains
+environment-dependent.** This document defines the implemented discovery
+contract and its remaining platform/interoperability acceptance gates.
+Deterministic tests are not evidence of cross-host platform qualification.
+Phase 2's `Dmn_DMesgNet` behavior is unchanged.
 
 ## 1. Decision and scope
 
@@ -1238,23 +1239,25 @@ the OS versions, interface names, hostnames, privacy settings and whether
 each expected state was observed. A skipped or timed-out real-network run is
 not a passing interoperability result.
 
-### Phase 9 — Separate future DMesgNet integration
+### Phase 9 — Separate DMesgNet library integration
 
 The detailed Phase 9 contract and TDD plan are maintained in
-`docs/specs/dmn-dmesgnet-discovery-integration-spec.md`.
+`docs/specs/dmn-dmesgnet-discovery-integration-spec.md`. The integration is a
+reusable library layer consumed by a CLI or other application; it is not a
+CLI feature and is not embedded into the `Dmn_DMesgNet` constructor.
 
-Before any automatic peer configuration, write and review a separate
-specification and TDD plan for service identity/version, transport selection,
-interface scope, bind/receive, peer registry and fan-out, authentication,
-loss/reconnect and shutdown. Its acceptance must test actual DMesgNet
-communication between nodes, not merely discovery of their advertised port.
-It is not a prerequisite for implementing the reusable discovery library,
-and its behavior is not warranted by phases 0–8.
+Automatic peer configuration is gated by the separate specification for
+service identity/version, transport selection, interface scope, bind/receive,
+peer registry and fan-out, authentication, loss/reconnect and shutdown. Its
+acceptance must test actual DMesgNet communication between nodes, not merely
+discovery of their advertised port. The current implementation provides the
+policy-gated coordinator and deterministic fake-session tests; network
+transport and cross-process gates remain explicit acceptance work.
 
 ### Phase 9 TDD gate
 
-Phase 9 must begin with deterministic tests for a fake transport and explicit
-peer fixtures before any mDNS-driven connection logic is added:
+Phase 9 uses deterministic tests for a fake transport and explicit peer
+fixtures before any mDNS-driven connection logic is added:
 
 - peer admission and identity/version validation;
 - service-to-transport selection and interface binding;

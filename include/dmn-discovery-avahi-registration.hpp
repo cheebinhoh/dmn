@@ -62,6 +62,9 @@ public:
   DiscoveryAvahiRegistration(const DiscoveryAvahiRegistration &) = delete;
   DiscoveryAvahiRegistration &
   operator=(const DiscoveryAvahiRegistration &) = delete;
+  DiscoveryAvahiRegistration(DiscoveryAvahiRegistration &&) = delete;
+  DiscoveryAvahiRegistration &
+  operator=(DiscoveryAvahiRegistration &&) = delete;
 
   [[nodiscard]] DiscoveryResult start();
   [[nodiscard]] DiscoveryResult status() const;

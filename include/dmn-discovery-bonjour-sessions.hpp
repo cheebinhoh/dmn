@@ -41,6 +41,9 @@ public:
   DiscoveryBonjourSessions(const DiscoveryBonjourSessions &) = delete;
   DiscoveryBonjourSessions &
   operator=(const DiscoveryBonjourSessions &) = delete;
+  DiscoveryBonjourSessions(DiscoveryBonjourSessions &&) = delete;
+  DiscoveryBonjourSessions &
+  operator=(DiscoveryBonjourSessions &&) = delete;
 
   /**
    * @brief Admit an interface-scoped browser on the session worker.
