@@ -33,8 +33,7 @@ public:
   DiscoveryBonjourOperation &
   operator=(const DiscoveryBonjourOperation &) = delete;
   DiscoveryBonjourOperation(DiscoveryBonjourOperation &&) = delete;
-  DiscoveryBonjourOperation &
-  operator=(DiscoveryBonjourOperation &&) = delete;
+  DiscoveryBonjourOperation &operator=(DiscoveryBonjourOperation &&) = delete;
 
   [[nodiscard]] DiscoveryResult start(NativeStart create);
   [[nodiscard]] DiscoveryResult status() const;

@@ -46,8 +46,7 @@ public:
   DiscoveryAvahiContribution &
   operator=(const DiscoveryAvahiContribution &) = delete;
   DiscoveryAvahiContribution(DiscoveryAvahiContribution &&) = delete;
-  DiscoveryAvahiContribution &
-  operator=(DiscoveryAvahiContribution &&) = delete;
+  DiscoveryAvahiContribution &operator=(DiscoveryAvahiContribution &&) = delete;
 
   [[nodiscard]] DiscoveryResult start();
   [[nodiscard]] DiscoveryResult drive();

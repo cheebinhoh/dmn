@@ -62,8 +62,7 @@ public:
   DiscoveryAvahiRecordWatch &
   operator=(const DiscoveryAvahiRecordWatch &) = delete;
   DiscoveryAvahiRecordWatch(DiscoveryAvahiRecordWatch &&) = delete;
-  DiscoveryAvahiRecordWatch &
-  operator=(DiscoveryAvahiRecordWatch &&) = delete;
+  DiscoveryAvahiRecordWatch &operator=(DiscoveryAvahiRecordWatch &&) = delete;
 
   [[nodiscard]] DiscoveryResult start();
   [[nodiscard]] DiscoveryResult status() const;
