@@ -3,6 +3,12 @@
  *
  * @file dmn-discovery-avahi-registration-session.hpp
  * @brief Private Avahi registration/session integration.
+ *
+ * This is the Linux backend composition root. It connects the shared
+ * `DiscoverySessionClient` lifecycle and callback dispatcher to Avahi's
+ * poller, then owns browser, resolver, record-watch and registration objects
+ * on that worker. It produces the same backend-neutral events as Bonjour and
+ * does not create DMesgNet sessions.
  */
 
 #ifndef DMN_DISCOVERY_AVAHI_REGISTRATION_SESSION_HPP_

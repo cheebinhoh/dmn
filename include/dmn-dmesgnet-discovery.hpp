@@ -5,8 +5,34 @@
  * @brief Explicit, policy-gated discovery admission for DMesgNet sessions.
  *
  * Discovery is never connected to DMesgNet implicitly. The caller starts the
- * coordinator and supplies a factory that performs authenticated session
- * construction; the factory receives only validated, owned endpoint data.
+ * coordinator and supplies a session factory; the Phase 9.1
+ * EnvironmentTrusted factory constructs an unauthenticated, framed TCP
+ * session, while a future authenticated factory may perform TLS/mTLS or an
+ * equivalent handshake. Every factory receives only validated, owned endpoint
+ * data.
+ *
+ * Architecture
+ * ------------
+ * The integration is intentionally a separate layer from both libraries:
+ *
+ *   Dmn_DiscoveryClient --> Dmn_DMesgNetDiscovery --> TransportFactory
+ *          |                         |                     |
+ *          |                         |                     +--> Session
+ *          |                         `--> bounded peer/retry state
+ *          `--> Avahi or Bonjour
+ *                                                  |
+ *                                                  v
+ *                                           Dmn_DMesgNet
+ *                                                  |
+ *                                                  v
+ *                                      Dmn_Io<std::string>
+ *
+ * The coordinator validates and admits copied discovery candidates but does
+ * not own an mDNS backend, parse application configuration or infer trust
+ * from TXT data. The factory owns transport construction and authentication.
+ * Phase 9.1 uses the environment-trusted TCP adapter; Phase 9.2 can replace
+ * only that factory/session boundary without changing discovery or
+ * Dmn_DMesgNet.
  */
 
 #ifndef DMN_DMESGNET_DISCOVERY_HPP_
@@ -23,6 +49,7 @@
 #include <memory>
 #include <optional>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace dmn {
@@ -32,8 +59,38 @@ public:
   class Session {
   public:
     virtual ~Session() = default;
+
+    /** @brief Stop the owned transport and DMesgNet session. */
     virtual void shutdown() noexcept = 0;
+
+    /**
+     * @brief Open a handler on the owned DMesgNet session.
+     *
+     * The returned proxy is invalid when the session does not expose a
+     * DMesgNet publisher. Implementations must not retain the arguments.
+     */
+    [[nodiscard]] virtual Dmn_DMesg::HandlerType
+    openHandler(std::string_view name, std::string_view topic) {
+      static_cast<void>(name);
+      static_cast<void>(topic);
+      return {};
+    }
+
+    /**
+     * @brief Report whether the session completed transport setup.
+     *
+     * The default is ready for compatibility with simple injected sessions;
+     * authenticated adapters should override this until their handshake
+     * completes.
+     */
     [[nodiscard]] virtual bool ready() const noexcept { return true; }
+
+    /**
+     * @brief Report whether the peer was authenticated by the factory.
+     *
+     * The environment-trusted adapter intentionally returns false through
+     * its session implementation.
+     */
     [[nodiscard]] virtual bool authenticated() const noexcept { return true; }
   };
 
@@ -93,7 +150,8 @@ public:
   };
 
   using FactoryResult = std::expected<std::unique_ptr<Session>, FactoryError>;
-  /// The factory owns authentication and transport/session construction.
+  /// The factory owns transport construction and, when selected,
+  /// authentication.
   using TransportFactory = std::function<FactoryResult(const Endpoint &)>;
   /// The handler must not throw and must not call barrier operations.
   using StatusHandler = std::function<void(const Status &)>;
@@ -114,24 +172,70 @@ public:
       std::size_t max_pending_bytes{4 * 1024 * 1024};
     };
 
+    /**
+     * @brief Create a Phase 9.1 environment-trusted transport factory.
+     *
+     * @param local_node_identity Identity passed to the local DMesgNet node.
+     * @return A factory that opens bounded framed TCP sessions.
+     * @throws std::invalid_argument if the identity is empty.
+     */
     [[nodiscard]] static TransportFactory
     factory(std::string local_node_identity);
 
+    /**
+     * @brief Create a Phase 9.1 factory with explicit resource limits.
+     *
+     * @param local_node_identity Identity passed to the local DMesgNet node.
+     * @param options Frame and pending-message bounds.
+     * @return A factory that opens bounded framed TCP sessions.
+     * @throws std::invalid_argument if an identity or bound is invalid.
+     */
     [[nodiscard]] static TransportFactory
     factory(std::string local_node_identity, Options options);
   };
 
+  /**
+   * @brief Construct an explicitly controlled discovery coordinator.
+   *
+   * @param policy Admission filters and resource/retry limits.
+   * @param factory Transport/session construction boundary.
+   * @param handler Optional serialized status callback.
+   */
   Dmn_DMesgNetDiscovery(Policy policy, TransportFactory factory,
                         StatusHandler handler = {});
   ~Dmn_DMesgNetDiscovery();
   Dmn_DMesgNetDiscovery(const Dmn_DMesgNetDiscovery &) = delete;
   Dmn_DMesgNetDiscovery &operator=(const Dmn_DMesgNetDiscovery &) = delete;
+  Dmn_DMesgNetDiscovery(Dmn_DMesgNetDiscovery &&) = delete;
+  Dmn_DMesgNetDiscovery &operator=(Dmn_DMesgNetDiscovery &&) = delete;
 
+  /** @brief Begin accepting discovery events; repeated calls are harmless. */
   void start();
+
+  /** @brief Stop admission, close owned sessions and clear retry state. */
   void shutdown() noexcept;
+
+  /** @brief Return whether the coordinator currently accepts events. */
   [[nodiscard]] bool running() const noexcept;
+
+  /** @brief Return the number of currently admitted peers. */
   [[nodiscard]] std::size_t peerCount() const noexcept;
+
+  /** @brief Copy the latest coordinator status. */
   [[nodiscard]] Status status() const;
+
+  /**
+   * @brief Open a handler on an admitted peer's DMesgNet session.
+   *
+   * @param key Service key identifying the admitted peer.
+   * @param name Handler name.
+   * @param topic Topic to receive and publish.
+   * @return A handler proxy, or an error when the peer is not admitted or the
+   *         session does not expose a DMesgNet publisher.
+   */
+  [[nodiscard]] std::expected<Dmn_DMesg::HandlerType, std::string>
+  openHandler(const Dmn_DiscoveryServiceKey &key, std::string_view name,
+              std::string_view topic);
 
   /** Process one owned browser event. Events before start are ignored. */
   void handle(Dmn_DiscoveryEvent event,
