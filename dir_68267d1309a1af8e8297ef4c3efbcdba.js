@@ -40,6 +40,7 @@ var dir_68267d1309a1af8e8297ef4c3efbcdba =
     [ "dmn-discovery.cpp", "dmn-discovery_8cpp.html", "dmn-discovery_8cpp" ],
     [ "dmn-dmesg.cpp", "dmn-dmesg_8cpp.html", null ],
     [ "dmn-dmesgnet-dbus.cpp", "dmn-dmesgnet-dbus_8cpp.html", "dmn-dmesgnet-dbus_8cpp" ],
+    [ "dmn-dmesgnet-discovery.cpp", "dmn-dmesgnet-discovery_8cpp.html", "dmn-dmesgnet-discovery_8cpp" ],
     [ "dmn-dmesgnet.cpp", "dmn-dmesgnet_8cpp.html", null ],
     [ "dmn-interval-btree.cpp", "dmn-interval-btree_8cpp.html", null ],
     [ "dmn-proc.cpp", "dmn-proc_8cpp.html", "dmn-proc_8cpp" ],

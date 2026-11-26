@@ -27,10 +27,11 @@ var searchData=
   ['resolveconflict_24',['resolveConflict',['../classdmn_1_1Dmn__DMesg_1_1Dmn__DMesgHandler.html#aade5c44c0a5cb3a0d2462f7d2c752de5',1,'dmn::Dmn_DMesg::Dmn_DMesgHandler']]],
   ['resume_25',['resume',['../classdmn_1_1Dmn__Timer.html#a306108568f9d6b0f4f6712b448a90e92',1,'dmn::Dmn_Timer']]],
   ['rethrowfailure_26',['rethrowFailure',['../classdmn_1_1Dmn__Timer.html#a2625fcbedf59313bafcd03d7df4a0e1a',1,'dmn::Dmn_Timer']]],
-  ['return_5fvoid_27',['return_void',['../structdmn_1_1Dmn__Runtime__Task_1_1promise__type.html#a6505eb9ba38c8743034dcf7dcacef6cf',1,'dmn::Dmn_Runtime_Task::promise_type']]],
-  ['run_28',['run',['../classdmn_1_1Dmn__Runtime__State.html#aa95ba5fb21878d9d76253697e16ca518',1,'dmn::Dmn_Runtime_State']]],
-  ['runexec_29',['runExec',['../classdmn_1_1Dmn__Proc.html#ad7593c5dbccaf13f394c0f2892b14498',1,'dmn::Dmn_Proc']]],
-  ['runfninthreadhelper_30',['runFnInThreadHelper',['../classdmn_1_1Dmn__Proc.html#a93a3d80de18bc7b022d4bbf85fb394ba',1,'dmn::Dmn_Proc']]],
-  ['runnext_31',['runNext',['../classdmn_1_1Dmn__State.html#af94ef4784a6073840df7cfc64576ae81',1,'dmn::Dmn_State']]],
-  ['runpriortocreateinstance_32',['runPriorToCreateInstance',['../classdmn_1_1Dmn__Runtime__Manager.html#a456083f9813654f46124a31c9d26d4a6',1,'dmn::Dmn_Runtime_Manager']]]
+  ['retry_27',['retry',['../classdmn_1_1Dmn__DMesgNetDiscovery.html#a0f63051a7b15639236363d8119b345ca',1,'dmn::Dmn_DMesgNetDiscovery']]],
+  ['return_5fvoid_28',['return_void',['../structdmn_1_1Dmn__Runtime__Task_1_1promise__type.html#a6505eb9ba38c8743034dcf7dcacef6cf',1,'dmn::Dmn_Runtime_Task::promise_type']]],
+  ['run_29',['run',['../classdmn_1_1Dmn__Runtime__State.html#aa95ba5fb21878d9d76253697e16ca518',1,'dmn::Dmn_Runtime_State']]],
+  ['runexec_30',['runExec',['../classdmn_1_1Dmn__Proc.html#ad7593c5dbccaf13f394c0f2892b14498',1,'dmn::Dmn_Proc']]],
+  ['runfninthreadhelper_31',['runFnInThreadHelper',['../classdmn_1_1Dmn__Proc.html#a93a3d80de18bc7b022d4bbf85fb394ba',1,'dmn::Dmn_Proc']]],
+  ['runnext_32',['runNext',['../classdmn_1_1Dmn__State.html#af94ef4784a6073840df7cfc64576ae81',1,'dmn::Dmn_State']]],
+  ['runpriortocreateinstance_33',['runPriorToCreateInstance',['../classdmn_1_1Dmn__Runtime__Manager.html#a456083f9813654f46124a31c9d26d4a6',1,'dmn::Dmn_Runtime_Manager']]]
 ];

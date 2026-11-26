@@ -338,145 +338,147 @@ $(function(){initNavTree('dmn-discovery-core_8hpp_source.html','',''); });
 <div class="line"><a id="l00333" name="l00333"></a><span class="lineno">  333</span>  <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a27ebab1f178ff23ed7b42596aa570397">~DiscoveryBrowser</a>();</div>
 <div class="line"><a id="l00334" name="l00334"></a><span class="lineno">  334</span>  <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a27ebab1f178ff23ed7b42596aa570397">DiscoveryBrowser</a>(<span class="keyword">const</span> <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a27ebab1f178ff23ed7b42596aa570397">DiscoveryBrowser</a> &amp;) = <span class="keyword">delete</span>;</div>
 <div class="line"><a id="l00335" name="l00335"></a><span class="lineno">  335</span>  <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a27ebab1f178ff23ed7b42596aa570397">DiscoveryBrowser</a> &amp;operator=(<span class="keyword">const</span> <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a27ebab1f178ff23ed7b42596aa570397">DiscoveryBrowser</a> &amp;) = <span class="keyword">delete</span>;</div>
-<div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span></div>
-<div class="line"><a id="l00346" name="l00346"></a><span class="lineno">  346</span>  [[nodiscard]] std::expected&lt;std::uint64_t, DiscoveryError&gt;</div>
-<div class="line"><a id="l00347" name="l00347"></a><span class="lineno">  347</span>  <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a446f7e22e08bbcc41ded3235a4285fd4">addObservation</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryServiceKey.html">DiscoveryServiceKey</a> &amp;key,</div>
-<div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span>                 <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a75cf23eabe4456412500b693c3c8d505">DiscoveryContribution</a> contribution,</div>
-<div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span>                 <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryProvenance.html">DiscoveryProvenance</a> provenance = {});</div>
-<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span></div>
-<div class="line"><a id="l00359" name="l00359"></a><span class="lineno">  359</span>  <span class="keywordtype">bool</span> <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a132736325175dfd22365f2d4d09ef75c">removeObservation</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryServiceKey.html">DiscoveryServiceKey</a> &amp;key,</div>
-<div class="line"><a id="l00360" name="l00360"></a><span class="lineno">  360</span>                         <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a75cf23eabe4456412500b693c3c8d505">DiscoveryContribution</a> contribution,</div>
-<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span>                         std::uint64_t generation);</div>
-<div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span></div>
-<div class="line"><a id="l00374" name="l00374"></a><span class="lineno">  374</span>  <span class="keywordtype">bool</span> <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#abeb4084973ce89e1d7194e14dccaf2dc">updateResolution</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryServiceKey.html">DiscoveryServiceKey</a> &amp;key,</div>
-<div class="line"><a id="l00375" name="l00375"></a><span class="lineno">  375</span>                        <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a75cf23eabe4456412500b693c3c8d505">DiscoveryContribution</a> contribution,</div>
-<div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span>                        std::uint64_t generation,</div>
-<div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span>                        <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a075d7dd912562cac818710c82505900c">DiscoveryResolution</a> resolution);</div>
-<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span></div>
-<div class="line"><a id="l00395" name="l00395"></a><span class="lineno">  395</span>  [[nodiscard]] <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a9f5263bfd626262711817fff9d08dd1c">updateRecords</a>(</div>
-<div class="line"><a id="l00396" name="l00396"></a><span class="lineno">  396</span>      <span class="keyword">const</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryServiceKey.html">DiscoveryServiceKey</a> &amp;key, <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a75cf23eabe4456412500b693c3c8d505">DiscoveryContribution</a> contribution,</div>
-<div class="line"><a id="l00397" name="l00397"></a><span class="lineno">  397</span>      std::uint64_t generation,</div>
-<div class="line"><a id="l00398" name="l00398"></a><span class="lineno">  398</span>      <span class="keyword">const</span> std::function&lt;<a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a>(<a class="code hl_class" href="classdmn_1_1detail_1_1DiscoveryRecords.html">DiscoveryRecords</a> &amp;, std::uint64_t)&gt;</div>
-<div class="line"><a id="l00399" name="l00399"></a><span class="lineno">  399</span>          &amp;update);</div>
-<div class="line"><a id="l00400" name="l00400"></a><span class="lineno">  400</span></div>
-<div class="line"><a id="l00411" name="l00411"></a><span class="lineno">  411</span>  [[nodiscard]] std::expected&lt;std::uint64_t, DiscoveryError&gt;</div>
-<div class="line"><a id="l00412" name="l00412"></a><span class="lineno">  412</span>  <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a1a8f4a65f7b5057f0018533e2d0f6e45">refresh</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryServiceKey.html">DiscoveryServiceKey</a> &amp;key);</div>
-<div class="line"><a id="l00413" name="l00413"></a><span class="lineno">  413</span></div>
-<div class="line"><a id="l00422" name="l00422"></a><span class="lineno">  422</span>  [[nodiscard]] <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a877b73e5ebdbb58627da8d3e55646741">processRefreshDeadlines</a>();</div>
-<div class="line"><a id="l00423" name="l00423"></a><span class="lineno">  423</span></div>
-<div class="line"><a id="l00433" name="l00433"></a><span class="lineno">  433</span>  [[nodiscard]] std::optional&lt;std::uint64_t&gt;</div>
-<div class="line"><a id="l00434" name="l00434"></a><span class="lineno">  434</span>  <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a54e94235a2ff09091d3d0a2f855dc6e8">attemptGeneration</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryServiceKey.html">DiscoveryServiceKey</a> &amp;key,</div>
-<div class="line"><a id="l00435" name="l00435"></a><span class="lineno">  435</span>                    <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a75cf23eabe4456412500b693c3c8d505">DiscoveryContribution</a> contribution,</div>
-<div class="line"><a id="l00436" name="l00436"></a><span class="lineno">  436</span>                    std::uint64_t generation, <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a826353c067622f3d1b3daf27784a2ebe">DiscoveryAttempt</a> attempt) <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00437" name="l00437"></a><span class="lineno">  437</span></div>
-<div class="line"><a id="l00455" name="l00455"></a><span class="lineno">  455</span>  [[nodiscard]] <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a></div>
-<div class="line"><a id="l00456" name="l00456"></a><span class="lineno">  456</span>  <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a9a056b056b0ca6e564f8110cf7e9a8f2">failAttempt</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryServiceKey.html">DiscoveryServiceKey</a> &amp;key,</div>
-<div class="line"><a id="l00457" name="l00457"></a><span class="lineno">  457</span>              <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a75cf23eabe4456412500b693c3c8d505">DiscoveryContribution</a> contribution, std::uint64_t generation,</div>
-<div class="line"><a id="l00458" name="l00458"></a><span class="lineno">  458</span>              <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a826353c067622f3d1b3daf27784a2ebe">DiscoveryAttempt</a> attempt, std::uint64_t operationGeneration,</div>
-<div class="line"><a id="l00459" name="l00459"></a><span class="lineno">  459</span>              std::uint64_t resolutionGeneration, <span class="keywordtype">bool</span> recoverable,</div>
-<div class="line"><a id="l00460" name="l00460"></a><span class="lineno">  460</span>              std::string message, std::optional&lt;DiscoveryError&gt; native = {});</div>
-<div class="line"><a id="l00461" name="l00461"></a><span class="lineno">  461</span></div>
-<div class="line"><a id="l00473" name="l00473"></a><span class="lineno">  473</span>  [[nodiscard]] <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a></div>
-<div class="line"><a id="l00474" name="l00474"></a><span class="lineno">  474</span>  <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a3401d8635874a39687153d7aa7c31119">succeedAttempt</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryServiceKey.html">DiscoveryServiceKey</a> &amp;key,</div>
-<div class="line"><a id="l00475" name="l00475"></a><span class="lineno">  475</span>                 <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a75cf23eabe4456412500b693c3c8d505">DiscoveryContribution</a> contribution, std::uint64_t generation,</div>
-<div class="line"><a id="l00476" name="l00476"></a><span class="lineno">  476</span>                 <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a826353c067622f3d1b3daf27784a2ebe">DiscoveryAttempt</a> attempt, std::uint64_t operationGeneration,</div>
-<div class="line"><a id="l00477" name="l00477"></a><span class="lineno">  477</span>                 std::uint64_t resolutionGeneration);</div>
-<div class="line"><a id="l00478" name="l00478"></a><span class="lineno">  478</span></div>
-<div class="line"><a id="l00485" name="l00485"></a><span class="lineno">  485</span>  [[nodiscard]] std::expected&lt;std::vector&lt;DiscoveryAttemptId&gt;, <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryError.html">DiscoveryError</a>&gt;</div>
-<div class="line"><a id="l00486" name="l00486"></a><span class="lineno">  486</span>  <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a2a5400bb8f6125ce2c3981f9b6635072">takeDueRetries</a>();</div>
-<div class="line"><a id="l00487" name="l00487"></a><span class="lineno">  487</span></div>
-<div class="line"><a id="l00489" name="l00489"></a><span class="lineno">  489</span>  [[nodiscard]] std::optional&lt;TimePoint&gt; <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a259083cafc731bc68d645cd31e167eee">nextDeadline</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00490" name="l00490"></a><span class="lineno">  490</span></div>
-<div class="line"><a id="l00496" name="l00496"></a><span class="lineno">  496</span>  [[nodiscard]] <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoverySnapshot.html">DiscoverySnapshot</a> <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a389890fd82ecf320fac4c6bc22ef3b45">snapshot</a>() <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00497" name="l00497"></a><span class="lineno">  497</span> </div>
-<div class="line"><a id="l00498" name="l00498"></a><span class="lineno">  498</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00499" name="l00499"></a><span class="lineno">  499</span>  <span class="keyword">struct </span>CanonicalKey {</div>
-<div class="line"><a id="l00500" name="l00500"></a><span class="lineno">  500</span>    <span class="keyword">auto</span> operator&lt;=&gt;(<span class="keyword">const</span> CanonicalKey &amp;) <span class="keyword">const</span> = <span class="keywordflow">default</span>;</div>
-<div class="line"><a id="l00501" name="l00501"></a><span class="lineno">  501</span> </div>
-<div class="line"><a id="l00502" name="l00502"></a><span class="lineno">  502</span>    std::string m_instance;</div>
-<div class="line"><a id="l00503" name="l00503"></a><span class="lineno">  503</span>    std::string m_type;</div>
-<div class="line"><a id="l00504" name="l00504"></a><span class="lineno">  504</span>    std::string m_domain;</div>
-<div class="line"><a id="l00505" name="l00505"></a><span class="lineno">  505</span>    std::optional&lt;std::uint32_t&gt; m_interface;</div>
-<div class="line"><a id="l00506" name="l00506"></a><span class="lineno">  506</span>  };</div>
-<div class="line"><a id="l00507" name="l00507"></a><span class="lineno">  507</span> </div>
-<div class="line"><a id="l00508" name="l00508"></a><span class="lineno">  508</span>  <span class="keyword">struct </span>Entry {</div>
-<div class="foldopen" id="foldopen00509" data-start="{" data-end="};">
-<div class="line"><a id="l00509" name="l00509"></a><span class="lineno"><a class="line" href="structdmn_1_1detail_1_1DiscoveryBrowser_1_1Entry_1_1Source.html">  509</a></span>    <span class="keyword">struct </span><a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryBrowser_1_1Entry_1_1Source.html">Source</a> {</div>
-<div class="line"><a id="l00510" name="l00510"></a><span class="lineno">  510</span>      std::uint64_t m_generation;</div>
-<div class="line"><a id="l00511" name="l00511"></a><span class="lineno">  511</span>      <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryProvenance.html">DiscoveryProvenance</a> m_provenance;</div>
-<div class="line"><a id="l00512" name="l00512"></a><span class="lineno">  512</span>    };</div>
+<div class="line"><a id="l00336" name="l00336"></a><span class="lineno">  336</span>  <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a27ebab1f178ff23ed7b42596aa570397">DiscoveryBrowser</a>(<a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a27ebab1f178ff23ed7b42596aa570397">DiscoveryBrowser</a> &amp;&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00337" name="l00337"></a><span class="lineno">  337</span>  <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a27ebab1f178ff23ed7b42596aa570397">DiscoveryBrowser</a> &amp;operator=(<a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a27ebab1f178ff23ed7b42596aa570397">DiscoveryBrowser</a> &amp;&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00338" name="l00338"></a><span class="lineno">  338</span></div>
+<div class="line"><a id="l00348" name="l00348"></a><span class="lineno">  348</span>  [[nodiscard]] std::expected&lt;std::uint64_t, DiscoveryError&gt;</div>
+<div class="line"><a id="l00349" name="l00349"></a><span class="lineno">  349</span>  <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a446f7e22e08bbcc41ded3235a4285fd4">addObservation</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryServiceKey.html">DiscoveryServiceKey</a> &amp;key,</div>
+<div class="line"><a id="l00350" name="l00350"></a><span class="lineno">  350</span>                 <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a75cf23eabe4456412500b693c3c8d505">DiscoveryContribution</a> contribution,</div>
+<div class="line"><a id="l00351" name="l00351"></a><span class="lineno">  351</span>                 <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryProvenance.html">DiscoveryProvenance</a> provenance = {});</div>
+<div class="line"><a id="l00352" name="l00352"></a><span class="lineno">  352</span></div>
+<div class="line"><a id="l00361" name="l00361"></a><span class="lineno">  361</span>  <span class="keywordtype">bool</span> <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a132736325175dfd22365f2d4d09ef75c">removeObservation</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryServiceKey.html">DiscoveryServiceKey</a> &amp;key,</div>
+<div class="line"><a id="l00362" name="l00362"></a><span class="lineno">  362</span>                         <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a75cf23eabe4456412500b693c3c8d505">DiscoveryContribution</a> contribution,</div>
+<div class="line"><a id="l00363" name="l00363"></a><span class="lineno">  363</span>                         std::uint64_t generation);</div>
+<div class="line"><a id="l00364" name="l00364"></a><span class="lineno">  364</span></div>
+<div class="line"><a id="l00376" name="l00376"></a><span class="lineno">  376</span>  <span class="keywordtype">bool</span> <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#abeb4084973ce89e1d7194e14dccaf2dc">updateResolution</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryServiceKey.html">DiscoveryServiceKey</a> &amp;key,</div>
+<div class="line"><a id="l00377" name="l00377"></a><span class="lineno">  377</span>                        <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a75cf23eabe4456412500b693c3c8d505">DiscoveryContribution</a> contribution,</div>
+<div class="line"><a id="l00378" name="l00378"></a><span class="lineno">  378</span>                        std::uint64_t generation,</div>
+<div class="line"><a id="l00379" name="l00379"></a><span class="lineno">  379</span>                        <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a075d7dd912562cac818710c82505900c">DiscoveryResolution</a> resolution);</div>
+<div class="line"><a id="l00380" name="l00380"></a><span class="lineno">  380</span></div>
+<div class="line"><a id="l00397" name="l00397"></a><span class="lineno">  397</span>  [[nodiscard]] <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a9f5263bfd626262711817fff9d08dd1c">updateRecords</a>(</div>
+<div class="line"><a id="l00398" name="l00398"></a><span class="lineno">  398</span>      <span class="keyword">const</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryServiceKey.html">DiscoveryServiceKey</a> &amp;key, <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a75cf23eabe4456412500b693c3c8d505">DiscoveryContribution</a> contribution,</div>
+<div class="line"><a id="l00399" name="l00399"></a><span class="lineno">  399</span>      std::uint64_t generation,</div>
+<div class="line"><a id="l00400" name="l00400"></a><span class="lineno">  400</span>      <span class="keyword">const</span> std::function&lt;<a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a>(<a class="code hl_class" href="classdmn_1_1detail_1_1DiscoveryRecords.html">DiscoveryRecords</a> &amp;, std::uint64_t)&gt;</div>
+<div class="line"><a id="l00401" name="l00401"></a><span class="lineno">  401</span>          &amp;update);</div>
+<div class="line"><a id="l00402" name="l00402"></a><span class="lineno">  402</span></div>
+<div class="line"><a id="l00413" name="l00413"></a><span class="lineno">  413</span>  [[nodiscard]] std::expected&lt;std::uint64_t, DiscoveryError&gt;</div>
+<div class="line"><a id="l00414" name="l00414"></a><span class="lineno">  414</span>  <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a1a8f4a65f7b5057f0018533e2d0f6e45">refresh</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryServiceKey.html">DiscoveryServiceKey</a> &amp;key);</div>
+<div class="line"><a id="l00415" name="l00415"></a><span class="lineno">  415</span></div>
+<div class="line"><a id="l00424" name="l00424"></a><span class="lineno">  424</span>  [[nodiscard]] <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a877b73e5ebdbb58627da8d3e55646741">processRefreshDeadlines</a>();</div>
+<div class="line"><a id="l00425" name="l00425"></a><span class="lineno">  425</span></div>
+<div class="line"><a id="l00435" name="l00435"></a><span class="lineno">  435</span>  [[nodiscard]] std::optional&lt;std::uint64_t&gt;</div>
+<div class="line"><a id="l00436" name="l00436"></a><span class="lineno">  436</span>  <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a54e94235a2ff09091d3d0a2f855dc6e8">attemptGeneration</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryServiceKey.html">DiscoveryServiceKey</a> &amp;key,</div>
+<div class="line"><a id="l00437" name="l00437"></a><span class="lineno">  437</span>                    <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a75cf23eabe4456412500b693c3c8d505">DiscoveryContribution</a> contribution,</div>
+<div class="line"><a id="l00438" name="l00438"></a><span class="lineno">  438</span>                    std::uint64_t generation, <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a826353c067622f3d1b3daf27784a2ebe">DiscoveryAttempt</a> attempt) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00439" name="l00439"></a><span class="lineno">  439</span></div>
+<div class="line"><a id="l00457" name="l00457"></a><span class="lineno">  457</span>  [[nodiscard]] <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a></div>
+<div class="line"><a id="l00458" name="l00458"></a><span class="lineno">  458</span>  <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a9a056b056b0ca6e564f8110cf7e9a8f2">failAttempt</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryServiceKey.html">DiscoveryServiceKey</a> &amp;key,</div>
+<div class="line"><a id="l00459" name="l00459"></a><span class="lineno">  459</span>              <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a75cf23eabe4456412500b693c3c8d505">DiscoveryContribution</a> contribution, std::uint64_t generation,</div>
+<div class="line"><a id="l00460" name="l00460"></a><span class="lineno">  460</span>              <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a826353c067622f3d1b3daf27784a2ebe">DiscoveryAttempt</a> attempt, std::uint64_t operationGeneration,</div>
+<div class="line"><a id="l00461" name="l00461"></a><span class="lineno">  461</span>              std::uint64_t resolutionGeneration, <span class="keywordtype">bool</span> recoverable,</div>
+<div class="line"><a id="l00462" name="l00462"></a><span class="lineno">  462</span>              std::string message, std::optional&lt;DiscoveryError&gt; native = {});</div>
+<div class="line"><a id="l00463" name="l00463"></a><span class="lineno">  463</span></div>
+<div class="line"><a id="l00475" name="l00475"></a><span class="lineno">  475</span>  [[nodiscard]] <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a></div>
+<div class="line"><a id="l00476" name="l00476"></a><span class="lineno">  476</span>  <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a3401d8635874a39687153d7aa7c31119">succeedAttempt</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryServiceKey.html">DiscoveryServiceKey</a> &amp;key,</div>
+<div class="line"><a id="l00477" name="l00477"></a><span class="lineno">  477</span>                 <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a75cf23eabe4456412500b693c3c8d505">DiscoveryContribution</a> contribution, std::uint64_t generation,</div>
+<div class="line"><a id="l00478" name="l00478"></a><span class="lineno">  478</span>                 <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a826353c067622f3d1b3daf27784a2ebe">DiscoveryAttempt</a> attempt, std::uint64_t operationGeneration,</div>
+<div class="line"><a id="l00479" name="l00479"></a><span class="lineno">  479</span>                 std::uint64_t resolutionGeneration);</div>
+<div class="line"><a id="l00480" name="l00480"></a><span class="lineno">  480</span></div>
+<div class="line"><a id="l00487" name="l00487"></a><span class="lineno">  487</span>  [[nodiscard]] std::expected&lt;std::vector&lt;DiscoveryAttemptId&gt;, <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryError.html">DiscoveryError</a>&gt;</div>
+<div class="line"><a id="l00488" name="l00488"></a><span class="lineno">  488</span>  <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a2a5400bb8f6125ce2c3981f9b6635072">takeDueRetries</a>();</div>
+<div class="line"><a id="l00489" name="l00489"></a><span class="lineno">  489</span></div>
+<div class="line"><a id="l00491" name="l00491"></a><span class="lineno">  491</span>  [[nodiscard]] std::optional&lt;TimePoint&gt; <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a259083cafc731bc68d645cd31e167eee">nextDeadline</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00492" name="l00492"></a><span class="lineno">  492</span></div>
+<div class="line"><a id="l00498" name="l00498"></a><span class="lineno">  498</span>  [[nodiscard]] <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoverySnapshot.html">DiscoverySnapshot</a> <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBrowser.html#a389890fd82ecf320fac4c6bc22ef3b45">snapshot</a>() <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00499" name="l00499"></a><span class="lineno">  499</span> </div>
+<div class="line"><a id="l00500" name="l00500"></a><span class="lineno">  500</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00501" name="l00501"></a><span class="lineno">  501</span>  <span class="keyword">struct </span>CanonicalKey {</div>
+<div class="line"><a id="l00502" name="l00502"></a><span class="lineno">  502</span>    <span class="keyword">auto</span> operator&lt;=&gt;(<span class="keyword">const</span> CanonicalKey &amp;) <span class="keyword">const</span> = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00503" name="l00503"></a><span class="lineno">  503</span> </div>
+<div class="line"><a id="l00504" name="l00504"></a><span class="lineno">  504</span>    std::string m_instance;</div>
+<div class="line"><a id="l00505" name="l00505"></a><span class="lineno">  505</span>    std::string m_type;</div>
+<div class="line"><a id="l00506" name="l00506"></a><span class="lineno">  506</span>    std::string m_domain;</div>
+<div class="line"><a id="l00507" name="l00507"></a><span class="lineno">  507</span>    std::optional&lt;std::uint32_t&gt; m_interface;</div>
+<div class="line"><a id="l00508" name="l00508"></a><span class="lineno">  508</span>  };</div>
+<div class="line"><a id="l00509" name="l00509"></a><span class="lineno">  509</span> </div>
+<div class="line"><a id="l00510" name="l00510"></a><span class="lineno">  510</span>  <span class="keyword">struct </span>Entry {</div>
+<div class="foldopen" id="foldopen00511" data-start="{" data-end="};">
+<div class="line"><a id="l00511" name="l00511"></a><span class="lineno"><a class="line" href="structdmn_1_1detail_1_1DiscoveryBrowser_1_1Entry_1_1Source.html">  511</a></span>    <span class="keyword">struct </span><a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryBrowser_1_1Entry_1_1Source.html">Source</a> {</div>
+<div class="line"><a id="l00512" name="l00512"></a><span class="lineno">  512</span>      std::uint64_t m_generation;</div>
+<div class="line"><a id="l00513" name="l00513"></a><span class="lineno">  513</span>      <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryProvenance.html">DiscoveryProvenance</a> m_provenance;</div>
+<div class="line"><a id="l00514" name="l00514"></a><span class="lineno">  514</span>    };</div>
 </div>
-<div class="line"><a id="l00513" name="l00513"></a><span class="lineno">  513</span>    <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryCandidate.html">DiscoveryCandidate</a> m_candidate;</div>
-<div class="line"><a id="l00514" name="l00514"></a><span class="lineno">  514</span>    std::map&lt;DiscoveryContribution, Source&gt; m_sources;</div>
-<div class="line"><a id="l00515" name="l00515"></a><span class="lineno">  515</span>    std::unique_ptr&lt;DiscoveryRecords&gt; m_records;</div>
-<div class="line"><a id="l00516" name="l00516"></a><span class="lineno">  516</span>    std::optional&lt;TimePoint&gt; m_refresh_deadline;</div>
-<div class="line"><a id="l00517" name="l00517"></a><span class="lineno">  517</span>  };</div>
-<div class="line"><a id="l00518" name="l00518"></a><span class="lineno">  518</span></div>
-<div class="line"><a id="l00522" name="l00522"></a><span class="lineno">  522</span>  [[nodiscard]] <span class="keyword">static</span> CanonicalKey</div>
-<div class="line"><a id="l00523" name="l00523"></a><span class="lineno">  523</span>  canonicalize(<span class="keyword">const</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryServiceKey.html">DiscoveryServiceKey</a> &amp;key);</div>
-<div class="line"><a id="l00524" name="l00524"></a><span class="lineno">  524</span>  [[nodiscard]] <span class="keyword">static</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryProvenance.html">DiscoveryProvenance</a> provenance(<span class="keyword">const</span> Entry &amp;entry);</div>
-<div class="line"><a id="l00525" name="l00525"></a><span class="lineno">  525</span> </div>
-<div class="line"><a id="l00526" name="l00526"></a><span class="lineno">  526</span>  [[nodiscard]] Entry *findLive(<span class="keyword">const</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryServiceKey.html">DiscoveryServiceKey</a> &amp;key,</div>
-<div class="line"><a id="l00527" name="l00527"></a><span class="lineno">  527</span>                                <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a75cf23eabe4456412500b693c3c8d505">DiscoveryContribution</a> contribution,</div>
-<div class="line"><a id="l00528" name="l00528"></a><span class="lineno">  528</span>                                std::uint64_t generation);</div>
-<div class="line"><a id="l00529" name="l00529"></a><span class="lineno">  529</span>  [[nodiscard]] <span class="keyword">const</span> Entry *findLive(<span class="keyword">const</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryServiceKey.html">DiscoveryServiceKey</a> &amp;key,</div>
-<div class="line"><a id="l00530" name="l00530"></a><span class="lineno">  530</span>                                      <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a75cf23eabe4456412500b693c3c8d505">DiscoveryContribution</a> contribution,</div>
-<div class="line"><a id="l00531" name="l00531"></a><span class="lineno">  531</span>                                      std::uint64_t generation) <span class="keyword">const</span>;</div>
-<div class="line"><a id="l00532" name="l00532"></a><span class="lineno">  532</span></div>
-<div class="line"><a id="l00536" name="l00536"></a><span class="lineno">  536</span>  <span class="keywordtype">void</span> emit(<a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a772e59889076435862881a07af42577f">DiscoveryEventKind</a> kind, <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryCandidate.html">DiscoveryCandidate</a> candidate);</div>
-<div class="line"><a id="l00537" name="l00537"></a><span class="lineno">  537</span> </div>
-<div class="line"><a id="l00538" name="l00538"></a><span class="lineno">  538</span>  std::size_t m_max_instances;</div>
-<div class="line"><a id="l00539" name="l00539"></a><span class="lineno">  539</span>  <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryOptions.html">DiscoveryOptions</a> m_options;</div>
-<div class="line"><a id="l00540" name="l00540"></a><span class="lineno">  540</span>  Handler m_handler;</div>
-<div class="line"><a id="l00541" name="l00541"></a><span class="lineno">  541</span>  Clock m_clock;</div>
-<div class="line"><a id="l00542" name="l00542"></a><span class="lineno">  542</span>  std::unique_ptr&lt;DiscoveryRetrySchedule&gt; m_retries;</div>
-<div class="line"><a id="l00543" name="l00543"></a><span class="lineno">  543</span>  std::map&lt;CanonicalKey, Entry&gt; m_entries;</div>
-<div class="line"><a id="l00544" name="l00544"></a><span class="lineno">  544</span>  std::uint64_t m_epoch{1};</div>
-<div class="line"><a id="l00545" name="l00545"></a><span class="lineno">  545</span>  std::uint64_t m_sequence{0};</div>
-<div class="line"><a id="l00546" name="l00546"></a><span class="lineno">  546</span>  std::uint64_t m_next_generation{1};</div>
-<div class="line"><a id="l00547" name="l00547"></a><span class="lineno">  547</span>  std::uint64_t m_next_refresh{1};</div>
-<div class="line"><a id="l00548" name="l00548"></a><span class="lineno">  548</span>  <span class="keywordtype">bool</span> m_updating_records{<span class="keyword">false</span>};</div>
-<div class="line"><a id="l00549" name="l00549"></a><span class="lineno">  549</span>};</div>
+<div class="line"><a id="l00515" name="l00515"></a><span class="lineno">  515</span>    <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryCandidate.html">DiscoveryCandidate</a> m_candidate;</div>
+<div class="line"><a id="l00516" name="l00516"></a><span class="lineno">  516</span>    std::map&lt;DiscoveryContribution, Source&gt; m_sources;</div>
+<div class="line"><a id="l00517" name="l00517"></a><span class="lineno">  517</span>    std::unique_ptr&lt;DiscoveryRecords&gt; m_records;</div>
+<div class="line"><a id="l00518" name="l00518"></a><span class="lineno">  518</span>    std::optional&lt;TimePoint&gt; m_refresh_deadline;</div>
+<div class="line"><a id="l00519" name="l00519"></a><span class="lineno">  519</span>  };</div>
+<div class="line"><a id="l00520" name="l00520"></a><span class="lineno">  520</span></div>
+<div class="line"><a id="l00524" name="l00524"></a><span class="lineno">  524</span>  [[nodiscard]] <span class="keyword">static</span> CanonicalKey</div>
+<div class="line"><a id="l00525" name="l00525"></a><span class="lineno">  525</span>  canonicalize(<span class="keyword">const</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryServiceKey.html">DiscoveryServiceKey</a> &amp;key);</div>
+<div class="line"><a id="l00526" name="l00526"></a><span class="lineno">  526</span>  [[nodiscard]] <span class="keyword">static</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryProvenance.html">DiscoveryProvenance</a> provenance(<span class="keyword">const</span> Entry &amp;entry);</div>
+<div class="line"><a id="l00527" name="l00527"></a><span class="lineno">  527</span> </div>
+<div class="line"><a id="l00528" name="l00528"></a><span class="lineno">  528</span>  [[nodiscard]] Entry *findLive(<span class="keyword">const</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryServiceKey.html">DiscoveryServiceKey</a> &amp;key,</div>
+<div class="line"><a id="l00529" name="l00529"></a><span class="lineno">  529</span>                                <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a75cf23eabe4456412500b693c3c8d505">DiscoveryContribution</a> contribution,</div>
+<div class="line"><a id="l00530" name="l00530"></a><span class="lineno">  530</span>                                std::uint64_t generation);</div>
+<div class="line"><a id="l00531" name="l00531"></a><span class="lineno">  531</span>  [[nodiscard]] <span class="keyword">const</span> Entry *findLive(<span class="keyword">const</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryServiceKey.html">DiscoveryServiceKey</a> &amp;key,</div>
+<div class="line"><a id="l00532" name="l00532"></a><span class="lineno">  532</span>                                      <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a75cf23eabe4456412500b693c3c8d505">DiscoveryContribution</a> contribution,</div>
+<div class="line"><a id="l00533" name="l00533"></a><span class="lineno">  533</span>                                      std::uint64_t generation) <span class="keyword">const</span>;</div>
+<div class="line"><a id="l00534" name="l00534"></a><span class="lineno">  534</span></div>
+<div class="line"><a id="l00538" name="l00538"></a><span class="lineno">  538</span>  <span class="keywordtype">void</span> emit(<a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a772e59889076435862881a07af42577f">DiscoveryEventKind</a> kind, <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryCandidate.html">DiscoveryCandidate</a> candidate);</div>
+<div class="line"><a id="l00539" name="l00539"></a><span class="lineno">  539</span> </div>
+<div class="line"><a id="l00540" name="l00540"></a><span class="lineno">  540</span>  std::size_t m_max_instances;</div>
+<div class="line"><a id="l00541" name="l00541"></a><span class="lineno">  541</span>  <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryOptions.html">DiscoveryOptions</a> m_options;</div>
+<div class="line"><a id="l00542" name="l00542"></a><span class="lineno">  542</span>  Handler m_handler;</div>
+<div class="line"><a id="l00543" name="l00543"></a><span class="lineno">  543</span>  Clock m_clock;</div>
+<div class="line"><a id="l00544" name="l00544"></a><span class="lineno">  544</span>  std::unique_ptr&lt;DiscoveryRetrySchedule&gt; m_retries;</div>
+<div class="line"><a id="l00545" name="l00545"></a><span class="lineno">  545</span>  std::map&lt;CanonicalKey, Entry&gt; m_entries;</div>
+<div class="line"><a id="l00546" name="l00546"></a><span class="lineno">  546</span>  std::uint64_t m_epoch{1};</div>
+<div class="line"><a id="l00547" name="l00547"></a><span class="lineno">  547</span>  std::uint64_t m_sequence{0};</div>
+<div class="line"><a id="l00548" name="l00548"></a><span class="lineno">  548</span>  std::uint64_t m_next_generation{1};</div>
+<div class="line"><a id="l00549" name="l00549"></a><span class="lineno">  549</span>  std::uint64_t m_next_refresh{1};</div>
+<div class="line"><a id="l00550" name="l00550"></a><span class="lineno">  550</span>  <span class="keywordtype">bool</span> m_updating_records{<span class="keyword">false</span>};</div>
+<div class="line"><a id="l00551" name="l00551"></a><span class="lineno">  551</span>};</div>
 </div>
-<div class="line"><a id="l00550" name="l00550"></a><span class="lineno">  550</span></div>
-<div class="foldopen" id="foldopen00558" data-start="{" data-end="};">
-<div class="line"><a id="l00558" name="l00558"></a><span class="lineno"><a class="line" href="classdmn_1_1detail_1_1DiscoveryBackend.html">  558</a></span><span class="keyword">class </span><a class="code hl_class" href="classdmn_1_1detail_1_1DiscoveryBackend.html">DiscoveryBackend</a> {</div>
-<div class="line"><a id="l00559" name="l00559"></a><span class="lineno">  559</span><span class="keyword">public</span>:</div>
-<div class="line"><a id="l00560" name="l00560"></a><span class="lineno">  560</span>  <span class="keyword">virtual</span> <a class="code hl_class" href="classdmn_1_1detail_1_1DiscoveryBackend.html">~DiscoveryBackend</a>() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a id="l00561" name="l00561"></a><span class="lineno">  561</span></div>
-<div class="line"><a id="l00567" name="l00567"></a><span class="lineno"><a class="line" href="classdmn_1_1detail_1_1DiscoveryBackend.html#a108da7f6c1f17c48de9baec0c13c3bd6">  567</a></span>  <span class="keyword">virtual</span> <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBackend.html#a108da7f6c1f17c48de9baec0c13c3bd6">initialize</a>() = 0;</div>
-<div class="line"><a id="l00568" name="l00568"></a><span class="lineno">  568</span></div>
-<div class="line"><a id="l00574" name="l00574"></a><span class="lineno"><a class="line" href="classdmn_1_1detail_1_1DiscoveryBackend.html#a739f38fa6ca75f01c986624b2993d369">  574</a></span>  <span class="keyword">virtual</span> <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBackend.html#a739f38fa6ca75f01c986624b2993d369">browse</a>() = 0;</div>
-<div class="line"><a id="l00575" name="l00575"></a><span class="lineno">  575</span></div>
-<div class="line"><a id="l00581" name="l00581"></a><span class="lineno"><a class="line" href="classdmn_1_1detail_1_1DiscoveryBackend.html#a1bf09db97f492c0e11e34f049953b853">  581</a></span>  <span class="keyword">virtual</span> <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBackend.html#a1bf09db97f492c0e11e34f049953b853">advertise</a>() = 0;</div>
-<div class="line"><a id="l00582" name="l00582"></a><span class="lineno">  582</span>};</div>
+<div class="line"><a id="l00552" name="l00552"></a><span class="lineno">  552</span></div>
+<div class="foldopen" id="foldopen00560" data-start="{" data-end="};">
+<div class="line"><a id="l00560" name="l00560"></a><span class="lineno"><a class="line" href="classdmn_1_1detail_1_1DiscoveryBackend.html">  560</a></span><span class="keyword">class </span><a class="code hl_class" href="classdmn_1_1detail_1_1DiscoveryBackend.html">DiscoveryBackend</a> {</div>
+<div class="line"><a id="l00561" name="l00561"></a><span class="lineno">  561</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00562" name="l00562"></a><span class="lineno">  562</span>  <span class="keyword">virtual</span> <a class="code hl_class" href="classdmn_1_1detail_1_1DiscoveryBackend.html">~DiscoveryBackend</a>() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00563" name="l00563"></a><span class="lineno">  563</span></div>
+<div class="line"><a id="l00569" name="l00569"></a><span class="lineno"><a class="line" href="classdmn_1_1detail_1_1DiscoveryBackend.html#a108da7f6c1f17c48de9baec0c13c3bd6">  569</a></span>  <span class="keyword">virtual</span> <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBackend.html#a108da7f6c1f17c48de9baec0c13c3bd6">initialize</a>() = 0;</div>
+<div class="line"><a id="l00570" name="l00570"></a><span class="lineno">  570</span></div>
+<div class="line"><a id="l00576" name="l00576"></a><span class="lineno"><a class="line" href="classdmn_1_1detail_1_1DiscoveryBackend.html#a739f38fa6ca75f01c986624b2993d369">  576</a></span>  <span class="keyword">virtual</span> <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBackend.html#a739f38fa6ca75f01c986624b2993d369">browse</a>() = 0;</div>
+<div class="line"><a id="l00577" name="l00577"></a><span class="lineno">  577</span></div>
+<div class="line"><a id="l00583" name="l00583"></a><span class="lineno"><a class="line" href="classdmn_1_1detail_1_1DiscoveryBackend.html#a1bf09db97f492c0e11e34f049953b853">  583</a></span>  <span class="keyword">virtual</span> <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryBackend.html#a1bf09db97f492c0e11e34f049953b853">advertise</a>() = 0;</div>
+<div class="line"><a id="l00584" name="l00584"></a><span class="lineno">  584</span>};</div>
 </div>
-<div class="line"><a id="l00583" name="l00583"></a><span class="lineno">  583</span></div>
-<div class="foldopen" id="foldopen00587" data-start="{" data-end="};">
-<div class="line"><a id="l00587" name="l00587"></a><span class="lineno"><a class="line" href="classdmn_1_1detail_1_1DiscoveryCore.html">  587</a></span><span class="keyword">class </span>DiscoveryCore {</div>
-<div class="line"><a id="l00588" name="l00588"></a><span class="lineno">  588</span><span class="keyword">public</span>:</div>
-<div class="line"><a id="l00599" name="l00599"></a><span class="lineno">  599</span>  [[nodiscard]] <span class="keyword">static</span> std::expected&lt;std::unique_ptr&lt;DiscoveryCore&gt;,</div>
-<div class="line"><a id="l00600" name="l00600"></a><span class="lineno">  600</span>                                     <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryError.html">DiscoveryError</a>&gt;</div>
-<div class="line"><a id="l00601" name="l00601"></a><span class="lineno">  601</span>  <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryCore.html#a07bcf4a15751dca1039aec7e6c158a49">create</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryOptions.html">DiscoveryOptions</a> &amp;options,</div>
-<div class="line"><a id="l00602" name="l00602"></a><span class="lineno">  602</span>         std::unique_ptr&lt;DiscoveryBackend&gt; backend);</div>
-<div class="line"><a id="l00603" name="l00603"></a><span class="lineno">  603</span> </div>
-<div class="line"><a id="l00604" name="l00604"></a><span class="lineno">  604</span>  DiscoveryCore(<span class="keyword">const</span> DiscoveryCore &amp;) = <span class="keyword">delete</span>;</div>
-<div class="line"><a id="l00605" name="l00605"></a><span class="lineno">  605</span>  DiscoveryCore &amp;operator=(<span class="keyword">const</span> DiscoveryCore &amp;) = <span class="keyword">delete</span>;</div>
-<div class="line"><a id="l00606" name="l00606"></a><span class="lineno">  606</span>  DiscoveryCore(DiscoveryCore &amp;&amp;) = <span class="keyword">delete</span>;</div>
-<div class="line"><a id="l00607" name="l00607"></a><span class="lineno">  607</span>  DiscoveryCore &amp;operator=(DiscoveryCore &amp;&amp;) = <span class="keyword">delete</span>;</div>
-<div class="line"><a id="l00608" name="l00608"></a><span class="lineno">  608</span>  ~DiscoveryCore() = <span class="keywordflow">default</span>;</div>
-<div class="line"><a id="l00609" name="l00609"></a><span class="lineno">  609</span> </div>
-<div class="line"><a id="l00610" name="l00610"></a><span class="lineno">  610</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00611" name="l00611"></a><span class="lineno">  611</span>  <span class="keyword">explicit</span> DiscoveryCore(std::unique_ptr&lt;DiscoveryBackend&gt; backend);</div>
-<div class="line"><a id="l00612" name="l00612"></a><span class="lineno">  612</span> </div>
-<div class="line"><a id="l00613" name="l00613"></a><span class="lineno">  613</span>  std::unique_ptr&lt;DiscoveryBackend&gt; m_backend;</div>
-<div class="line"><a id="l00614" name="l00614"></a><span class="lineno">  614</span>};</div>
+<div class="line"><a id="l00585" name="l00585"></a><span class="lineno">  585</span></div>
+<div class="foldopen" id="foldopen00589" data-start="{" data-end="};">
+<div class="line"><a id="l00589" name="l00589"></a><span class="lineno"><a class="line" href="classdmn_1_1detail_1_1DiscoveryCore.html">  589</a></span><span class="keyword">class </span>DiscoveryCore {</div>
+<div class="line"><a id="l00590" name="l00590"></a><span class="lineno">  590</span><span class="keyword">public</span>:</div>
+<div class="line"><a id="l00601" name="l00601"></a><span class="lineno">  601</span>  [[nodiscard]] <span class="keyword">static</span> std::expected&lt;std::unique_ptr&lt;DiscoveryCore&gt;,</div>
+<div class="line"><a id="l00602" name="l00602"></a><span class="lineno">  602</span>                                     <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryError.html">DiscoveryError</a>&gt;</div>
+<div class="line"><a id="l00603" name="l00603"></a><span class="lineno">  603</span>  <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryCore.html#a07bcf4a15751dca1039aec7e6c158a49">create</a>(<span class="keyword">const</span> <a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryOptions.html">DiscoveryOptions</a> &amp;options,</div>
+<div class="line"><a id="l00604" name="l00604"></a><span class="lineno">  604</span>         std::unique_ptr&lt;DiscoveryBackend&gt; backend);</div>
+<div class="line"><a id="l00605" name="l00605"></a><span class="lineno">  605</span> </div>
+<div class="line"><a id="l00606" name="l00606"></a><span class="lineno">  606</span>  DiscoveryCore(<span class="keyword">const</span> DiscoveryCore &amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00607" name="l00607"></a><span class="lineno">  607</span>  DiscoveryCore &amp;operator=(<span class="keyword">const</span> DiscoveryCore &amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00608" name="l00608"></a><span class="lineno">  608</span>  DiscoveryCore(DiscoveryCore &amp;&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00609" name="l00609"></a><span class="lineno">  609</span>  DiscoveryCore &amp;operator=(DiscoveryCore &amp;&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00610" name="l00610"></a><span class="lineno">  610</span>  ~DiscoveryCore() = <span class="keywordflow">default</span>;</div>
+<div class="line"><a id="l00611" name="l00611"></a><span class="lineno">  611</span> </div>
+<div class="line"><a id="l00612" name="l00612"></a><span class="lineno">  612</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00613" name="l00613"></a><span class="lineno">  613</span>  <span class="keyword">explicit</span> DiscoveryCore(std::unique_ptr&lt;DiscoveryBackend&gt; backend);</div>
+<div class="line"><a id="l00614" name="l00614"></a><span class="lineno">  614</span> </div>
+<div class="line"><a id="l00615" name="l00615"></a><span class="lineno">  615</span>  std::unique_ptr&lt;DiscoveryBackend&gt; m_backend;</div>
+<div class="line"><a id="l00616" name="l00616"></a><span class="lineno">  616</span>};</div>
 </div>
-<div class="line"><a id="l00615" name="l00615"></a><span class="lineno">  615</span> </div>
-<div class="line"><a id="l00616" name="l00616"></a><span class="lineno">  616</span>} <span class="comment">// namespace dmn::detail</span></div>
 <div class="line"><a id="l00617" name="l00617"></a><span class="lineno">  617</span> </div>
-<div class="line"><a id="l00618" name="l00618"></a><span class="lineno">  618</span><span class="preprocessor">#endif </span><span class="comment">// DMN_DISCOVERY_CORE_HPP_</span></div>
-<div class="ttc" id="aclassdmn_1_1detail_1_1DiscoveryBackend_html"><div class="ttname"><a href="classdmn_1_1detail_1_1DiscoveryBackend.html">dmn::detail::DiscoveryBackend</a></div><div class="ttdoc">Private backend seam for deterministic construction tests.</div><div class="ttdef"><b>Definition</b> dmn-discovery-core.hpp:558</div></div>
+<div class="line"><a id="l00618" name="l00618"></a><span class="lineno">  618</span>} <span class="comment">// namespace dmn::detail</span></div>
+<div class="line"><a id="l00619" name="l00619"></a><span class="lineno">  619</span> </div>
+<div class="line"><a id="l00620" name="l00620"></a><span class="lineno">  620</span><span class="preprocessor">#endif </span><span class="comment">// DMN_DISCOVERY_CORE_HPP_</span></div>
+<div class="ttc" id="aclassdmn_1_1detail_1_1DiscoveryBackend_html"><div class="ttname"><a href="classdmn_1_1detail_1_1DiscoveryBackend.html">dmn::detail::DiscoveryBackend</a></div><div class="ttdoc">Private backend seam for deterministic construction tests.</div><div class="ttdef"><b>Definition</b> dmn-discovery-core.hpp:560</div></div>
 <div class="ttc" id="aclassdmn_1_1detail_1_1DiscoveryBackend_html_a108da7f6c1f17c48de9baec0c13c3bd6"><div class="ttname"><a href="classdmn_1_1detail_1_1DiscoveryBackend.html#a108da7f6c1f17c48de9baec0c13c3bd6">dmn::detail::DiscoveryBackend::initialize</a></div><div class="ttdeci">virtual DiscoveryResult initialize()=0</div><div class="ttdoc">Initialize local backend resources.</div></div>
 <div class="ttc" id="aclassdmn_1_1detail_1_1DiscoveryBackend_html_a1bf09db97f492c0e11e34f049953b853"><div class="ttname"><a href="classdmn_1_1detail_1_1DiscoveryBackend.html#a1bf09db97f492c0e11e34f049953b853">dmn::detail::DiscoveryBackend::advertise</a></div><div class="ttdeci">virtual DiscoveryResult advertise()=0</div><div class="ttdoc">Start an explicitly requested advertisement.</div></div>
 <div class="ttc" id="aclassdmn_1_1detail_1_1DiscoveryBackend_html_a739f38fa6ca75f01c986624b2993d369"><div class="ttname"><a href="classdmn_1_1detail_1_1DiscoveryBackend.html#a739f38fa6ca75f01c986624b2993d369">dmn::detail::DiscoveryBackend::browse</a></div><div class="ttdeci">virtual DiscoveryResult browse()=0</div><div class="ttdoc">Start an explicitly requested browse.</div></div>
@@ -516,7 +518,7 @@ $(function(){initNavTree('dmn-discovery-core_8hpp_source.html','',''); });
 <div class="ttc" id="astructdmn_1_1detail_1_1DiscoveryAddress_html"><div class="ttname"><a href="structdmn_1_1detail_1_1DiscoveryAddress.html">dmn::detail::DiscoveryAddress</a></div><div class="ttdoc">Owned IP address and optional scope interface.</div><div class="ttdef"><b>Definition</b> dmn-discovery-core.hpp:111</div></div>
 <div class="ttc" id="astructdmn_1_1detail_1_1DiscoveryAttemptError_html"><div class="ttname"><a href="structdmn_1_1detail_1_1DiscoveryAttemptError.html">dmn::detail::DiscoveryAttemptError</a></div><div class="ttdoc">Last failure of a retryable or permanent operation.</div><div class="ttdef"><b>Definition</b> dmn-discovery-core.hpp:165</div></div>
 <div class="ttc" id="astructdmn_1_1detail_1_1DiscoveryAttemptId_html"><div class="ttname"><a href="structdmn_1_1detail_1_1DiscoveryAttemptId.html">dmn::detail::DiscoveryAttemptId</a></div><div class="ttdoc">Live contribution and operation identity.</div><div class="ttdef"><b>Definition</b> dmn-discovery-core.hpp:157</div></div>
-<div class="ttc" id="astructdmn_1_1detail_1_1DiscoveryBrowser_1_1Entry_1_1Source_html"><div class="ttname"><a href="structdmn_1_1detail_1_1DiscoveryBrowser_1_1Entry_1_1Source.html">dmn::detail::DiscoveryBrowser::Entry::Source</a></div><div class="ttdef"><b>Definition</b> dmn-discovery-core.hpp:509</div></div>
+<div class="ttc" id="astructdmn_1_1detail_1_1DiscoveryBrowser_1_1Entry_1_1Source_html"><div class="ttname"><a href="structdmn_1_1detail_1_1DiscoveryBrowser_1_1Entry_1_1Source.html">dmn::detail::DiscoveryBrowser::Entry::Source</a></div><div class="ttdef"><b>Definition</b> dmn-discovery-core.hpp:511</div></div>
 <div class="ttc" id="astructdmn_1_1detail_1_1DiscoveryCandidate_html"><div class="ttname"><a href="structdmn_1_1detail_1_1DiscoveryCandidate.html">dmn::detail::DiscoveryCandidate</a></div><div class="ttdoc">Owned service observation, independent of callback buffer lifetime.</div><div class="ttdef"><b>Definition</b> dmn-discovery-core.hpp:196</div></div>
 <div class="ttc" id="astructdmn_1_1detail_1_1DiscoveryError_html"><div class="ttname"><a href="structdmn_1_1detail_1_1DiscoveryError.html">dmn::detail::DiscoveryError</a></div><div class="ttdoc">Owned error without references to native or caller-owned storage.</div><div class="ttdef"><b>Definition</b> dmn-discovery-core.hpp:54</div></div>
 <div class="ttc" id="astructdmn_1_1detail_1_1DiscoveryEvent_html"><div class="ttname"><a href="structdmn_1_1detail_1_1DiscoveryEvent.html">dmn::detail::DiscoveryEvent</a></div><div class="ttdoc">One ordered, owned browser event.</div><div class="ttdef"><b>Definition</b> dmn-discovery-core.hpp:213</div></div>

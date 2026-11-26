@@ -50,7 +50,7 @@ var searchData=
   ['and_20threading_47',['Ownership and Threading',['../dmn-discovery_8hpp.html#autotoc_md23',1,'']]],
   ['and_20timeout_20semantics_48',['Blocking and timeout semantics',['../dmn-blockingqueue-mt_8hpp.html#autotoc_md10',1,'']]],
   ['api_20boundary_49',['API Boundary',['../dmn-discovery_8hpp.html#autotoc_md22',1,'']]],
-  ['architecture_50',['Architecture',['../dmn-ancs-bluez-monitor_8hpp.html#autotoc_md1',1,'Architecture'],['../dmn-bluez-client_8hpp.html#autotoc_md15',1,'Architecture'],['../classdmn_1_1Dmn__DbusClient.html#autotoc_md16',1,'Architecture'],['../dmn-gatt-client_8hpp.html#autotoc_md30',1,'Architecture']]],
+  ['architecture_50',['Architecture',['../dmn-ancs-bluez-monitor_8hpp.html#autotoc_md1',1,'Architecture'],['../dmn-bluez-client_8hpp.html#autotoc_md15',1,'Architecture'],['../classdmn_1_1Dmn__DbusClient.html#autotoc_md16',1,'Architecture'],['../dmn-gatt-client_8hpp.html#autotoc_md30',1,'Architecture'],['../dmn-dmesgnet-discovery_8cpp.html#autotoc_md67',1,'Architecture']]],
   ['architecture_3a_20two_20independent_20d_20bus_20stacks_20on_20one_20runtime_51',['Architecture: two independent D-Bus stacks on one runtime',['../dmn-dbus-runtime_8hpp.html#autotoc_md21',1,'']]],
   ['arguments_52',['Arguments',['../classdmn_1_1Dmn__DbusCall.html#aca6a5badc63567ca9fde3b044101d8d5',1,'dmn::Dmn_DbusCall::Arguments'],['../classdmn_1_1Dmn__DbusClient.html#ac82e2edffa15cc6573f0f3acc3f686f0',1,'dmn::Dmn_DbusClient::Arguments']]],
   ['array_53',['array',['../classdmn_1_1Dmn__DbusValue.html#a115d4d5fe766f49b0eb975eef24def88',1,'dmn::Dmn_DbusValue']]],

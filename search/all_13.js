@@ -25,5 +25,6 @@ var searchData=
   ['topic_22',['Topic',['../classdmn_1_1Dmn__Kafka.html#a76d5a2e1c07f753e2c97685a28063c48',1,'dmn::Dmn_Kafka']]],
   ['topology_20and_20callbacks_23',['Topology and callbacks',['../dmn-interval-btree_8hpp.html#autotoc_md38',1,'']]],
   ['transport_24',['Transport',['../dmn-dbus-client_8hpp.html#ae2b24c85f0dade1cef1bdf4225d14268af5f0c488ed56cf789d19a13ffba8abe3',1,'dmn']]],
-  ['two_20independent_20d_20bus_20stacks_20on_20one_20runtime_25',['Architecture: two independent D-Bus stacks on one runtime',['../dmn-dbus-runtime_8hpp.html#autotoc_md21',1,'']]]
+  ['transportfactory_25',['TransportFactory',['../classdmn_1_1Dmn__DMesgNetDiscovery.html#a67491fe9537569ed56fef557f4d74a10',1,'dmn::Dmn_DMesgNetDiscovery']]],
+  ['two_20independent_20d_20bus_20stacks_20on_20one_20runtime_26',['Architecture: two independent D-Bus stacks on one runtime',['../dmn-dbus-runtime_8hpp.html#autotoc_md21',1,'']]]
 ];

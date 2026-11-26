@@ -144,6 +144,7 @@ var annotated_dup =
       [ "Dmn_DMesg", "classdmn_1_1Dmn__DMesg.html", "classdmn_1_1Dmn__DMesg" ],
       [ "Dmn_DMesgDbusStatus", "structdmn_1_1Dmn__DMesgDbusStatus.html", null ],
       [ "Dmn_DMesgDbus", "classdmn_1_1Dmn__DMesgDbus.html", "classdmn_1_1Dmn__DMesgDbus" ],
+      [ "Dmn_DMesgNetDiscovery", "classdmn_1_1Dmn__DMesgNetDiscovery.html", "classdmn_1_1Dmn__DMesgNetDiscovery" ],
       [ "Dmn_DMesgNet", "classdmn_1_1Dmn__DMesgNet.html", "classdmn_1_1Dmn__DMesgNet" ],
       [ "Dmn_GattError", "structdmn_1_1Dmn__GattError.html", "structdmn_1_1Dmn__GattError" ],
       [ "Dmn_GattCharacteristic", "structdmn_1_1Dmn__GattCharacteristic.html", "structdmn_1_1Dmn__GattCharacteristic" ],

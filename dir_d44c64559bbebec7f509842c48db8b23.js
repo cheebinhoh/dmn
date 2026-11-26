@@ -48,6 +48,7 @@ var dir_d44c64559bbebec7f509842c48db8b23 =
     [ "dmn-dmesg-pb-util.hpp", "dmn-dmesg-pb-util_8hpp.html", "dmn-dmesg-pb-util_8hpp" ],
     [ "dmn-dmesg.hpp", "dmn-dmesg_8hpp.html", "dmn-dmesg_8hpp" ],
     [ "dmn-dmesgnet-dbus.hpp", "dmn-dmesgnet-dbus_8hpp.html", "dmn-dmesgnet-dbus_8hpp" ],
+    [ "dmn-dmesgnet-discovery.hpp", "dmn-dmesgnet-discovery_8hpp.html", "dmn-dmesgnet-discovery_8hpp" ],
     [ "dmn-dmesgnet.hpp", "dmn-dmesgnet_8hpp.html", "dmn-dmesgnet_8hpp" ],
     [ "dmn-fault-injection.hpp", "dmn-fault-injection_8hpp.html", null ],
     [ "dmn-gatt-client.hpp", "dmn-gatt-client_8hpp.html", "dmn-gatt-client_8hpp" ],

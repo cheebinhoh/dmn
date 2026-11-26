@@ -126,30 +126,33 @@ $(function(){initNavTree('dmn_8hpp_source.html','',''); });
 <div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-dmesg-pb-util_8hpp.html">dmn-dmesg-pb-util.hpp</a>&quot;</span></div>
 <div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-dmesg_8hpp.html">dmn-dmesg.hpp</a>&quot;</span></div>
 <div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-dmesgnet_8hpp.html">dmn-dmesgnet.hpp</a>&quot;</span></div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-dmesgnet-kafka_8hpp.html">kafka/dmn-dmesgnet-kafka.hpp</a>&quot;</span></div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-kafka-util_8hpp.html">kafka/dmn-kafka-util.hpp</a>&quot;</span></div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-kafka_8hpp.html">kafka/dmn-kafka.hpp</a>&quot;</span></div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span> </div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span><span class="preprocessor">#if defined(FIU_ENABLE)</span></div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-fault-injection_8hpp.html">dmn-fault-injection.hpp</a>&quot;</span></div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span> </div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span><span class="preprocessor">#if defined(DMN_ENABLE_DBUS)</span></div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-dbus-client_8hpp.html">dmn-dbus-client.hpp</a>&quot;</span></div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-dbus-config_8hpp.html">dmn-dbus-config.hpp</a>&quot;</span></div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-dbus-io_8hpp.html">dmn-dbus-io.hpp</a>&quot;</span></div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-dbus-value_8hpp.html">dmn-dbus-value.hpp</a>&quot;</span></div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span><span class="preprocessor">#if defined(DMN_ENABLE_DMN_DMESGNET)</span></div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-dmesgnet-dbus_8hpp.html">dmn-dmesgnet-dbus.hpp</a>&quot;</span></div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span> </div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span><span class="preprocessor">#if defined(DMN_ENABLE_BLUEZ)</span></div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-bluez-client_8hpp.html">dmn-bluez-client.hpp</a>&quot;</span></div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span><span class="preprocessor">#endif</span></div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span> </div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span><span class="preprocessor">#endif </span><span class="comment">// DMN_HPP_</span></div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span><span class="preprocessor">#if defined(DMN_ENABLE_DMN_DISCOVERY)</span></div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-dmesgnet-discovery_8hpp.html">dmn-dmesgnet-discovery.hpp</a>&quot;</span></div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-dmesgnet-kafka_8hpp.html">kafka/dmn-dmesgnet-kafka.hpp</a>&quot;</span></div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-kafka-util_8hpp.html">kafka/dmn-kafka-util.hpp</a>&quot;</span></div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-kafka_8hpp.html">kafka/dmn-kafka.hpp</a>&quot;</span></div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span> </div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span><span class="preprocessor">#if defined(FIU_ENABLE)</span></div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-fault-injection_8hpp.html">dmn-fault-injection.hpp</a>&quot;</span></div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span> </div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span><span class="preprocessor">#if defined(DMN_ENABLE_DBUS)</span></div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-dbus-client_8hpp.html">dmn-dbus-client.hpp</a>&quot;</span></div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-dbus-config_8hpp.html">dmn-dbus-config.hpp</a>&quot;</span></div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-dbus-io_8hpp.html">dmn-dbus-io.hpp</a>&quot;</span></div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-dbus-value_8hpp.html">dmn-dbus-value.hpp</a>&quot;</span></div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span><span class="preprocessor">#if defined(DMN_ENABLE_DMN_DMESGNET)</span></div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-dmesgnet-dbus_8hpp.html">dmn-dmesgnet-dbus.hpp</a>&quot;</span></div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span> </div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span><span class="preprocessor">#if defined(DMN_ENABLE_BLUEZ)</span></div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span><span class="preprocessor">#include &quot;<a class="code" href="dmn-bluez-client_8hpp.html">dmn-bluez-client.hpp</a>&quot;</span></div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span><span class="preprocessor">#endif</span></div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span> </div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span><span class="preprocessor">#endif </span><span class="comment">// DMN_HPP_</span></div>
 <div class="ttc" id="admn-async_8hpp_html"><div class="ttname"><a href="dmn-async_8hpp.html">dmn-async.hpp</a></div><div class="ttdoc">Header for Dmn_Async: a small helper that serializes asynchronous execution of client-provided tasks ...</div></div>
 <div class="ttc" id="admn-blockingqueue-lf_8hpp_html"><div class="ttname"><a href="dmn-blockingqueue-lf_8hpp.html">dmn-blockingqueue-lf.hpp</a></div><div class="ttdoc">Thread-safe FIFO blocking queue interface for passing items between threads, it implements the Michae...</div></div>
 <div class="ttc" id="admn-blockingqueue-mt_8hpp_html"><div class="ttname"><a href="dmn-blockingqueue-mt_8hpp.html">dmn-blockingqueue-mt.hpp</a></div><div class="ttdoc">Thread-safe FIFO blocking queue interface for passing items between threads.</div></div>
@@ -165,6 +168,7 @@ $(function(){initNavTree('dmn_8hpp_source.html','',''); });
 <div class="ttc" id="admn-dmesg-pb-util_8hpp_html"><div class="ttname"><a href="dmn-dmesg-pb-util_8hpp.html">dmn-dmesg-pb-util.hpp</a></div><div class="ttdoc">Utility macros to populate fields of the DMesg protobuf messages.</div></div>
 <div class="ttc" id="admn-dmesg_8hpp_html"><div class="ttname"><a href="dmn-dmesg_8hpp.html">dmn-dmesg.hpp</a></div><div class="ttdoc">DMESG publisher/subscriber wrapper using Protobuf messages.</div></div>
 <div class="ttc" id="admn-dmesgnet-dbus_8hpp_html"><div class="ttname"><a href="dmn-dmesgnet-dbus_8hpp.html">dmn-dmesgnet-dbus.hpp</a></div><div class="ttdoc">DMesg application facade over the optional local D-Bus transport.</div></div>
+<div class="ttc" id="admn-dmesgnet-discovery_8hpp_html"><div class="ttname"><a href="dmn-dmesgnet-discovery_8hpp.html">dmn-dmesgnet-discovery.hpp</a></div><div class="ttdoc">Explicit, policy-gated discovery admission for DMesgNet sessions.</div></div>
 <div class="ttc" id="admn-dmesgnet-kafka_8hpp_html"><div class="ttname"><a href="dmn-dmesgnet-kafka_8hpp.html">dmn-dmesgnet-kafka.hpp</a></div><div class="ttdoc">Convenience wrapper that wires Dmn_DMesgNet to Apache Kafka I/O.</div></div>
 <div class="ttc" id="admn-dmesgnet_8hpp_html"><div class="ttname"><a href="dmn-dmesgnet_8hpp.html">dmn-dmesgnet.hpp</a></div><div class="ttdoc">Dmn_DMesgNet — network-aware DMesg extension.</div></div>
 <div class="ttc" id="admn-fault-injection_8hpp_html"><div class="ttname"><a href="dmn-fault-injection_8hpp.html">dmn-fault-injection.hpp</a></div><div class="ttdoc">Fault injection helpers for Dmn.</div></div>

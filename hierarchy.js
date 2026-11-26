@@ -173,6 +173,7 @@ var hierarchy =
     [ "dmn::Dmn_DMesgDbusStatus", "structdmn_1_1Dmn__DMesgDbusStatus.html", null ],
     [ "dmn::Dmn_DMesg::Dmn_DMesgHandlerProxy", "classdmn_1_1Dmn__DMesg_1_1Dmn__DMesgHandlerProxy.html", null ],
     [ "dmn::Dmn_DMesgNet_Kafka", "classdmn_1_1Dmn__DMesgNet__Kafka.html", null ],
+    [ "dmn::Dmn_DMesgNetDiscovery", "classdmn_1_1Dmn__DMesgNetDiscovery.html", null ],
     [ "dmn::Dmn_GattCharacteristic", "structdmn_1_1Dmn__GattCharacteristic.html", null ],
     [ "dmn::Dmn_GattClient", "classdmn_1_1Dmn__GattClient.html", [
       [ "dmn::Dmn_BluezGattClient", "classdmn_1_1Dmn__BluezGattClient.html", null ]
@@ -237,11 +238,14 @@ var hierarchy =
       [ "dmn::Dmn_Runtime_State", "classdmn_1_1Dmn__Runtime__State.html", null ],
       [ "dmn::detail::DiscoveryAvahiRegistrationSessions", "classdmn_1_1detail_1_1DiscoveryAvahiRegistrationSessions.html", null ]
     ] ],
+    [ "dmn::Dmn_DMesgNetDiscovery::Endpoint", "structdmn_1_1Dmn__DMesgNetDiscovery_1_1Endpoint.html", null ],
     [ "dmn::detail::DiscoveryAvahiRegistrationSessions::Entry", "structdmn_1_1detail_1_1DiscoveryAvahiRegistrationSessions_1_1Entry.html", null ],
     [ "dmn::detail::DiscoveryBonjourPoller::Entry", "structdmn_1_1detail_1_1DiscoveryBonjourPoller_1_1Entry.html", null ],
+    [ "dmn::Dmn_DMesgNetDiscovery::EnvironmentTrusted", "classdmn_1_1Dmn__DMesgNetDiscovery_1_1EnvironmentTrusted.html", null ],
     [ "std::exception", null, [
       [ "dmn::detail::DiscoveryDeliveryFailure", "classdmn_1_1detail_1_1DiscoveryDeliveryFailure.html", null ]
     ] ],
+    [ "dmn::Dmn_DMesgNetDiscovery::FactoryError", "structdmn_1_1Dmn__DMesgNetDiscovery_1_1FactoryError.html", null ],
     [ "dmn::Dmn_Runtime_Task::promise_type::FinalAwaiter", "structdmn_1_1Dmn__Runtime__Task_1_1promise__type_1_1FinalAwaiter.html", null ],
     [ "dmn::Dmn_DMesg::HandlerEvent", "structdmn_1_1Dmn__DMesg_1_1HandlerEvent.html", null ],
     [ "dmn::Dmn_DMesg::HandlerSpec", "structdmn_1_1Dmn__DMesg_1_1HandlerSpec.html", null ],
@@ -255,21 +259,28 @@ var hierarchy =
     [ "dmn::Dmn_DiscoveryClient::Impl", "structdmn_1_1Dmn__DiscoveryClient_1_1Impl.html", null ],
     [ "dmn::Dmn_DiscoveryRegistration::Impl", "structdmn_1_1Dmn__DiscoveryRegistration_1_1Impl.html", null ],
     [ "dmn::Dmn_DMesgDbus::Impl", "structdmn_1_1Dmn__DMesgDbus_1_1Impl.html", null ],
+    [ "dmn::Dmn_DMesgNetDiscovery::Impl", "structdmn_1_1Dmn__DMesgNetDiscovery_1_1Impl.html", null ],
     [ "dmn::detail::DiscoveryNativeSlots::Lease", "classdmn_1_1detail_1_1DiscoveryNativeSlots_1_1Lease.html", null ],
     [ "dmn::Dmn_BluezGattClient::Impl::NotificationState", "structdmn_1_1Dmn__BluezGattClient_1_1Impl_1_1NotificationState.html", null ],
     [ "dmn::Dmn_DbusValue::ObjectPath", "structdmn_1_1Dmn__DbusValue_1_1ObjectPath.html", null ],
     [ "dmn::Dmn_DMesgNet::Options", "structdmn_1_1Dmn__DMesgNet_1_1Options.html", null ],
+    [ "dmn::Dmn_DMesgNetDiscovery::EnvironmentTrusted::Options", "structdmn_1_1Dmn__DMesgNetDiscovery_1_1EnvironmentTrusted_1_1Options.html", null ],
+    [ "dmn::Dmn_DMesgNetDiscovery::Impl::Peer", "structdmn_1_1Dmn__DMesgNetDiscovery_1_1Impl_1_1Peer.html", null ],
+    [ "dmn::Dmn_DMesgNetDiscovery::Policy", "structdmn_1_1Dmn__DMesgNetDiscovery_1_1Policy.html", null ],
     [ "dmn::Dmn_Runtime_Task::promise_type", "structdmn_1_1Dmn__Runtime__Task_1_1promise__type.html", null ],
     [ "QueueType", null, [
       [ "dmn::Dmn_Pipe< std::shared_ptr< Dmn_Async_Handle >, QueueType< std::shared_ptr< Dmn_Async_Handle > > >", "classdmn_1_1Dmn__Pipe.html", null ]
     ] ],
     [ "dmn::detail::DiscoveryBonjourSessions::Registration", "structdmn_1_1detail_1_1DiscoveryBonjourSessions_1_1Registration.html", null ],
+    [ "dmn::Dmn_DMesgNetDiscovery::Impl::Retry", "structdmn_1_1Dmn__DMesgNetDiscovery_1_1Impl_1_1Retry.html", null ],
     [ "dmn::ScopeGuard&lt; F &gt;", "classdmn_1_1ScopeGuard.html", null ],
+    [ "dmn::Dmn_DMesgNetDiscovery::Session", "classdmn_1_1Dmn__DMesgNetDiscovery_1_1Session.html", null ],
     [ "dmn::Dmn_DbusValue::SignatureValue", "structdmn_1_1Dmn__DbusValue_1_1SignatureValue.html", null ],
     [ "dmn::detail::DiscoveryAvahiRegistrationSessions::BrowserEntry::Source", "structdmn_1_1detail_1_1DiscoveryAvahiRegistrationSessions_1_1BrowserEntry_1_1Source.html", null ],
     [ "dmn::detail::DiscoveryBonjourSessions::Browser::Source", "structdmn_1_1detail_1_1DiscoveryBonjourSessions_1_1Browser_1_1Source.html", null ],
     [ "dmn::detail::DiscoveryBrowser::Entry::Source", "structdmn_1_1detail_1_1DiscoveryBrowser_1_1Entry_1_1Source.html", null ],
     [ "dmn::Dmn_DMesgNet::Status", "structdmn_1_1Dmn__DMesgNet_1_1Status.html", null ],
+    [ "dmn::Dmn_DMesgNetDiscovery::Status", "structdmn_1_1Dmn__DMesgNetDiscovery_1_1Status.html", null ],
     [ "dmn::Dmn_DbusValue::StructData", "structdmn_1_1Dmn__DbusValue_1_1StructData.html", null ],
     [ "dmn::Dmn_Inflight_Guard&lt; T &gt;::Ticket", "classdmn_1_1Dmn__Inflight__Guard_1_1Ticket.html", null ],
     [ "dmn::TimedJobComparator", "structdmn_1_1TimedJobComparator.html", null ],

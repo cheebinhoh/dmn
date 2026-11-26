@@ -118,60 +118,62 @@ $(function(){initNavTree('dmn-discovery-avahi-contribution_8hpp_source.html','',
 <div class="line"><a id="l00045" name="l00045"></a><span class="lineno">   45</span>  DiscoveryAvahiContribution(<span class="keyword">const</span> DiscoveryAvahiContribution &amp;) = <span class="keyword">delete</span>;</div>
 <div class="line"><a id="l00046" name="l00046"></a><span class="lineno">   46</span>  DiscoveryAvahiContribution &amp;</div>
 <div class="line"><a id="l00047" name="l00047"></a><span class="lineno">   47</span>  operator=(<span class="keyword">const</span> DiscoveryAvahiContribution &amp;) = <span class="keyword">delete</span>;</div>
-<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span> </div>
-<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>  [[nodiscard]] <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> start();</div>
-<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span>  [[nodiscard]] <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> drive();</div>
-<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  [[nodiscard]] <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> retry(<a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryAttemptId.html">DiscoveryAttemptId</a> <span class="keywordtype">id</span>);</div>
-<div class="line"><a id="l00053" name="l00053"></a><span class="lineno"><a class="line" href="classdmn_1_1detail_1_1DiscoveryAvahiContribution.html#ab6db1578dbebfe274022c0dbf4221f89">   53</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryAvahiContribution.html#ab6db1578dbebfe274022c0dbf4221f89">invalidate</a>() noexcept { m_invalidated = <span class="keyword">true</span>; }</div>
-<div class="line"><a id="l00054" name="l00054"></a><span class="lineno">   54</span> </div>
-<div class="line"><a id="l00055" name="l00055"></a><span class="lineno">   55</span>  <span class="keywordtype">void</span> releaseNative() noexcept;</div>
-<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span>  [[nodiscard]] <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> cleanup();</div>
-<div class="line"><a id="l00058" name="l00058"></a><span class="lineno"><a class="line" href="classdmn_1_1detail_1_1DiscoveryAvahiContribution.html#a10a88223db6298775ee5245a38a83838">   58</a></span>  [[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryAvahiContribution.html#a10a88223db6298775ee5245a38a83838">cleaned</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> m_cleaned; }</div>
-<div class="line"><a id="l00059" name="l00059"></a><span class="lineno">   59</span> </div>
-<div class="line"><a id="l00060" name="l00060"></a><span class="lineno">   60</span><span class="keyword">private</span>:</div>
-<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span>  <span class="keyword">struct </span>Operation {</div>
-<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span>    std::optional&lt;std::uint64_t&gt; m_slot;</div>
-<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>    std::uint64_t m_token{0};</div>
-<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    std::uint64_t m_resolution{0};</div>
-<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    std::unique_ptr&lt;DiscoveryAvahiRecordWatch&gt; m_watch;</div>
-<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    std::unique_ptr&lt;DiscoveryAvahiServiceResolver&gt; m_resolver;</div>
-<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    std::optional&lt;DiscoveryError&gt; m_failure;</div>
-<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    <span class="keywordtype">bool</span> m_success{<span class="keyword">false</span>};</div>
-<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    <span class="keywordtype">bool</span> m_blocked{<span class="keyword">false</span>};</div>
-<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>  };</div>
-<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>  [[nodiscard]] <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> startWatch(std::size_t index);</div>
-<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>  [[nodiscard]] <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> startResolver(std::size_t index,</div>
-<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>                                              std::uint64_t resolution,</div>
-<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>                                              std::uint64_t token);</div>
-<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>  [[nodiscard]] <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> release(Operation &amp;operation,</div>
-<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>                                        <span class="keywordtype">bool</span> modelActive = <span class="keyword">true</span>);</div>
-<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>  [[nodiscard]] <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> recordsUpdate(</div>
-<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>      std::function&lt;<a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a>(DiscoveryRecords &amp;, std::uint64_t)&gt; update);</div>
-<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>  <span class="keywordtype">void</span> failed(std::size_t index, DiscoveryError error);</div>
-<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span> </div>
-<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>  DiscoverySessionHandle m_session;</div>
-<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span>  std::uint64_t m_epoch;</div>
-<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>  DiscoveryServiceKey m_key;</div>
-<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>  <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a75cf23eabe4456412500b693c3c8d505">DiscoveryContribution</a> m_contribution;</div>
-<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>  std::uint64_t m_source;</div>
-<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>  DiscoveryOptions m_options;</div>
-<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>  AvahiClient *m_client;</div>
-<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>  std::shared_ptr&lt;DiscoveryAvahiRecordApi&gt; m_record_api;</div>
-<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>  std::shared_ptr&lt;DiscoveryAvahiResolverApi&gt; m_resolver_api;</div>
-<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>  std::array&lt;bool, 2&gt; m_address_families;</div>
-<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>  std::array&lt;Operation, 4&gt; m_operations;</div>
-<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>  <span class="keywordtype">bool</span> m_started{<span class="keyword">false</span>};</div>
-<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>  <span class="keywordtype">bool</span> m_cleaned{<span class="keyword">false</span>};</div>
-<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>  <span class="keywordtype">bool</span> m_cleanup_allocation_failed{<span class="keyword">false</span>};</div>
-<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>  <span class="keywordtype">bool</span> m_driving{<span class="keyword">false</span>};</div>
-<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>  <span class="keywordtype">bool</span> m_invalidated{<span class="keyword">false</span>};</div>
-<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>};</div>
+<div class="line"><a id="l00048" name="l00048"></a><span class="lineno">   48</span>  DiscoveryAvahiContribution(DiscoveryAvahiContribution &amp;&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00049" name="l00049"></a><span class="lineno">   49</span>  DiscoveryAvahiContribution &amp;operator=(DiscoveryAvahiContribution &amp;&amp;) = <span class="keyword">delete</span>;</div>
+<div class="line"><a id="l00050" name="l00050"></a><span class="lineno">   50</span> </div>
+<div class="line"><a id="l00051" name="l00051"></a><span class="lineno">   51</span>  [[nodiscard]] <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> start();</div>
+<div class="line"><a id="l00052" name="l00052"></a><span class="lineno">   52</span>  [[nodiscard]] <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> drive();</div>
+<div class="line"><a id="l00053" name="l00053"></a><span class="lineno">   53</span>  [[nodiscard]] <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> retry(<a class="code hl_struct" href="structdmn_1_1detail_1_1DiscoveryAttemptId.html">DiscoveryAttemptId</a> <span class="keywordtype">id</span>);</div>
+<div class="line"><a id="l00055" name="l00055"></a><span class="lineno"><a class="line" href="classdmn_1_1detail_1_1DiscoveryAvahiContribution.html#ab6db1578dbebfe274022c0dbf4221f89">   55</a></span>  <span class="keywordtype">void</span> <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryAvahiContribution.html#ab6db1578dbebfe274022c0dbf4221f89">invalidate</a>() noexcept { m_invalidated = <span class="keyword">true</span>; }</div>
+<div class="line"><a id="l00056" name="l00056"></a><span class="lineno">   56</span> </div>
+<div class="line"><a id="l00057" name="l00057"></a><span class="lineno">   57</span>  <span class="keywordtype">void</span> releaseNative() noexcept;</div>
+<div class="line"><a id="l00058" name="l00058"></a><span class="lineno">   58</span>  [[nodiscard]] <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> cleanup();</div>
+<div class="line"><a id="l00060" name="l00060"></a><span class="lineno"><a class="line" href="classdmn_1_1detail_1_1DiscoveryAvahiContribution.html#a10a88223db6298775ee5245a38a83838">   60</a></span>  [[nodiscard]] <span class="keywordtype">bool</span> <a class="code hl_function" href="classdmn_1_1detail_1_1DiscoveryAvahiContribution.html#a10a88223db6298775ee5245a38a83838">cleaned</a>()<span class="keyword"> const </span>{ <span class="keywordflow">return</span> m_cleaned; }</div>
+<div class="line"><a id="l00061" name="l00061"></a><span class="lineno">   61</span> </div>
+<div class="line"><a id="l00062" name="l00062"></a><span class="lineno">   62</span><span class="keyword">private</span>:</div>
+<div class="line"><a id="l00063" name="l00063"></a><span class="lineno">   63</span>  <span class="keyword">struct </span>Operation {</div>
+<div class="line"><a id="l00064" name="l00064"></a><span class="lineno">   64</span>    std::optional&lt;std::uint64_t&gt; m_slot;</div>
+<div class="line"><a id="l00065" name="l00065"></a><span class="lineno">   65</span>    std::uint64_t m_token{0};</div>
+<div class="line"><a id="l00066" name="l00066"></a><span class="lineno">   66</span>    std::uint64_t m_resolution{0};</div>
+<div class="line"><a id="l00067" name="l00067"></a><span class="lineno">   67</span>    std::unique_ptr&lt;DiscoveryAvahiRecordWatch&gt; m_watch;</div>
+<div class="line"><a id="l00068" name="l00068"></a><span class="lineno">   68</span>    std::unique_ptr&lt;DiscoveryAvahiServiceResolver&gt; m_resolver;</div>
+<div class="line"><a id="l00069" name="l00069"></a><span class="lineno">   69</span>    std::optional&lt;DiscoveryError&gt; m_failure;</div>
+<div class="line"><a id="l00070" name="l00070"></a><span class="lineno">   70</span>    <span class="keywordtype">bool</span> m_success{<span class="keyword">false</span>};</div>
+<div class="line"><a id="l00071" name="l00071"></a><span class="lineno">   71</span>    <span class="keywordtype">bool</span> m_blocked{<span class="keyword">false</span>};</div>
+<div class="line"><a id="l00072" name="l00072"></a><span class="lineno">   72</span>  };</div>
+<div class="line"><a id="l00073" name="l00073"></a><span class="lineno">   73</span>  [[nodiscard]] <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> startWatch(std::size_t index);</div>
+<div class="line"><a id="l00074" name="l00074"></a><span class="lineno">   74</span>  [[nodiscard]] <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> startResolver(std::size_t index,</div>
+<div class="line"><a id="l00075" name="l00075"></a><span class="lineno">   75</span>                                              std::uint64_t resolution,</div>
+<div class="line"><a id="l00076" name="l00076"></a><span class="lineno">   76</span>                                              std::uint64_t token);</div>
+<div class="line"><a id="l00077" name="l00077"></a><span class="lineno">   77</span>  [[nodiscard]] <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> release(Operation &amp;operation,</div>
+<div class="line"><a id="l00078" name="l00078"></a><span class="lineno">   78</span>                                        <span class="keywordtype">bool</span> modelActive = <span class="keyword">true</span>);</div>
+<div class="line"><a id="l00079" name="l00079"></a><span class="lineno">   79</span>  [[nodiscard]] <a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a> recordsUpdate(</div>
+<div class="line"><a id="l00080" name="l00080"></a><span class="lineno">   80</span>      std::function&lt;<a class="code hl_typedef" href="dmn-discovery-core_8hpp.html#a674ef67f7168b8d9eb0c9f2d21c7ab86">DiscoveryResult</a>(DiscoveryRecords &amp;, std::uint64_t)&gt; update);</div>
+<div class="line"><a id="l00081" name="l00081"></a><span class="lineno">   81</span>  <span class="keywordtype">void</span> failed(std::size_t index, DiscoveryError error);</div>
+<div class="line"><a id="l00082" name="l00082"></a><span class="lineno">   82</span> </div>
+<div class="line"><a id="l00083" name="l00083"></a><span class="lineno">   83</span>  DiscoverySessionHandle m_session;</div>
+<div class="line"><a id="l00084" name="l00084"></a><span class="lineno">   84</span>  std::uint64_t m_epoch;</div>
+<div class="line"><a id="l00085" name="l00085"></a><span class="lineno">   85</span>  DiscoveryServiceKey m_key;</div>
+<div class="line"><a id="l00086" name="l00086"></a><span class="lineno">   86</span>  <a class="code hl_enumeration" href="dmn-discovery-core_8hpp.html#a75cf23eabe4456412500b693c3c8d505">DiscoveryContribution</a> m_contribution;</div>
+<div class="line"><a id="l00087" name="l00087"></a><span class="lineno">   87</span>  std::uint64_t m_source;</div>
+<div class="line"><a id="l00088" name="l00088"></a><span class="lineno">   88</span>  DiscoveryOptions m_options;</div>
+<div class="line"><a id="l00089" name="l00089"></a><span class="lineno">   89</span>  AvahiClient *m_client;</div>
+<div class="line"><a id="l00090" name="l00090"></a><span class="lineno">   90</span>  std::shared_ptr&lt;DiscoveryAvahiRecordApi&gt; m_record_api;</div>
+<div class="line"><a id="l00091" name="l00091"></a><span class="lineno">   91</span>  std::shared_ptr&lt;DiscoveryAvahiResolverApi&gt; m_resolver_api;</div>
+<div class="line"><a id="l00092" name="l00092"></a><span class="lineno">   92</span>  std::array&lt;bool, 2&gt; m_address_families;</div>
+<div class="line"><a id="l00093" name="l00093"></a><span class="lineno">   93</span>  std::array&lt;Operation, 4&gt; m_operations;</div>
+<div class="line"><a id="l00094" name="l00094"></a><span class="lineno">   94</span>  <span class="keywordtype">bool</span> m_started{<span class="keyword">false</span>};</div>
+<div class="line"><a id="l00095" name="l00095"></a><span class="lineno">   95</span>  <span class="keywordtype">bool</span> m_cleaned{<span class="keyword">false</span>};</div>
+<div class="line"><a id="l00096" name="l00096"></a><span class="lineno">   96</span>  <span class="keywordtype">bool</span> m_cleanup_allocation_failed{<span class="keyword">false</span>};</div>
+<div class="line"><a id="l00097" name="l00097"></a><span class="lineno">   97</span>  <span class="keywordtype">bool</span> m_driving{<span class="keyword">false</span>};</div>
+<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span>  <span class="keywordtype">bool</span> m_invalidated{<span class="keyword">false</span>};</div>
+<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>};</div>
 </div>
-<div class="line"><a id="l00098" name="l00098"></a><span class="lineno">   98</span> </div>
-<div class="line"><a id="l00099" name="l00099"></a><span class="lineno">   99</span>} <span class="comment">// namespace dmn::detail</span></div>
-<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span><span class="preprocessor">#endif </span><span class="comment">// DMN_DISCOVERY_AVAHI_CONTRIBUTION_HPP_</span></div>
-<div class="ttc" id="aclassdmn_1_1detail_1_1DiscoveryAvahiContribution_html_a10a88223db6298775ee5245a38a83838"><div class="ttname"><a href="classdmn_1_1detail_1_1DiscoveryAvahiContribution.html#a10a88223db6298775ee5245a38a83838">dmn::detail::DiscoveryAvahiContribution::cleaned</a></div><div class="ttdeci">bool cleaned() const</div><div class="ttdoc">Whether an unrecoverable exception or cleanup ended this owner.</div><div class="ttdef"><b>Definition</b> dmn-discovery-avahi-contribution.hpp:58</div></div>
-<div class="ttc" id="aclassdmn_1_1detail_1_1DiscoveryAvahiContribution_html_ab6db1578dbebfe274022c0dbf4221f89"><div class="ttname"><a href="classdmn_1_1detail_1_1DiscoveryAvahiContribution.html#ab6db1578dbebfe274022c0dbf4221f89">dmn::detail::DiscoveryAvahiContribution::invalidate</a></div><div class="ttdeci">void invalidate() noexcept</div><div class="ttdoc">Ignore further native callbacks until deferred cleanup.</div><div class="ttdef"><b>Definition</b> dmn-discovery-avahi-contribution.hpp:53</div></div>
+<div class="line"><a id="l00100" name="l00100"></a><span class="lineno">  100</span> </div>
+<div class="line"><a id="l00101" name="l00101"></a><span class="lineno">  101</span>} <span class="comment">// namespace dmn::detail</span></div>
+<div class="line"><a id="l00102" name="l00102"></a><span class="lineno">  102</span><span class="preprocessor">#endif </span><span class="comment">// DMN_DISCOVERY_AVAHI_CONTRIBUTION_HPP_</span></div>
+<div class="ttc" id="aclassdmn_1_1detail_1_1DiscoveryAvahiContribution_html_a10a88223db6298775ee5245a38a83838"><div class="ttname"><a href="classdmn_1_1detail_1_1DiscoveryAvahiContribution.html#a10a88223db6298775ee5245a38a83838">dmn::detail::DiscoveryAvahiContribution::cleaned</a></div><div class="ttdeci">bool cleaned() const</div><div class="ttdoc">Whether an unrecoverable exception or cleanup ended this owner.</div><div class="ttdef"><b>Definition</b> dmn-discovery-avahi-contribution.hpp:60</div></div>
+<div class="ttc" id="aclassdmn_1_1detail_1_1DiscoveryAvahiContribution_html_ab6db1578dbebfe274022c0dbf4221f89"><div class="ttname"><a href="classdmn_1_1detail_1_1DiscoveryAvahiContribution.html#ab6db1578dbebfe274022c0dbf4221f89">dmn::detail::DiscoveryAvahiContribution::invalidate</a></div><div class="ttdeci">void invalidate() noexcept</div><div class="ttdoc">Ignore further native callbacks until deferred cleanup.</div><div class="ttdef"><b>Definition</b> dmn-discovery-avahi-contribution.hpp:55</div></div>
 <div class="ttc" id="aclassdmn_1_1detail_1_1DiscoverySessionHandle_html"><div class="ttname"><a href="classdmn_1_1detail_1_1DiscoverySessionHandle.html">dmn::detail::DiscoverySessionHandle</a></div><div class="ttdoc">Copyable private browser handle with synchronous barriers.</div><div class="ttdef"><b>Definition</b> dmn-discovery-session.hpp:157</div></div>
 <div class="ttc" id="admn-discovery-avahi-record-watch_8hpp_html"><div class="ttname"><a href="dmn-discovery-avahi-record-watch_8hpp.html">dmn-discovery-avahi-record-watch.hpp</a></div><div class="ttdoc">Private, per-contribution Avahi SRV and TXT record watches.</div></div>
 <div class="ttc" id="admn-discovery-avahi-resolver_8hpp_html"><div class="ttname"><a href="dmn-discovery-avahi-resolver_8hpp.html">dmn-discovery-avahi-resolver.hpp</a></div><div class="ttdoc">Private, per-family Avahi service resolution.</div></div>
