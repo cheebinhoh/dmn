@@ -127,7 +127,10 @@ std::shared_ptr&lt; <a class="el" href="classdmn_1_1detail_1_1DiscoveryAvahiApi.
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Private Avahi poll and client ownership seam. </p>
-<p>Copyright © 2026 Chee Bin HOH. All rights reserved. </p>
+<p>Copyright © 2026 Chee Bin HOH. All rights reserved.</p>
+<h2 class="doxsection"><a class="anchor" id="autotoc_md22"></a>
+Architecture</h2>
+<p><span class="tt">DiscoveryAvahiPoller</span> is the only owner of the Avahi simple-poll and client references. <span class="tt">DiscoveryCommandWorker</span> drives it on the serialized state worker. Browser, resolver, record-watch and registration objects attach to that worker and translate native callbacks into the shared backend-neutral record/session model. No Avahi callback invokes application code directly. </p>
 </div><a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Typedef Documentation</h2>
 <a id="a9bb49e7677314965f44e8dfac9107c53" name="a9bb49e7677314965f44e8dfac9107c53"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9bb49e7677314965f44e8dfac9107c53">&#9670;&#160;</a></span>DiscoveryAvahiWakeWrite</h2>

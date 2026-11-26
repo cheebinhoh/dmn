@@ -123,7 +123,7 @@ Classes</h2></td></tr>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Discovery admission and environment-trusted DMesgNet transport. </p>
 <p>Copyright © 2026 Chee Bin HOH. All rights reserved.</p>
-<h2 class="doxsection"><a class="anchor" id="autotoc_md67"></a>
+<h2 class="doxsection"><a class="anchor" id="autotoc_md70"></a>
 Architecture</h2>
 <p><span class="tt">Dmn_DMesgNetDiscovery</span> owns only validated peer/session lifecycle. Discovery backends remain caller-owned and feed copied events into this coordinator. The injected factory is the transport boundary: the Phase 9.1 factory connects a TCP stream, applies bounded length-prefix framing, and supplies one <span class="tt">Dmn_Io&lt;std::string&gt;</span> to <span class="tt">Dmn_DMesgNet</span>. <span class="tt">Dmn_DMesgNet</span> owns its existing <span class="tt">Dmn_Proc</span> input worker; this adapter does not add another worker.</p>
 <p>The environment-trusted profile intentionally performs no authentication. A future authenticated factory can reuse the same coordinator and session contract without changing discovery values or the DMesgNet core. </p>

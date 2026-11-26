@@ -124,6 +124,7 @@ std::shared_ptr&lt; <a class="el" href="classdmn_1_1detail_1_1DiscoveryBonjourAp
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Private Bonjour reference polling and lifetime management. </p>
 <p>Copyright © 2026 Chee Bin HOH. All rights reserved.</p>
+<p>The poller is the Bonjour counterpart to <span class="tt">DiscoveryAvahiPoller</span>. It keeps DNSServiceRef values on the serialized discovery worker, pumps them through the native socket, and defers reference removal until callbacks unwind. Higher-level browser, address, record and registration adapters use this seam but do not expose Bonjour types through the public discovery API.</p>
 <p>This implementation is private and is not installed. Operations other than wake() run on the state worker. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->

@@ -124,5 +124,7 @@ var menudata={children:[
 {text:"File Members",url:"globals.html",children:[
 {text:"All",url:"globals.html",children:[
 {text:"d",url:"globals.html#index_d"}]},
+{text:"Typedefs",url:"globals_type.html"},
+{text:"Enumerations",url:"globals_enum.html"},
 {text:"Macros",url:"globals_defs.html",children:[
 {text:"d",url:"globals_defs.html#index_d"}]}]}]}]}

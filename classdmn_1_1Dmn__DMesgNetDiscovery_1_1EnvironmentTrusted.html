@@ -104,15 +104,101 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-static-methods" class="groupheader"><a id="pub-static-methods" name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
-<tr class="memitem:a356f2a79c202f6be0356a4e3a245e9fc" id="r_a356f2a79c202f6be0356a4e3a245e9fc"><td class="memItemLeft" align="right" valign="top"><a id="a356f2a79c202f6be0356a4e3a245e9fc" name="a356f2a79c202f6be0356a4e3a245e9fc"></a>
-static <a class="el" href="classdmn_1_1Dmn__DMesgNetDiscovery.html#a67491fe9537569ed56fef557f4d74a10">TransportFactory</a>&#160;</td><td class="memItemRight" valign="bottom"><b>factory</b> (std::string local_node_identity)</td></tr>
-<tr class="memitem:af04f4719e33698d4fecf2f28b2db5c5a" id="r_af04f4719e33698d4fecf2f28b2db5c5a"><td class="memItemLeft" align="right" valign="top"><a id="af04f4719e33698d4fecf2f28b2db5c5a" name="af04f4719e33698d4fecf2f28b2db5c5a"></a>
-static <a class="el" href="classdmn_1_1Dmn__DMesgNetDiscovery.html#a67491fe9537569ed56fef557f4d74a10">TransportFactory</a>&#160;</td><td class="memItemRight" valign="bottom"><b>factory</b> (std::string local_node_identity, <a class="el" href="structdmn_1_1Dmn__DMesgNetDiscovery_1_1EnvironmentTrusted_1_1Options.html">Options</a> options)</td></tr>
+<tr class="memitem:a356f2a79c202f6be0356a4e3a245e9fc" id="r_a356f2a79c202f6be0356a4e3a245e9fc"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classdmn_1_1Dmn__DMesgNetDiscovery.html#a67491fe9537569ed56fef557f4d74a10">TransportFactory</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a356f2a79c202f6be0356a4e3a245e9fc">factory</a> (std::string local_node_identity)</td></tr>
+<tr class="memdesc:a356f2a79c202f6be0356a4e3a245e9fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a Phase 9.1 environment-trusted transport factory.  <br /></td></tr>
+<tr class="memitem:af04f4719e33698d4fecf2f28b2db5c5a" id="r_af04f4719e33698d4fecf2f28b2db5c5a"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="classdmn_1_1Dmn__DMesgNetDiscovery.html#a67491fe9537569ed56fef557f4d74a10">TransportFactory</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af04f4719e33698d4fecf2f28b2db5c5a">factory</a> (std::string local_node_identity, <a class="el" href="structdmn_1_1Dmn__DMesgNetDiscovery_1_1EnvironmentTrusted_1_1Options.html">Options</a> options)</td></tr>
+<tr class="memdesc:af04f4719e33698d4fecf2f28b2db5c5a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Create a Phase 9.1 factory with explicit resource limits.  <br /></td></tr>
 </table>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Environment-trusted TCP adapter for isolated deployments. </p>
 <p>This adapter provides framing and DMesgNet wiring only. It deliberately performs no cryptographic authentication; callers must use it only when the network boundary is trusted. The future authenticated adapter can reuse the same session and factory boundary. </p>
-</div><hr/>The documentation for this class was generated from the following files:<ul>
+</div><a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a id="a356f2a79c202f6be0356a4e3a245e9fc" name="a356f2a79c202f6be0356a4e3a245e9fc"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a356f2a79c202f6be0356a4e3a245e9fc">&#9670;&#160;</a></span>factory() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classdmn_1_1Dmn__DMesgNetDiscovery.html#a67491fe9537569ed56fef557f4d74a10">Dmn_DMesgNetDiscovery::TransportFactory</a> dmn::Dmn_DMesgNetDiscovery::EnvironmentTrusted::factory </td>
+          <td>(</td>
+          <td class="paramtype">std::string</td>          <td class="paramname"><span class="paramname"><em>local_node_identity</em></span></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel nodiscard">nodiscard</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Create a Phase 9.1 environment-trusted transport factory. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">local_node_identity</td><td>Identity passed to the local DMesgNet node. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A factory that opens bounded framed TCP sessions. </dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::invalid_argument</td><td>if the identity is empty. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="af04f4719e33698d4fecf2f28b2db5c5a" name="af04f4719e33698d4fecf2f28b2db5c5a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af04f4719e33698d4fecf2f28b2db5c5a">&#9670;&#160;</a></span>factory() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classdmn_1_1Dmn__DMesgNetDiscovery.html#a67491fe9537569ed56fef557f4d74a10">Dmn_DMesgNetDiscovery::TransportFactory</a> dmn::Dmn_DMesgNetDiscovery::EnvironmentTrusted::factory </td>
+          <td>(</td>
+          <td class="paramtype">std::string</td>          <td class="paramname"><span class="paramname"><em>local_node_identity</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structdmn_1_1Dmn__DMesgNetDiscovery_1_1EnvironmentTrusted_1_1Options.html">Options</a></td>          <td class="paramname"><span class="paramname"><em>options</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel static">static</span><span class="mlabel nodiscard">nodiscard</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Create a Phase 9.1 factory with explicit resource limits. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">local_node_identity</td><td>Identity passed to the local DMesgNet node. </td></tr>
+    <tr><td class="paramname">options</td><td>Frame and pending-message bounds. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A factory that opens bounded framed TCP sessions. </dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">std::invalid_argument</td><td>if an identity or bound is invalid. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<hr/>The documentation for this class was generated from the following files:<ul>
 <li>include/<a class="el" href="dmn-dmesgnet-discovery_8hpp_source.html">dmn-dmesgnet-discovery.hpp</a></li>
 <li>src/<a class="el" href="dmn-dmesgnet-discovery_8cpp.html">dmn-dmesgnet-discovery.cpp</a></li>
 </ul>

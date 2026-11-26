@@ -105,6 +105,7 @@ $(function(){initNavTree('dmn-dmesgnet-discovery_8hpp.html','',''); });
 <code>#include &lt;memory&gt;</code><br />
 <code>#include &lt;optional&gt;</code><br />
 <code>#include &lt;string&gt;</code><br />
+<code>#include &lt;string_view&gt;</code><br />
 <code>#include &lt;vector&gt;</code><br />
 </div>
 <p><a href="dmn-dmesgnet-discovery_8hpp_source.html">Go to the source code of this file.</a></p>
@@ -124,7 +125,13 @@ Classes</h2></td></tr>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Explicit, policy-gated discovery admission for DMesgNet sessions. </p>
 <p>Copyright © 2026 Chee Bin HOH. All rights reserved.</p>
-<p>Discovery is never connected to DMesgNet implicitly. The caller starts the coordinator and supplies a factory that performs authenticated session construction; the factory receives only validated, owned endpoint data. </p>
+<p>Discovery is never connected to DMesgNet implicitly. The caller starts the coordinator and supplies a session factory; the Phase 9.1 EnvironmentTrusted factory constructs an unauthenticated, framed TCP session, while a future authenticated factory may perform TLS/mTLS or an equivalent handshake. Every factory receives only validated, owned endpoint data.</p>
+<h2 class="doxsection"><a class="anchor" id="autotoc_md32"></a>
+Architecture</h2>
+<p>The integration is intentionally a separate layer from both libraries:</p>
+<p><a class="el" href="classDmn__DiscoveryClient.html" title="Owner of explicitly created browsers, registrations and workers.">Dmn_DiscoveryClient</a> --&gt; Dmn_DMesgNetDiscovery --&gt; TransportFactory | | | | | +--&gt; Session | <span class="tt">--&gt; bounded peer/retry state
+         </span>--&gt; Avahi or Bonjour | v Dmn_DMesgNet | v Dmn_Io&lt;std::string&gt;</p>
+<p>The coordinator validates and admits copied discovery candidates but does not own an mDNS backend, parse application configuration or infer trust from TXT data. The factory owns transport construction and authentication. Phase 9.1 uses the environment-trusted TCP adapter; Phase 9.2 can replace only that factory/session boundary without changing discovery or Dmn_DMesgNet. </p>
 </div></div><!-- contents -->
 </div><!-- doc-content -->
 <div id="page-nav" class="page-nav-panel">

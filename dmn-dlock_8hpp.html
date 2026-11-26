@@ -186,13 +186,13 @@ Enumerations</h2></td></tr>
 <a name="details" id="details"></a><h2 id="header-details" class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Prototype DLock values and local acquisition API. </p>
 <p>Copyright © 2026 Chee Bin HOH. All rights reserved.</p>
-<h2 class="doxsection"><a class="anchor" id="autotoc_md24"></a>
+<h2 class="doxsection"><a class="anchor" id="autotoc_md26"></a>
 Overview</h2>
 <p>This header currently provides DLock value types, snapshot/protobuf conversion helpers, a lightweight DMesg-handler wrapper, and a basic instance-local mutex/condition-variable acquisition prototype. Despite the design target described by the companion spec, this implementation does not publish snapshots, synchronize independent handlers, or implement a distributed lock protocol.</p>
-<h2 class="doxsection"><a class="anchor" id="autotoc_md25"></a>
+<h2 class="doxsection"><a class="anchor" id="autotoc_md27"></a>
 Phase boundary</h2>
 <p>The template is restricted to <span class="tt">Dmn_DMesg</span>, but this type constraint is not evidence that publisher-serialized v1 is implemented. <span class="tt">Dmn_DMesgNet</span> and its election state are not used as a lock authority.</p>
-<h2 class="doxsection"><a class="anchor" id="autotoc_md26"></a>
+<h2 class="doxsection"><a class="anchor" id="autotoc_md28"></a>
 Key responsibilities</h2>
 <ul>
 <li>Define the public DLock result and lifecycle contract (<span class="tt">Dmn_DLock_Result</span>, <span class="tt">Dmn_DLock_ResultCode</span>, and <span class="tt">Dmn_DLock_LifecycleEvent</span>).</li>
@@ -201,7 +201,7 @@ Key responsibilities</h2>
 <li>Provide a local-only <span class="tt">Dmn_DLock</span> acquire/release prototype; no transport commit or cross-handler synchronization is performed.</li>
 <li>Use the additive <span class="tt">DMesgBodyPb</span> protobuf payload shape for snapshot values.</li>
 </ul>
-<h2 class="doxsection"><a class="anchor" id="autotoc_md27"></a>
+<h2 class="doxsection"><a class="anchor" id="autotoc_md29"></a>
 Thread safety and execution model</h2>
 <p>The current acquire/release operations synchronize a single in-memory table with a mutex and condition variable. They do not run in a DMesg handler context or publish state. <span class="tt">acquireLockAsync()</span> uses workers owned by the lock; destruction wakes blocked acquisitions, completes them with <span class="tt">kShutdown</span>, and joins all workers. This prototype is not safe to use as a distributed lock.</p>
 <p>See also</p><ul>

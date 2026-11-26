@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['memory_20order_20notes_0',['Threading / memory-order notes',['../dmn-inflight-guard_8hpp.html#autotoc_md32',1,'']]],
-  ['model_1',['model',['../dmn-blockingqueue-lf_8hpp.html#autotoc_md6',1,'Blocking model'],['../dmn-dlock_8hpp.html#autotoc_md27',1,'Thread safety and execution model'],['../dmn-pub-sub_8hpp.html#autotoc_md50',1,'Threading and execution model']]],
+  ['memory_20order_20notes_0',['Threading / memory-order notes',['../dmn-inflight-guard_8hpp.html#autotoc_md35',1,'']]],
+  ['model_1',['model',['../dmn-blockingqueue-lf_8hpp.html#autotoc_md6',1,'Blocking model'],['../dmn-dlock_8hpp.html#autotoc_md29',1,'Thread safety and execution model'],['../dmn-pub-sub_8hpp.html#autotoc_md53',1,'Threading and execution model']]],
   ['move_20and_20copy_20behavior_2',['Move and copy behavior',['../dmn-blockingqueue_8hpp.html#autotoc_md14',1,'']]]
 ];

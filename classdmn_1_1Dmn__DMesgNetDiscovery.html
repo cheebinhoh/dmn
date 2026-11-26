@@ -127,37 +127,99 @@ Public Types</h2></td></tr>
  }</td></tr>
 <tr class="memitem:a2c48db282597edda7442de5289c507ee" id="r_a2c48db282597edda7442de5289c507ee"><td class="memItemLeft" align="right" valign="top"><a id="a2c48db282597edda7442de5289c507ee" name="a2c48db282597edda7442de5289c507ee"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>FactoryResult</b> = std::expected&lt;std::unique_ptr&lt;<a class="el" href="classdmn_1_1Dmn__DMesgNetDiscovery_1_1Session.html">Session</a>&gt;, <a class="el" href="structdmn_1_1Dmn__DMesgNetDiscovery_1_1FactoryError.html">FactoryError</a>&gt;</td></tr>
-<tr class="memitem:a67491fe9537569ed56fef557f4d74a10" id="r_a67491fe9537569ed56fef557f4d74a10"><td class="memItemLeft" align="right" valign="top"><a id="a67491fe9537569ed56fef557f4d74a10" name="a67491fe9537569ed56fef557f4d74a10"></a>
-using&#160;</td><td class="memItemRight" valign="bottom"><b>TransportFactory</b> = std::function&lt;FactoryResult(const <a class="el" href="structdmn_1_1Dmn__DMesgNetDiscovery_1_1Endpoint.html">Endpoint</a> &amp;)&gt;</td></tr>
-<tr class="memdesc:a67491fe9537569ed56fef557f4d74a10"><td class="mdescLeft">&#160;</td><td class="mdescRight">The factory owns authentication and transport/session construction. <br /></td></tr>
+<tr class="memitem:a67491fe9537569ed56fef557f4d74a10" id="r_a67491fe9537569ed56fef557f4d74a10"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a67491fe9537569ed56fef557f4d74a10">TransportFactory</a> = std::function&lt;FactoryResult(const <a class="el" href="structdmn_1_1Dmn__DMesgNetDiscovery_1_1Endpoint.html">Endpoint</a> &amp;)&gt;</td></tr>
 <tr class="memitem:a7c6628354e10dcaa0056eb329b315e77" id="r_a7c6628354e10dcaa0056eb329b315e77"><td class="memItemLeft" align="right" valign="top"><a id="a7c6628354e10dcaa0056eb329b315e77" name="a7c6628354e10dcaa0056eb329b315e77"></a>
 using&#160;</td><td class="memItemRight" valign="bottom"><b>StatusHandler</b> = std::function&lt;void(const <a class="el" href="structdmn_1_1Dmn__DMesgNetDiscovery_1_1Status.html">Status</a> &amp;)&gt;</td></tr>
 <tr class="memdesc:a7c6628354e10dcaa0056eb329b315e77"><td class="mdescLeft">&#160;</td><td class="mdescRight">The handler must not throw and must not call barrier operations. <br /></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-pub-methods" class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a38eb02a45fa9ee89a7a284b0ddcab70d" id="r_a38eb02a45fa9ee89a7a284b0ddcab70d"><td class="memItemLeft" align="right" valign="top"><a id="a38eb02a45fa9ee89a7a284b0ddcab70d" name="a38eb02a45fa9ee89a7a284b0ddcab70d"></a>
-&#160;</td><td class="memItemRight" valign="bottom"><b>Dmn_DMesgNetDiscovery</b> (<a class="el" href="structdmn_1_1Dmn__DMesgNetDiscovery_1_1Policy.html">Policy</a> policy, <a class="el" href="#a67491fe9537569ed56fef557f4d74a10">TransportFactory</a> factory, <a class="el" href="#a7c6628354e10dcaa0056eb329b315e77">StatusHandler</a> handler={})</td></tr>
+<tr class="memitem:a38eb02a45fa9ee89a7a284b0ddcab70d" id="r_a38eb02a45fa9ee89a7a284b0ddcab70d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a38eb02a45fa9ee89a7a284b0ddcab70d">Dmn_DMesgNetDiscovery</a> (<a class="el" href="structdmn_1_1Dmn__DMesgNetDiscovery_1_1Policy.html">Policy</a> policy, <a class="el" href="#a67491fe9537569ed56fef557f4d74a10">TransportFactory</a> factory, <a class="el" href="#a7c6628354e10dcaa0056eb329b315e77">StatusHandler</a> handler={})</td></tr>
+<tr class="memdesc:a38eb02a45fa9ee89a7a284b0ddcab70d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Construct an explicitly controlled discovery coordinator.  <br /></td></tr>
 <tr class="memitem:af0a2cd934fd9dc4645de532f32e7dd70" id="r_af0a2cd934fd9dc4645de532f32e7dd70"><td class="memItemLeft" align="right" valign="top"><a id="af0a2cd934fd9dc4645de532f32e7dd70" name="af0a2cd934fd9dc4645de532f32e7dd70"></a>
 &#160;</td><td class="memItemRight" valign="bottom"><b>Dmn_DMesgNetDiscovery</b> (const Dmn_DMesgNetDiscovery &amp;)=delete</td></tr>
 <tr class="memitem:a1650b25e39c0416a788d951b74dc3b37" id="r_a1650b25e39c0416a788d951b74dc3b37"><td class="memItemLeft" align="right" valign="top"><a id="a1650b25e39c0416a788d951b74dc3b37" name="a1650b25e39c0416a788d951b74dc3b37"></a>
-Dmn_DMesgNetDiscovery &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (const Dmn_DMesgNetDiscovery &amp;)=delete</td></tr>
+<a class="el" href="#a38eb02a45fa9ee89a7a284b0ddcab70d">Dmn_DMesgNetDiscovery</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (const <a class="el" href="#a38eb02a45fa9ee89a7a284b0ddcab70d">Dmn_DMesgNetDiscovery</a> &amp;)=delete</td></tr>
+<tr class="memitem:af190cecbdefbbb49cc4faf0e23351f3e" id="r_af190cecbdefbbb49cc4faf0e23351f3e"><td class="memItemLeft" align="right" valign="top"><a id="af190cecbdefbbb49cc4faf0e23351f3e" name="af190cecbdefbbb49cc4faf0e23351f3e"></a>
+&#160;</td><td class="memItemRight" valign="bottom"><b>Dmn_DMesgNetDiscovery</b> (Dmn_DMesgNetDiscovery &amp;&amp;)=delete</td></tr>
+<tr class="memitem:aa9c8fe85c0e5930f480e1ba92ffbb631" id="r_aa9c8fe85c0e5930f480e1ba92ffbb631"><td class="memItemLeft" align="right" valign="top"><a id="aa9c8fe85c0e5930f480e1ba92ffbb631" name="aa9c8fe85c0e5930f480e1ba92ffbb631"></a>
+<a class="el" href="#a38eb02a45fa9ee89a7a284b0ddcab70d">Dmn_DMesgNetDiscovery</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><b>operator=</b> (<a class="el" href="#a38eb02a45fa9ee89a7a284b0ddcab70d">Dmn_DMesgNetDiscovery</a> &amp;&amp;)=delete</td></tr>
 <tr class="memitem:a34c881f388643b27f936fca68fa58239" id="r_a34c881f388643b27f936fca68fa58239"><td class="memItemLeft" align="right" valign="top"><a id="a34c881f388643b27f936fca68fa58239" name="a34c881f388643b27f936fca68fa58239"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>start</b> ()</td></tr>
+<tr class="memdesc:a34c881f388643b27f936fca68fa58239"><td class="mdescLeft">&#160;</td><td class="mdescRight">Begin accepting discovery events; repeated calls are harmless. <br /></td></tr>
 <tr class="memitem:a5fd0c2194b42a5346003a1bab3fb0e54" id="r_a5fd0c2194b42a5346003a1bab3fb0e54"><td class="memItemLeft" align="right" valign="top"><a id="a5fd0c2194b42a5346003a1bab3fb0e54" name="a5fd0c2194b42a5346003a1bab3fb0e54"></a>
 void&#160;</td><td class="memItemRight" valign="bottom"><b>shutdown</b> () noexcept</td></tr>
+<tr class="memdesc:a5fd0c2194b42a5346003a1bab3fb0e54"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stop admission, close owned sessions and clear retry state. <br /></td></tr>
 <tr class="memitem:ae0ccc4aecfb81bacbab7f45e278b7b1f" id="r_ae0ccc4aecfb81bacbab7f45e278b7b1f"><td class="memItemLeft" align="right" valign="top"><a id="ae0ccc4aecfb81bacbab7f45e278b7b1f" name="ae0ccc4aecfb81bacbab7f45e278b7b1f"></a>
 bool&#160;</td><td class="memItemRight" valign="bottom"><b>running</b> () const noexcept</td></tr>
+<tr class="memdesc:ae0ccc4aecfb81bacbab7f45e278b7b1f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return whether the coordinator currently accepts events. <br /></td></tr>
 <tr class="memitem:aafd5cc1decef6cd4259221e70c2c1f0d" id="r_aafd5cc1decef6cd4259221e70c2c1f0d"><td class="memItemLeft" align="right" valign="top"><a id="aafd5cc1decef6cd4259221e70c2c1f0d" name="aafd5cc1decef6cd4259221e70c2c1f0d"></a>
 std::size_t&#160;</td><td class="memItemRight" valign="bottom"><b>peerCount</b> () const noexcept</td></tr>
+<tr class="memdesc:aafd5cc1decef6cd4259221e70c2c1f0d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Return the number of currently admitted peers. <br /></td></tr>
 <tr class="memitem:a568a032800654b597828755efeabe1a8" id="r_a568a032800654b597828755efeabe1a8"><td class="memItemLeft" align="right" valign="top"><a id="a568a032800654b597828755efeabe1a8" name="a568a032800654b597828755efeabe1a8"></a>
 <a class="el" href="structdmn_1_1Dmn__DMesgNetDiscovery_1_1Status.html">Status</a>&#160;</td><td class="memItemRight" valign="bottom"><b>status</b> () const</td></tr>
-<tr class="memitem:ae3c642ee8a6546e7168859eb5e1ff284" id="r_ae3c642ee8a6546e7168859eb5e1ff284"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae3c642ee8a6546e7168859eb5e1ff284">handle</a> (<a class="el" href="structdmn_1_1Dmn__DiscoveryEvent.html">Dmn_DiscoveryEvent</a> event, std::chrono::steady_clock::time_point now=std::chrono::steady_clock::now())</td></tr>
-<tr class="memitem:aec2c47cfdc314c6f6fd9cc9ac6de4cc6" id="r_aec2c47cfdc314c6f6fd9cc9ac6de4cc6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aec2c47cfdc314c6f6fd9cc9ac6de4cc6">sessionLost</a> (const <a class="el" href="structdmn_1_1Dmn__DiscoveryServiceKey.html">Dmn_DiscoveryServiceKey</a> &amp;key, std::uint64_t generation, bool transient, std::chrono::steady_clock::time_point now)</td></tr>
+<tr class="memdesc:a568a032800654b597828755efeabe1a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copy the latest coordinator status. <br /></td></tr>
+<tr class="memitem:af82424146366d8f3a9e50c8e5c32f950" id="r_af82424146366d8f3a9e50c8e5c32f950"><td class="memItemLeft" align="right" valign="top">std::expected&lt; Dmn_DMesg::HandlerType, std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#af82424146366d8f3a9e50c8e5c32f950">openHandler</a> (const <a class="el" href="structDmn__DiscoveryServiceKey.html">Dmn_DiscoveryServiceKey</a> &amp;key, std::string_view name, std::string_view topic)</td></tr>
+<tr class="memdesc:af82424146366d8f3a9e50c8e5c32f950"><td class="mdescLeft">&#160;</td><td class="mdescRight">Open a handler on an admitted peer's DMesgNet session.  <br /></td></tr>
+<tr class="memitem:ae3c642ee8a6546e7168859eb5e1ff284" id="r_ae3c642ee8a6546e7168859eb5e1ff284"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ae3c642ee8a6546e7168859eb5e1ff284">handle</a> (<a class="el" href="structDmn__DiscoveryEvent.html">Dmn_DiscoveryEvent</a> event, std::chrono::steady_clock::time_point now=std::chrono::steady_clock::now())</td></tr>
+<tr class="memitem:aec2c47cfdc314c6f6fd9cc9ac6de4cc6" id="r_aec2c47cfdc314c6f6fd9cc9ac6de4cc6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#aec2c47cfdc314c6f6fd9cc9ac6de4cc6">sessionLost</a> (const <a class="el" href="structDmn__DiscoveryServiceKey.html">Dmn_DiscoveryServiceKey</a> &amp;key, std::uint64_t generation, bool transient, std::chrono::steady_clock::time_point now)</td></tr>
 <tr class="memdesc:aec2c47cfdc314c6f6fd9cc9ac6de4cc6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Notify the coordinator that a session was lost.  <br /></td></tr>
 <tr class="memitem:a0f63051a7b15639236363d8119b345ca" id="r_a0f63051a7b15639236363d8119b345ca"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a0f63051a7b15639236363d8119b345ca">retry</a> (std::chrono::steady_clock::time_point now)</td></tr>
 <tr class="memdesc:a0f63051a7b15639236363d8119b345ca"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execute retries whose caller-supplied time has arrived.  <br /></td></tr>
 </table>
+<a name="doc-typedef-members" id="doc-typedef-members"></a><h2 id="header-doc-typedef-members" class="groupheader">Member Typedef Documentation</h2>
+<a id="a67491fe9537569ed56fef557f4d74a10" name="a67491fe9537569ed56fef557f4d74a10"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a67491fe9537569ed56fef557f4d74a10">&#9670;&#160;</a></span>TransportFactory</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="#a67491fe9537569ed56fef557f4d74a10">dmn::Dmn_DMesgNetDiscovery::TransportFactory</a> = std::function&lt;FactoryResult(const <a class="el" href="structdmn_1_1Dmn__DMesgNetDiscovery_1_1Endpoint.html">Endpoint</a> &amp;)&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<p>The factory owns transport construction and, when selected, authentication. </p>
+
+</div>
+</div>
+<a name="doc-constructors" id="doc-constructors"></a><h2 id="header-doc-constructors" class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="a38eb02a45fa9ee89a7a284b0ddcab70d" name="a38eb02a45fa9ee89a7a284b0ddcab70d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a38eb02a45fa9ee89a7a284b0ddcab70d">&#9670;&#160;</a></span>Dmn_DMesgNetDiscovery()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">dmn::Dmn_DMesgNetDiscovery::Dmn_DMesgNetDiscovery </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structdmn_1_1Dmn__DMesgNetDiscovery_1_1Policy.html">Policy</a></td>          <td class="paramname"><span class="paramname"><em>policy</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="#a67491fe9537569ed56fef557f4d74a10">TransportFactory</a></td>          <td class="paramname"><span class="paramname"><em>factory</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="#a7c6628354e10dcaa0056eb329b315e77">StatusHandler</a></td>          <td class="paramname"><span class="paramname"><em>handler</em></span><span class="paramdefsep"> = </span><span class="paramdefval">{}</span>&#160;)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Construct an explicitly controlled discovery coordinator. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">policy</td><td>Admission filters and resource/retry limits. </td></tr>
+    <tr><td class="paramname">factory</td><td>Transport/session construction boundary. </td></tr>
+    <tr><td class="paramname">handler</td><td>Optional serialized status callback. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
 <a id="ae3c642ee8a6546e7168859eb5e1ff284" name="ae3c642ee8a6546e7168859eb5e1ff284"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae3c642ee8a6546e7168859eb5e1ff284">&#9670;&#160;</a></span>handle()</h2>
@@ -168,7 +230,7 @@ std::size_t&#160;</td><td class="memItemRight" valign="bottom"><b>peerCount</b> 
         <tr>
           <td class="memname">void dmn::Dmn_DMesgNetDiscovery::handle </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structdmn_1_1Dmn__DiscoveryEvent.html">Dmn_DiscoveryEvent</a></td>          <td class="paramname"><span class="paramname"><em>event</em></span>, </td>
+          <td class="paramtype"><a class="el" href="structDmn__DiscoveryEvent.html">Dmn_DiscoveryEvent</a></td>          <td class="paramname"><span class="paramname"><em>event</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -178,6 +240,51 @@ std::size_t&#160;</td><td class="memItemRight" valign="bottom"><b>peerCount</b> 
       </table>
 </div><div class="memdoc">
 <p>Process one owned browser event. Events before start are ignored. </p>
+
+</div>
+</div>
+<a id="af82424146366d8f3a9e50c8e5c32f950" name="af82424146366d8f3a9e50c8e5c32f950"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af82424146366d8f3a9e50c8e5c32f950">&#9670;&#160;</a></span>openHandler()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::expected&lt; Dmn_DMesg::HandlerType, std::string &gt; dmn::Dmn_DMesgNetDiscovery::openHandler </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="structDmn__DiscoveryServiceKey.html">Dmn_DiscoveryServiceKey</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>key</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string_view</td>          <td class="paramname"><span class="paramname"><em>name</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string_view</td>          <td class="paramname"><span class="paramname"><em>topic</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel nodiscard">nodiscard</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Open a handler on an admitted peer's DMesgNet session. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">key</td><td>Service key identifying the admitted peer. </td></tr>
+    <tr><td class="paramname">name</td><td>Handler name. </td></tr>
+    <tr><td class="paramname">topic</td><td>Topic to receive and publish. </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>A handler proxy, or an error when the peer is not admitted or the session does not expose a DMesgNet publisher. </dd></dl>
 
 </div>
 </div>
@@ -210,7 +317,7 @@ std::size_t&#160;</td><td class="memItemRight" valign="bottom"><b>peerCount</b> 
         <tr>
           <td class="memname">void dmn::Dmn_DMesgNetDiscovery::sessionLost </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="structdmn_1_1Dmn__DiscoveryServiceKey.html">Dmn_DiscoveryServiceKey</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>key</em></span>, </td>
+          <td class="paramtype">const <a class="el" href="structDmn__DiscoveryServiceKey.html">Dmn_DiscoveryServiceKey</a> &amp;</td>          <td class="paramname"><span class="paramname"><em>key</em></span>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>

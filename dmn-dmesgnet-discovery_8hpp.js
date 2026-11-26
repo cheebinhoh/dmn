@@ -1,7 +1,7 @@
 var dmn_dmesgnet_discovery_8hpp =
 [
     [ "dmn::Dmn_DMesgNetDiscovery", "classdmn_1_1Dmn__DMesgNetDiscovery.html", "classdmn_1_1Dmn__DMesgNetDiscovery" ],
-    [ "dmn::Dmn_DMesgNetDiscovery::Session", "classdmn_1_1Dmn__DMesgNetDiscovery_1_1Session.html", null ],
+    [ "dmn::Dmn_DMesgNetDiscovery::Session", "classdmn_1_1Dmn__DMesgNetDiscovery_1_1Session.html", "classdmn_1_1Dmn__DMesgNetDiscovery_1_1Session" ],
     [ "dmn::Dmn_DMesgNetDiscovery::Endpoint", "structdmn_1_1Dmn__DMesgNetDiscovery_1_1Endpoint.html", null ],
     [ "dmn::Dmn_DMesgNetDiscovery::Policy", "structdmn_1_1Dmn__DMesgNetDiscovery_1_1Policy.html", null ],
     [ "dmn::Dmn_DMesgNetDiscovery::Status", "structdmn_1_1Dmn__DMesgNetDiscovery_1_1Status.html", null ],

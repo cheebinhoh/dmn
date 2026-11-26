@@ -97,11 +97,103 @@ $(function(){initNavTree('classdmn_1_1Dmn__DMesgNetDiscovery_1_1Session.html',''
 Public Member Functions</h2></td></tr>
 <tr class="memitem:abc6637999ca7e0aad0d5bb9a9abb5b74" id="r_abc6637999ca7e0aad0d5bb9a9abb5b74"><td class="memItemLeft" align="right" valign="top"><a id="abc6637999ca7e0aad0d5bb9a9abb5b74" name="abc6637999ca7e0aad0d5bb9a9abb5b74"></a>
 virtual void&#160;</td><td class="memItemRight" valign="bottom"><b>shutdown</b> () noexcept=0</td></tr>
-<tr class="memitem:ac4e1ef4adc0a879333bab32a2223be94" id="r_ac4e1ef4adc0a879333bab32a2223be94"><td class="memItemLeft" align="right" valign="top"><a id="ac4e1ef4adc0a879333bab32a2223be94" name="ac4e1ef4adc0a879333bab32a2223be94"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>ready</b> () const noexcept</td></tr>
-<tr class="memitem:ac800fe84d0e18f5f7f26e4feb0b0c609" id="r_ac800fe84d0e18f5f7f26e4feb0b0c609"><td class="memItemLeft" align="right" valign="top"><a id="ac800fe84d0e18f5f7f26e4feb0b0c609" name="ac800fe84d0e18f5f7f26e4feb0b0c609"></a>
-virtual bool&#160;</td><td class="memItemRight" valign="bottom"><b>authenticated</b> () const noexcept</td></tr>
+<tr class="memdesc:abc6637999ca7e0aad0d5bb9a9abb5b74"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stop the owned transport and DMesgNet session. <br /></td></tr>
+<tr class="memitem:a015ad08f09710a83dd69eb680763a7e4" id="r_a015ad08f09710a83dd69eb680763a7e4"><td class="memItemLeft" align="right" valign="top">virtual Dmn_DMesg::HandlerType&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#a015ad08f09710a83dd69eb680763a7e4">openHandler</a> (std::string_view name, std::string_view topic)</td></tr>
+<tr class="memdesc:a015ad08f09710a83dd69eb680763a7e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Open a handler on the owned DMesgNet session.  <br /></td></tr>
+<tr class="memitem:ac4e1ef4adc0a879333bab32a2223be94" id="r_ac4e1ef4adc0a879333bab32a2223be94"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac4e1ef4adc0a879333bab32a2223be94">ready</a> () const noexcept</td></tr>
+<tr class="memdesc:ac4e1ef4adc0a879333bab32a2223be94"><td class="mdescLeft">&#160;</td><td class="mdescRight">Report whether the session completed transport setup.  <br /></td></tr>
+<tr class="memitem:ac800fe84d0e18f5f7f26e4feb0b0c609" id="r_ac800fe84d0e18f5f7f26e4feb0b0c609"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="#ac800fe84d0e18f5f7f26e4feb0b0c609">authenticated</a> () const noexcept</td></tr>
+<tr class="memdesc:ac800fe84d0e18f5f7f26e4feb0b0c609"><td class="mdescLeft">&#160;</td><td class="mdescRight">Report whether the peer was authenticated by the factory.  <br /></td></tr>
 </table>
+<a name="doc-func-members" id="doc-func-members"></a><h2 id="header-doc-func-members" class="groupheader">Member Function Documentation</h2>
+<a id="ac800fe84d0e18f5f7f26e4feb0b0c609" name="ac800fe84d0e18f5f7f26e4feb0b0c609"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac800fe84d0e18f5f7f26e4feb0b0c609">&#9670;&#160;</a></span>authenticated()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual bool dmn::Dmn_DMesgNetDiscovery::Session::authenticated </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel nodiscard">nodiscard</span><span class="mlabel virtual">virtual</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Report whether the peer was authenticated by the factory. </p>
+<p>The environment-trusted adapter intentionally returns false through its session implementation. </p>
+
+</div>
+</div>
+<a id="a015ad08f09710a83dd69eb680763a7e4" name="a015ad08f09710a83dd69eb680763a7e4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a015ad08f09710a83dd69eb680763a7e4">&#9670;&#160;</a></span>openHandler()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual Dmn_DMesg::HandlerType dmn::Dmn_DMesgNetDiscovery::Session::openHandler </td>
+          <td>(</td>
+          <td class="paramtype">std::string_view</td>          <td class="paramname"><span class="paramname"><em>name</em></span>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string_view</td>          <td class="paramname"><span class="paramname"><em>topic</em></span>&#160;)</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel nodiscard">nodiscard</span><span class="mlabel virtual">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Open a handler on the owned DMesgNet session. </p>
+<p>The returned proxy is invalid when the session does not expose a DMesgNet publisher. Implementations must not retain the arguments. </p>
+
+</div>
+</div>
+<a id="ac4e1ef4adc0a879333bab32a2223be94" name="ac4e1ef4adc0a879333bab32a2223be94"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac4e1ef4adc0a879333bab32a2223be94">&#9670;&#160;</a></span>ready()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual bool dmn::Dmn_DMesgNetDiscovery::Session::ready </td>
+          <td>(</td>
+          <td class="paramname"><span class="paramname"><em></em></span></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel inline">inline</span><span class="mlabel nodiscard">nodiscard</span><span class="mlabel virtual">virtual</span><span class="mlabel noexcept">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Report whether the session completed transport setup. </p>
+<p>The default is ready for compatibility with simple injected sessions; authenticated adapters should override this until their handshake completes. </p>
+
+</div>
+</div>
 <hr/>The documentation for this class was generated from the following file:<ul>
 <li>include/<a class="el" href="dmn-dmesgnet-discovery_8hpp_source.html">dmn-dmesgnet-discovery.hpp</a></li>
 </ul>

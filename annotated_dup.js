@@ -80,6 +80,15 @@ var annotated_dup =
         [ "DiscoveryNativeSlotState", "structdmn_1_1detail_1_1DiscoveryNativeSlotState.html", null ],
         [ "Dmn_Runtime_Manager_Impl", "structdmn_1_1detail_1_1Dmn__Runtime__Manager__Impl.html", null ]
       ] ],
+      [ "Dmn_DiscoveryBrowser", null, [
+        [ "Impl", "structdmn_1_1Dmn__DiscoveryBrowser_1_1Impl.html", null ]
+      ] ],
+      [ "Dmn_DiscoveryRegistration", null, [
+        [ "Impl", "structdmn_1_1Dmn__DiscoveryRegistration_1_1Impl.html", null ]
+      ] ],
+      [ "Dmn_DiscoveryClient", null, [
+        [ "Impl", "structdmn_1_1Dmn__DiscoveryClient_1_1Impl.html", null ]
+      ] ],
       [ "Dmn_AncsMonitorError", "structdmn_1_1Dmn__AncsMonitorError.html", "structdmn_1_1Dmn__AncsMonitorError" ],
       [ "Dmn_AncsMonitorSession", "structdmn_1_1Dmn__AncsMonitorSession.html", "structdmn_1_1Dmn__AncsMonitorSession" ],
       [ "Dmn_AncsMonitorConfig", "structdmn_1_1Dmn__AncsMonitorConfig.html", "structdmn_1_1Dmn__AncsMonitorConfig" ],
@@ -113,23 +122,6 @@ var annotated_dup =
       [ "Dmn_DbusInput", "classdmn_1_1Dmn__DbusInput.html", "classdmn_1_1Dmn__DbusInput" ],
       [ "Dmn_DbusOutput", "classdmn_1_1Dmn__DbusOutput.html", "classdmn_1_1Dmn__DbusOutput" ],
       [ "Dmn_DbusValue", "classdmn_1_1Dmn__DbusValue.html", "classdmn_1_1Dmn__DbusValue" ],
-      [ "Dmn_DiscoveryError", "structdmn_1_1Dmn__DiscoveryError.html", null ],
-      [ "Dmn_DiscoveryAddress", "structdmn_1_1Dmn__DiscoveryAddress.html", null ],
-      [ "Dmn_DiscoveryServiceKey", "structdmn_1_1Dmn__DiscoveryServiceKey.html", null ],
-      [ "Dmn_DiscoverySrvRecord", "structdmn_1_1Dmn__DiscoverySrvRecord.html", null ],
-      [ "Dmn_DiscoveryRefreshStatus", "structdmn_1_1Dmn__DiscoveryRefreshStatus.html", null ],
-      [ "Dmn_DiscoveryFailure", "structdmn_1_1Dmn__DiscoveryFailure.html", null ],
-      [ "Dmn_DiscoveryProvenance", "structdmn_1_1Dmn__DiscoveryProvenance.html", null ],
-      [ "Dmn_DiscoveryCandidate", "structdmn_1_1Dmn__DiscoveryCandidate.html", null ],
-      [ "Dmn_DiscoverySnapshot", "structdmn_1_1Dmn__DiscoverySnapshot.html", null ],
-      [ "Dmn_DiscoveryEvent", "structdmn_1_1Dmn__DiscoveryEvent.html", null ],
-      [ "Dmn_DiscoveryQuery", "structdmn_1_1Dmn__DiscoveryQuery.html", null ],
-      [ "Dmn_DiscoveryAdvertisement", "structdmn_1_1Dmn__DiscoveryAdvertisement.html", null ],
-      [ "Dmn_DiscoveryRegistrationStatus", "structdmn_1_1Dmn__DiscoveryRegistrationStatus.html", null ],
-      [ "Dmn_DiscoveryOptions", "structdmn_1_1Dmn__DiscoveryOptions.html", null ],
-      [ "Dmn_DiscoveryBrowser", "classdmn_1_1Dmn__DiscoveryBrowser.html", "classdmn_1_1Dmn__DiscoveryBrowser" ],
-      [ "Dmn_DiscoveryRegistration", "classdmn_1_1Dmn__DiscoveryRegistration.html", "classdmn_1_1Dmn__DiscoveryRegistration" ],
-      [ "Dmn_DiscoveryClient", "classdmn_1_1Dmn__DiscoveryClient.html", "classdmn_1_1Dmn__DiscoveryClient" ],
       [ "Dmn_DLock_Range", "structdmn_1_1Dmn__DLock__Range.html", null ],
       [ "Dmn_DLock_Result", "structdmn_1_1Dmn__DLock__Result.html", null ],
       [ "Dmn_DLock_LifecycleEvent", "structdmn_1_1Dmn__DLock__LifecycleEvent.html", null ],
@@ -174,5 +166,22 @@ var annotated_dup =
       [ "ScopeGuard", "classdmn_1_1ScopeGuard.html", "classdmn_1_1ScopeGuard" ],
       [ "Dmn_DMesgNet_Kafka", "classdmn_1_1Dmn__DMesgNet__Kafka.html", "classdmn_1_1Dmn__DMesgNet__Kafka" ],
       [ "Dmn_Kafka", "classdmn_1_1Dmn__Kafka.html", "classdmn_1_1Dmn__Kafka" ]
-    ] ]
+    ] ],
+    [ "Dmn_DiscoveryAddress", "structDmn__DiscoveryAddress.html", null ],
+    [ "Dmn_DiscoveryAdvertisement", "structDmn__DiscoveryAdvertisement.html", null ],
+    [ "Dmn_DiscoveryBrowser", "classDmn__DiscoveryBrowser.html", "classDmn__DiscoveryBrowser" ],
+    [ "Dmn_DiscoveryCandidate", "structDmn__DiscoveryCandidate.html", null ],
+    [ "Dmn_DiscoveryClient", "classDmn__DiscoveryClient.html", "classDmn__DiscoveryClient" ],
+    [ "Dmn_DiscoveryError", "structDmn__DiscoveryError.html", null ],
+    [ "Dmn_DiscoveryEvent", "structDmn__DiscoveryEvent.html", null ],
+    [ "Dmn_DiscoveryFailure", "structDmn__DiscoveryFailure.html", null ],
+    [ "Dmn_DiscoveryOptions", "structDmn__DiscoveryOptions.html", null ],
+    [ "Dmn_DiscoveryProvenance", "structDmn__DiscoveryProvenance.html", null ],
+    [ "Dmn_DiscoveryQuery", "structDmn__DiscoveryQuery.html", null ],
+    [ "Dmn_DiscoveryRefreshStatus", "structDmn__DiscoveryRefreshStatus.html", null ],
+    [ "Dmn_DiscoveryRegistration", "classDmn__DiscoveryRegistration.html", "classDmn__DiscoveryRegistration" ],
+    [ "Dmn_DiscoveryRegistrationStatus", "structDmn__DiscoveryRegistrationStatus.html", null ],
+    [ "Dmn_DiscoveryServiceKey", "structDmn__DiscoveryServiceKey.html", null ],
+    [ "Dmn_DiscoverySnapshot", "structDmn__DiscoverySnapshot.html", null ],
+    [ "Dmn_DiscoverySrvRecord", "structDmn__DiscoverySrvRecord.html", null ]
 ];

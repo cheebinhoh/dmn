@@ -67,13 +67,13 @@ var searchData=
   ['max_5fvalues_64',['max_values',['../structdmn_1_1Dmn__DbusClientLimits.html#a6e2f4ce9bc7be82cf55beba21d41b7fc',1,'dmn::Dmn_DbusClientLimits']]],
   ['maximum_5fpending_5fnotifications_65',['maximum_pending_notifications',['../structdmn_1_1Dmn__AncsConfig.html#a9577b70a345cdc6899a72dcb352226aa',1,'dmn::Dmn_AncsConfig']]],
   ['member_66',['member',['../structdmn_1_1Dmn__DbusSignalMatch.html#a8f381e6e84e445975f15978c5a4f7108',1,'dmn::Dmn_DbusSignalMatch']]],
-  ['memory_20order_20notes_67',['Threading / memory-order notes',['../dmn-inflight-guard_8hpp.html#autotoc_md32',1,'']]],
+  ['memory_20order_20notes_67',['Threading / memory-order notes',['../dmn-inflight-guard_8hpp.html#autotoc_md35',1,'']]],
   ['message_68',['message',['../structdmn_1_1Dmn__AncsMonitorError.html#a23d787fa12bde798dff7f208ace007a3',1,'dmn::Dmn_AncsMonitorError::message'],['../structdmn_1_1Dmn__BluezEvent.html#a8abd0b054f6c412ba9a863e0eb88d033',1,'dmn::Dmn_BluezEvent::message'],['../structdmn_1_1Dmn__DbusError.html#a13b94517c0ca29d553ec05a2ba7d4707',1,'dmn::Dmn_DbusError::message'],['../structdmn_1_1Dmn__GattError.html#a8b95181f3640d5b37190b4001aad50b8',1,'dmn::Dmn_GattError::message'],['../structdmn_1_1Dmn__GattEvent.html#a28d23a2c6c02e14fa2f59c65f31a872a',1,'dmn::Dmn_GattEvent::message']]],
   ['message_20body_20setters_69',['DMesgPb message body setters',['../group__dmesg__pb__body.html',1,'']]],
   ['message_20field_20setters_70',['DMesgPb message field setters',['../group__dmesg__pb__msg.html',1,'']]],
   ['message_20setters_71',['DMesgPb sys sub-message setters',['../group__dmesg__pb__sys.html',1,'']]],
   ['method_5ftimeout_72',['method_timeout',['../structdmn_1_1Dmn__DbusClientLimits.html#ab5e0e1b2321243b14c554c888513f5f7',1,'dmn::Dmn_DbusClientLimits']]],
-  ['model_73',['model',['../dmn-blockingqueue-lf_8hpp.html#autotoc_md6',1,'Blocking model'],['../dmn-dlock_8hpp.html#autotoc_md27',1,'Thread safety and execution model'],['../dmn-pub-sub_8hpp.html#autotoc_md50',1,'Threading and execution model']]],
+  ['model_73',['model',['../dmn-blockingqueue-lf_8hpp.html#autotoc_md6',1,'Blocking model'],['../dmn-dlock_8hpp.html#autotoc_md29',1,'Thread safety and execution model'],['../dmn-pub-sub_8hpp.html#autotoc_md53',1,'Threading and execution model']]],
   ['monitorgeneration_74',['monitorGeneration',['../classdmn_1_1detail_1_1DiscoveryRecords.html#a5d4238f0028089e2acc9805a628b88e8',1,'dmn::detail::DiscoveryRecords']]],
   ['move_20and_20copy_20behavior_75',['Move and copy behavior',['../dmn-blockingqueue_8hpp.html#autotoc_md14',1,'']]]
 ];
